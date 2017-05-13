@@ -1,4 +1,4 @@
-package arkgocli
+package arkcli
 
 import (
 	"arkcoin"

@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package address
+package arkcoin
 
 var wordlist = []string{
 	"abandon",

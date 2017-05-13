@@ -5,7 +5,7 @@
 //original code:https://github.com/btcsuite/btcutil/tree/master/hdkeychain
 //license:ISC License.
 
-package address
+package arkcoin
 
 // References:
 //   [BIP32]: BIP0032 - Hierarchical Deterministic Wallets
@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/bitgoin/address/base58"
-	"github.com/bitgoin/address/btcec"
+	"github.com/kristjank/ark-go/tree/develop/pkg/arkcoin/base58"
+	"github.com/kristjank/ark-go/tree/develop/pkg/arkcoin/btcec"
 )
 
 const (
