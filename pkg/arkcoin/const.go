@@ -26,10 +26,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package address
+package arkcoin
+
+import "github.com/bitgoin/address"
 
 var (
 	//BitcoinMain is params for main net.
+	ArkCoinMain = &address.Params{
+		DumpedPrivateKeyHeader: []byte{170}, //wif
+		AddressHeader:          23,
+		P2SHHeader:             5,
+		HDPrivateKeyID:         []byte{0x04, 0x88, 0xad, 0xe4},
+		HDPublicKeyID:          []byte{0x04, 0x88, 0xb2, 0x1e},
+	}
 	BitcoinMain = &Params{
 		DumpedPrivateKeyHeader: []byte{128},
 		AddressHeader:          0,

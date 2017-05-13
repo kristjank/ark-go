@@ -26,7 +26,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package address
+package arkcoin
 
 import (
 	"crypto/sha256"
@@ -35,7 +35,7 @@ import (
 	"log"
 
 	"github.com/bitgoin/address/base58"
-	"github.com/bitgoin/address/btcec"
+	"github.com/btcsuite/btcd/btcec"
 	"golang.org/x/crypto/ripemd160"
 )
 
