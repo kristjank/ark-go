@@ -1,4 +1,4 @@
-package arkcli
+package cmd
 
 import (
 	"ark-go/arkcoin"
@@ -32,12 +32,13 @@ func GetAddress(password string) string {
 	h.Write([]byte("this is a top secret passphrase"))
 	b := h.Sum(nil)
 
-	key := arkcoin.NewPrivateKey(b, arkcoin.ArkCoinMain)
+	key1 := arkcoin.NewPrivateKey(b, arkcoin.ArkCoinMain)
 	//arkcoin.NewPrivateKey(pb, param)
+	key := arkcoin.NewPrivateKeyFromPassword(password, arkcoin.ArkCoinMain)
 
 	//adr := key.PublicKey.Address()
 
-	//fmt.Printf("%x \n", key.PublicKey.Serialize())
+	fmt.Printf("%x \n", key1.PublicKey.Serialize())
 	//fmt.Printf(key.PublicKey.Address())
 
 	return key.PublicKey.Address()
