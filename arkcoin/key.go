@@ -1,40 +1,11 @@
-/*
- * Copyright (c) 2016, Shinya Yagyu
- * All rights reserved.
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- * 3. Neither the name of the copyright holder nor the names of its
- *    contributors may be used to endorse or promote products derived from this
- *    software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
-
 package arkcoin
 
 import (
-	"crypto/sha256"
+	"ark-go/arkcoin/base58"
 	"errors"
 	"fmt"
 	"log"
 
-	"github.com/bitgoin/address/base58"
 	"github.com/btcsuite/btcd/btcec"
 	"golang.org/x/crypto/ripemd160"
 )
@@ -180,7 +151,8 @@ func (pub *PublicKey) Serialize() []byte {
 func (pub *PublicKey) AddressBytes() []byte {
 	//Next we get a sha256 hash of the public key generated
 	//via ECDSA, and then get a ripemd160 hash of the sha256 hash.
-	shadPublicKeyBytes := sha256.Sum256(pub.Serialize())
+	//shadPublicKeyBytes := sha256.Sum256(pub.Serialize())
+	shadPublicKeyBytes := pub.Serialize()
 
 	ripeHash := ripemd160.New()
 	if _, err := ripeHash.Write(shadPublicKeyBytes[:]); err != nil {
@@ -223,7 +195,8 @@ func (pub *PublicKey) Verify(signature []byte, data []byte) error {
 
 //AddressBytes returns ripeme160(sha256(redeem)) (address of redeem script).
 func AddressBytes(redeem []byte) []byte {
-	h := sha256.Sum256(redeem)
+	//h := sha256.Sum256(redeem)
+	h := redeem
 	ripeHash := ripemd160.New()
 	if _, err := ripeHash.Write(h[:]); err != nil {
 		log.Fatal(err)

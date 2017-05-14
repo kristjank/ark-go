@@ -1,7 +1,7 @@
 package arkcli
 
 import (
-	"arkcoin"
+	"ark-go/arkcoin"
 	"crypto/sha256"
 	"fmt"
 
@@ -32,7 +32,7 @@ func GetAddress(password string) string {
 	h.Write([]byte("this is a top secret passphrase"))
 	b := h.Sum(nil)
 
-	key := arkcoin.NewPrivateKey(b, ArkCoinMain)
+	key := arkcoin.NewPrivateKey(b, arkcoin.ArkCoinMain)
 
 	//adr := key.PublicKey.Address()
 
