@@ -2,6 +2,7 @@ package arkcoin
 
 import (
 	"ark-go/arkcoin/base58"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"log"
@@ -85,6 +86,24 @@ func FromWIF(wif string, param *Params) (*PrivateKey, error) {
 			param:        param,
 		},
 	}, nil
+}
+
+//NewPrivateKeyFromPassword creates and returns PrivateKey from string.
+func NewPrivateKeyFromPassword(password string, param *Params) *PrivateKey {
+	h := sha256.New()
+	h.Write([]byte(password))
+	pb := h.Sum(nil)
+
+	//priv, pub := btcec.PrivKeyFromBytes(secp256k1, pb)
+	return NewPrivateKey(pb, param)
+	/* &PrivateKey{
+		PrivateKey: priv,
+		PublicKey: &PublicKey{
+			PublicKey:    pub,
+			isCompressed: true,
+			param:        param,
+		},
+	}*/
 }
 
 //NewPrivateKey creates and returns PrivateKey from bytes.

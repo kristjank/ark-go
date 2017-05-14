@@ -33,6 +33,7 @@ func GetAddress(password string) string {
 	b := h.Sum(nil)
 
 	key := arkcoin.NewPrivateKey(b, arkcoin.ArkCoinMain)
+	//arkcoin.NewPrivateKey(pb, param)
 
 	//adr := key.PublicKey.Address()
 
