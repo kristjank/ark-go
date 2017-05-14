@@ -8,6 +8,14 @@ var (
 		//P2SHHeader:             5,
 		//HDPrivateKeyID:         []byte{0x04, 0x88, 0xad, 0xe4},
 		//HDPublicKeyID:          []byte{0x04, 0x88, 0xb2, 0x1e},
+		Fees: Fees{
+			Send:            10000000,
+			Vote:            100000000,
+			Delegate:        2500000000,
+			SecondSignature: 500000000,
+			MultiSignature:  500000000,
+			DistributedApp:  2500000000,
+		},
 	}
 	BitcoinMain = &Params{
 		DumpedPrivateKeyHeader: []byte{128},

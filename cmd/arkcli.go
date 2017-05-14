@@ -2,8 +2,11 @@ package cmd
 
 import (
 	"ark-go/arkcoin"
+	"ark-go/core"
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/btcsuite/btcd/btcec"
 )
@@ -41,5 +44,20 @@ func GetAddress(password string) string {
 	fmt.Printf("%x \n", key1.PublicKey.Serialize())
 	//fmt.Printf(key.PublicKey.Address())
 
+	fmt.Printf("%x \n", key1.Serialize())
 	return key.PublicKey.Address()
+}
+
+func main() {
+	tx := core.CreateTransaction("AXoXnFi4z1Z6aFvjEYkDVCtBGW2PaRiM25",
+		133380000000,
+		"This is first transaction from ARK-NET",
+		"this is a top secret passphrase", "")
+
+	b, err := json.Marshal(&tx)
+	if err != nil {
+		log.Println(b)
+	} else {
+		log.Fatal(err.Error())
+	}
 }
