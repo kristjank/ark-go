@@ -159,16 +159,21 @@ func quickHexDecode(data string) []byte {
 }
 
 //Verify function verifies if tx is validly signed
-func (tx *Transaction) Verify() bool {
+//if return == nill verification was succesfull
+func (tx *Transaction) Verify() error {
 	return tx.verifyHelper(true)
 }
 
 //SecondVerify function verifies if tx is validly signed
-func (tx *Transaction) SecondVerify() bool {
+//if return == nill verification was succesfull
+func (tx *Transaction) SecondVerify() error {
 	return tx.verifyHelper(false)
 }
 
-func (tx *Transaction) verifyHelper(first bool) bool {
+//verifyHelper helps Signature verification. If parameter first is set to true
+//first signature is checked, if verified is set to false second signature is checked
+//if err == nill - verification was succesfull
+func (tx *Transaction) verifyHelper(first bool) error {
 	key, err := arkcoin.NewPublicKey(quickHexDecode(tx.SenderPublicKey), arkcoin.ArkCoinMain)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -177,16 +182,10 @@ func (tx *Transaction) verifyHelper(first bool) bool {
 	trHashBytes := sha256.New()
 	trHashBytes.Write(tx.toBytes(first, true))
 
-	var res
 	if first {
-		res := key.Verify(quickHexDecode(tx.Signature), trHashBytes.Sum(nil))
+		return key.Verify(quickHexDecode(tx.Signature), trHashBytes.Sum(nil))
 	} else {
-		res := key.Verify(quickHexDecode(tx.SignSignature), trHashBytes.Sum(nil))
+		return key.Verify(quickHexDecode(tx.SignSignature), trHashBytes.Sum(nil))
 	}
-
-	if res == nil {
-		return true
-	}
-	return false
 
 }
