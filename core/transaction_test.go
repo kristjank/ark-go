@@ -16,7 +16,7 @@ func TestCreateSignTransaction(t *testing.T) {
 	}
 
 	if tx.Amount != 133380000000 {
-		log.Fatal("Amount wrong")
+		log.Fatal(t, "Amount wrong")
 	}
 
 	if tx.Signature != "30450221008b7bc816d2224e34de8dac3dbe7d17789cf74f088a442a38f6e20fac632675bb02202d13119c896a2e282504341870d59cffe431395242834cd4d36afb62fbe27f97" {
