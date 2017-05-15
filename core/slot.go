@@ -2,6 +2,8 @@ package core
 
 import "time"
 
+//GetTime return time slot difference in secods. This timestamp is
+//added to the transaction.
 func GetTime() float64 {
 	mainNetStart := time.Date(2017, 3, 21, 13, 00, 0, 0, time.UTC)
 	now := time.Now()

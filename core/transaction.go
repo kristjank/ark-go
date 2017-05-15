@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"log"
 )
 
@@ -25,23 +26,13 @@ type Transaction struct {
 	ID                 string
 }
 
-func HexDecodeData(data string) []byte {
-	src := []byte(data)
-
-	dst := make([]byte, hex.DecodedLen(len(src)))
-	n, err := hex.Decode(dst, src)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return dst[:n]
-}
-
 //ToBytes returns bytearray of the Transaction object to be signed and send to blockchain
-func (tx *Transaction) ToBytes(skipSignature, skipSecondSignature bool) []byte {
+func (tx *Transaction) toBytes(skipSignature, skipSecondSignature bool) []byte {
 	txBuf := new(bytes.Buffer)
 	binary.Write(txBuf, binary.LittleEndian, tx.Type)
 	binary.Write(txBuf, binary.LittleEndian, uint32(tx.Timestamp))
-	binary.Write(txBuf, binary.LittleEndian, HexDecodeData(tx.SenderPublicKey))
+
+	binary.Write(txBuf, binary.LittleEndian, quickHexDecode(tx.SenderPublicKey))
 
 	if tx.RequesterPublicKey != "" {
 		res, err := base58.Decode(tx.RequesterPublicKey)
@@ -77,7 +68,7 @@ func (tx *Transaction) ToBytes(skipSignature, skipSecondSignature bool) []byte {
 
 	switch tx.Type {
 	case 1:
-		binary.Write(txBuf, binary.LittleEndian, HexDecodeData(tx.Signature))
+		binary.Write(txBuf, binary.LittleEndian, quickHexDecode(tx.Signature))
 	case 2:
 		//buffer.Put(Encoding.ASCII.GetBytes(asset["username"]));
 	case 3:
@@ -85,11 +76,11 @@ func (tx *Transaction) ToBytes(skipSignature, skipSecondSignature bool) []byte {
 	}
 
 	if !skipSignature && len(tx.Signature) > 0 {
-		binary.Write(txBuf, binary.LittleEndian, HexDecodeData(tx.Signature))
+		binary.Write(txBuf, binary.LittleEndian, quickHexDecode(tx.Signature))
 	}
 
 	if !skipSecondSignature && len(tx.SignSignature) > 0 {
-		binary.Write(txBuf, binary.LittleEndian, HexDecodeData(tx.SignSignature))
+		binary.Write(txBuf, binary.LittleEndian, quickHexDecode(tx.SignSignature))
 	}
 
 	return txBuf.Bytes()
@@ -104,27 +95,98 @@ func CreateTransaction(recipientID string, satoshiAmount int64, vendorField, pas
 		VendorField: vendorField}
 
 	tx.Timestamp = 1 //Slot.GetTime();
-	tx.Sign(passphrase)
+	tx.sign(passphrase)
 
-	//if (secondPassphrase != nill)
-	//	tx.SecondSign(secondPassphrase);
+	if len(secondPassphrase) > 0 {
+		tx.secondSign(secondPassphrase)
+	}
 
-	//tx.Id = Crypto.GetId(tx);
+	tx.getID() //calculates id of transaction
 	return &tx
 }
 
 //Sign the Transaction
-func (tx *Transaction) Sign(passphrase string) {
+func (tx *Transaction) sign(passphrase string) {
 	key := arkcoin.NewPrivateKeyFromPassword(passphrase, arkcoin.ArkCoinMain)
 
 	tx.SenderPublicKey = hex.EncodeToString(key.PublicKey.Serialize())
 
 	trHashBytes := sha256.New()
-	trHashBytes.Write(tx.ToBytes(true, true))
-	trHashBytes.Sum(nil)
+	trHashBytes.Write(tx.toBytes(true, true))
 
 	sig, err := key.Sign(trHashBytes.Sum(nil))
 	if err == nil {
 		tx.Signature = hex.EncodeToString(sig)
 	}
+}
+
+//SecondSign the Transaction
+func (tx *Transaction) secondSign(passphrase string) {
+	key := arkcoin.NewPrivateKeyFromPassword(passphrase, arkcoin.ArkCoinMain)
+
+	trHashBytes := sha256.New()
+	trHashBytes.Write(tx.toBytes(false, true))
+
+	sig, err := key.Sign(trHashBytes.Sum(nil))
+	if err == nil {
+		tx.SignSignature = hex.EncodeToString(sig)
+	}
+}
+
+//GetID returns calculated ID of trancation - hashed s256
+func (tx *Transaction) getID() {
+	trHashBytes := sha256.New()
+	trHashBytes.Write(tx.toBytes(false, false))
+
+	tx.ID = hex.EncodeToString(trHashBytes.Sum(nil))
+}
+
+//ToJSON converts transaction object to JSON string
+func (tx *Transaction) ToJSON() string {
+	txJSON, err := json.Marshal(tx)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	return string(txJSON)
+}
+
+func quickHexDecode(data string) []byte {
+	res, err := hex.DecodeString(data)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	return res
+}
+
+//Verify function verifies if tx is validly signed
+func (tx *Transaction) Verify() bool {
+	return tx.verifyHelper(true)
+}
+
+//SecondVerify function verifies if tx is validly signed
+func (tx *Transaction) SecondVerify() bool {
+	return tx.verifyHelper(false)
+}
+
+func (tx *Transaction) verifyHelper(first bool) bool {
+	key, err := arkcoin.NewPublicKey(quickHexDecode(tx.SenderPublicKey), arkcoin.ArkCoinMain)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	trHashBytes := sha256.New()
+	trHashBytes.Write(tx.toBytes(first, true))
+
+	var res
+	if first {
+		res := key.Verify(quickHexDecode(tx.Signature), trHashBytes.Sum(nil))
+	} else {
+		res := key.Verify(quickHexDecode(tx.SignSignature), trHashBytes.Sum(nil))
+	}
+
+	if res == nil {
+		return true
+	}
+	return false
+
 }
