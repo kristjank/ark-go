@@ -33,3 +33,27 @@ func TestCreateSignTransaction(t *testing.T) {
 
 	log.Println(tx.ToJSON())
 }
+
+func TestVerifyTransaction(t *testing.T) {
+	tx := CreateTransaction("AXoXnFi4z1Z6aFvjEYkDVCtBGW2PaRiM25",
+		133380000000,
+		"This is first transaction from ARK-NET",
+		"this is a top secret passphrase", "")
+
+	err := tx.Verify()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+}
+
+func TestSecondVerifyTransaction(t *testing.T) {
+	tx := CreateTransaction("AXoXnFi4z1Z6aFvjEYkDVCtBGW2PaRiM25",
+		133380000000,
+		"This is first transaction from ARK-NET",
+		"this is a top secret passphrase", "second top secret")
+
+	err := tx.SecondVerify()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+}

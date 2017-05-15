@@ -13,17 +13,18 @@ import (
 
 //Transaction struct - represents structure of ARK.io blockchain transaction
 type Transaction struct {
-	Timestamp          int32
-	RecipientID        string
-	Amount             int64
-	Fee                int64
-	Type               byte
-	VendorField        string
-	Signature          string
-	SignSignature      string
-	SenderPublicKey    string
-	RequesterPublicKey string
-	ID                 string
+	Timestamp             int32
+	RecipientID           string
+	Amount                int64
+	Fee                   int64
+	Type                  byte
+	VendorField           string
+	Signature             string
+	SignSignature         string
+	SenderPublicKey       string
+	SecondSenderPublicKey string
+	RequesterPublicKey    string
+	ID                    string
 }
 
 //ToBytes returns bytearray of the Transaction object to be signed and send to blockchain
@@ -70,9 +71,9 @@ func (tx *Transaction) toBytes(skipSignature, skipSecondSignature bool) []byte {
 	case 1:
 		binary.Write(txBuf, binary.LittleEndian, quickHexDecode(tx.Signature))
 	case 2:
-		//buffer.Put(Encoding.ASCII.GetBytes(asset["username"]));
+		//TODO buffer.Put(Encoding.ASCII.GetBytes(asset["username"]));
 	case 3:
-		//votes
+		//TODO votes
 	}
 
 	if !skipSignature && len(tx.Signature) > 0 {
@@ -124,6 +125,7 @@ func (tx *Transaction) sign(passphrase string) {
 func (tx *Transaction) secondSign(passphrase string) {
 	key := arkcoin.NewPrivateKeyFromPassword(passphrase, arkcoin.ArkCoinMain)
 
+	tx.SecondSenderPublicKey = hex.EncodeToString(key.PublicKey.Serialize())
 	trHashBytes := sha256.New()
 	trHashBytes.Write(tx.toBytes(false, true))
 
@@ -161,31 +163,24 @@ func quickHexDecode(data string) []byte {
 //Verify function verifies if tx is validly signed
 //if return == nill verification was succesfull
 func (tx *Transaction) Verify() error {
-	return tx.verifyHelper(true)
+	key, err := arkcoin.NewPublicKey(quickHexDecode(tx.SenderPublicKey), arkcoin.ArkCoinMain)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	trHashBytes := sha256.New()
+	trHashBytes.Write(tx.toBytes(true, true))
+	return key.Verify(quickHexDecode(tx.Signature), trHashBytes.Sum(nil))
+
 }
 
 //SecondVerify function verifies if tx is validly signed
 //if return == nill verification was succesfull
 func (tx *Transaction) SecondVerify() error {
-	return tx.verifyHelper(false)
-}
-
-//verifyHelper helps Signature verification. If parameter first is set to true
-//first signature is checked, if verified is set to false second signature is checked
-//if err == nill - verification was succesfull
-func (tx *Transaction) verifyHelper(first bool) error {
-	key, err := arkcoin.NewPublicKey(quickHexDecode(tx.SenderPublicKey), arkcoin.ArkCoinMain)
+	key, err := arkcoin.NewPublicKey(quickHexDecode(tx.SecondSenderPublicKey), arkcoin.ArkCoinMain)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-
 	trHashBytes := sha256.New()
-	trHashBytes.Write(tx.toBytes(first, true))
-
-	if first {
-		return key.Verify(quickHexDecode(tx.Signature), trHashBytes.Sum(nil))
-	} else {
-		return key.Verify(quickHexDecode(tx.SignSignature), trHashBytes.Sum(nil))
-	}
-
+	trHashBytes.Write(tx.toBytes(false, true))
+	return key.Verify(quickHexDecode(tx.SignSignature), trHashBytes.Sum(nil))
 }
