@@ -12,7 +12,7 @@ import (
 
 //Transaction struct - represents structure of ARK.io blockchain transaction
 type Transaction struct {
-	Timestamp          int
+	Timestamp          int32
 	RecipientID        string
 	Amount             int64
 	Fee                int64
@@ -37,10 +37,10 @@ func HexDecodeData(data string) []byte {
 }
 
 //ToBytes returns bytearray of the Transaction object to be signed and send to blockchain
-func ToBytes(tx *Transaction, skipSignature, skipSecondSignature bool) []byte {
+func (tx *Transaction) ToBytes(skipSignature, skipSecondSignature bool) []byte {
 	txBuf := new(bytes.Buffer)
 	binary.Write(txBuf, binary.LittleEndian, tx.Type)
-	binary.Write(txBuf, binary.LittleEndian, tx.Timestamp)
+	binary.Write(txBuf, binary.LittleEndian, uint32(tx.Timestamp))
 	binary.Write(txBuf, binary.LittleEndian, HexDecodeData(tx.SenderPublicKey))
 
 	if tx.RequesterPublicKey != "" {
@@ -53,8 +53,9 @@ func ToBytes(tx *Transaction, skipSignature, skipSecondSignature bool) []byte {
 	if tx.RecipientID != "" {
 		res, err := base58.Decode(tx.RecipientID)
 		if err != nil {
-			binary.Write(txBuf, binary.LittleEndian, res)
+			log.Fatal("Error converting Decoding b58 ", err.Error())
 		}
+		binary.Write(txBuf, binary.LittleEndian, res)
 	} else {
 		binary.Write(txBuf, binary.LittleEndian, make([]byte, 21))
 	}
@@ -71,8 +72,8 @@ func ToBytes(tx *Transaction, skipSignature, skipSecondSignature bool) []byte {
 		binary.Write(txBuf, binary.LittleEndian, make([]byte, 64))
 	}
 
-	binary.Write(txBuf, binary.LittleEndian, tx.Amount)
-	binary.Write(txBuf, binary.LittleEndian, tx.Fee)
+	binary.Write(txBuf, binary.LittleEndian, uint64(tx.Amount))
+	binary.Write(txBuf, binary.LittleEndian, uint64(tx.Fee))
 
 	switch tx.Type {
 	case 1:
@@ -103,7 +104,7 @@ func CreateTransaction(recipientID string, satoshiAmount int64, vendorField, pas
 		VendorField: vendorField}
 
 	tx.Timestamp = 1 //Slot.GetTime();
-	Sign(&tx, passphrase)
+	tx.Sign(passphrase)
 
 	//if (secondPassphrase != nill)
 	//	tx.SecondSign(secondPassphrase);
@@ -113,13 +114,13 @@ func CreateTransaction(recipientID string, satoshiAmount int64, vendorField, pas
 }
 
 //Sign the Transaction
-func Sign(tx *Transaction, passphrase string) {
+func (tx *Transaction) Sign(passphrase string) {
 	key := arkcoin.NewPrivateKeyFromPassword(passphrase, arkcoin.ArkCoinMain)
 
 	tx.SenderPublicKey = hex.EncodeToString(key.PublicKey.Serialize())
 
 	trHashBytes := sha256.New()
-	trHashBytes.Write(ToBytes(tx, true, true))
+	trHashBytes.Write(tx.ToBytes(true, true))
 	trHashBytes.Sum(nil)
 
 	sig, err := key.Sign(trHashBytes.Sum(nil))
