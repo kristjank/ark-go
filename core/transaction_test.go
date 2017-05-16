@@ -44,6 +44,7 @@ func TestVerifyTransaction(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
+	log.Println(t.Name(), "Success")
 }
 
 func TestSecondVerifyTransaction(t *testing.T) {
@@ -56,4 +57,5 @@ func TestSecondVerifyTransaction(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
+	log.Println(t.Name(), "Success")
 }
