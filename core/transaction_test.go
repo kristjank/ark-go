@@ -16,22 +16,22 @@ func TestCreateSignTransaction(t *testing.T) {
 	}
 
 	if tx.Amount != 133380000000 {
-		log.Fatal(t, "Amount wrong")
+		t.Error("Amount wrong")
 	}
 
 	if tx.Signature != "30450221008b7bc816d2224e34de8dac3dbe7d17789cf74f088a442a38f6e20fac632675bb02202d13119c896a2e282504341870d59cffe431395242834cd4d36afb62fbe27f97" {
-		log.Fatal("Wrong signature")
+		t.Error("Wrong signature")
 	}
 
 	if tx.SenderPublicKey != "034151a3ec46b5670a682b0a63394f863587d1bc97483b1b6c70eb58e7f0aed192" {
-		log.Fatal("Wrong Public Key")
+		t.Error("Wrong Public Key")
 	}
 
 	if tx.ID != "ccff05469c35db9091dcfb2fdb02b14dbf1b699f95a1ef4123ab891921e4b876" {
-		log.Fatal("Wrong TX  ID")
+		t.Error("Wrong TX  ID")
 	}
 
-	log.Println(tx.ToJSON())
+	log.Println(t.Name(), "Transaction created OK, Json: ", tx.ToJSON())
 }
 
 func TestVerifyTransaction(t *testing.T) {
@@ -42,7 +42,7 @@ func TestVerifyTransaction(t *testing.T) {
 
 	err := tx.Verify()
 	if err != nil {
-		log.Fatal(err.Error())
+		t.Error(err.Error())
 	}
 }
 
@@ -54,6 +54,6 @@ func TestSecondVerifyTransaction(t *testing.T) {
 
 	err := tx.SecondVerify()
 	if err != nil {
-		log.Fatal(err.Error())
+		t.Error(err.Error())
 	}
 }

@@ -23,6 +23,16 @@ type PeerResponse struct {
 	} `json:"peers"`
 }
 
+// ArkClientParams - when set, they are automatically added to get requests
+type ArkClientParams struct {
+	Address   string `url:"address,omitempty"`
+	ID        string `url:"id,omitempty"`
+	UserName  string `url:"username,omitempty"`
+	PublicKey string `url:"publickey,omitempty"`
+	IP        string `url:"ip,omitempty"`
+	Port      string `url:"port,omitempty"`
+}
+
 //ArkClientError struct to hold error response
 type ArkClientError struct {
 	Success      bool   `json:"success"`
@@ -50,13 +60,13 @@ func NewArkClient(httpClient *http.Client) *ArkClient {
 }
 
 //ListPeers function returns list of peers from ArkNode
-func (s *ArkClient) ListPeers() (PeerResponse, *http.Response, error) {
+func (s *ArkClient) ListPeers(params *ArkClientParams) (PeerResponse, *http.Response, error) {
 	peerResponse := new(PeerResponse)
 	arkClientError := new(ArkClientError)
-	resp, err := s.sling.New().Get("peer/list").Receive(peerResponse, arkClientError)
+	resp, err := s.sling.New().Get("peer/list").QueryStruct(params).Receive(peerResponse, arkClientError)
 	if err == nil {
 		err = arkClientError
 	}
-	fmt.Println(peerResponse, arkClientError, resp, err)
+
 	return *peerResponse, resp, err
 }
