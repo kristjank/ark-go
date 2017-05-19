@@ -21,7 +21,7 @@ type PeerResponse struct {
 
 // PeerQueryParams - when set, they are automatically added to get requests
 type PeerQueryParams struct {
-	State   string `url:"state,omitempty"`   //State of peer. 1 - disconnected. 2 - connected. 0 - banned. (String)
+	Status  string `url:"status,omitempty"`  //State of peer. OK, ETIMEOUT,...
 	Os      string `url:"os,omitempty"`      //OS of peer. (String)
 	Shared  string `url:"shared,omitempty"`  //Is peer shared? Boolean: true or false. (String)
 	Version string `url:"version,omitempty"` //Version of peer. (String)
