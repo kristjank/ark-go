@@ -8,23 +8,26 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"log"
+	"net/http"
 )
 
 //Transaction struct - represents structure of ARK.io blockchain transaction
 type Transaction struct {
-	Timestamp             int32
-	RecipientID           string
-	Amount                int64
-	Fee                   int64
-	Type                  byte
-	VendorField           string
-	Signature             string
-	SignSignature         string
-	SenderPublicKey       string
-	SecondSenderPublicKey string
-	RequesterPublicKey    string
-	ID                    string
+	Timestamp             int32  `json:"timestamp"`
+	RecipientID           string `json:"recipientId"`
+	Amount                int64  `json:"amount"`
+	Asset                 string `json:"asset"`
+	Fee                   int64  `json:"fee"`
+	Type                  byte   `json:"type"`
+	VendorField           string `json:"vendorField"`
+	Signature             string `json:"signature"`
+	SignSignature         string `json:"signSignature"`
+	SenderPublicKey       string `json:"senderPublicKey"`
+	SecondSenderPublicKey string `json:"secondSenderPublicKey"`
+	RequesterPublicKey    string `json:"requesterPublicKey"`
+	ID                    string `json:"id"`
 }
 
 //ToBytes returns bytearray of the Transaction object to be signed and send to blockchain
@@ -95,7 +98,7 @@ func CreateTransaction(recipientID string, satoshiAmount int64, vendorField, pas
 		Fee:         arkcoin.ArkCoinMain.Fees.Send,
 		VendorField: vendorField}
 
-	tx.Timestamp = 1 //Slot.GetTime();
+	tx.Timestamp = GetTime() //1
 	tx.sign(passphrase)
 
 	if len(secondPassphrase) > 0 {
@@ -183,4 +186,38 @@ func (tx *Transaction) SecondVerify() error {
 	trHashBytes := sha256.New()
 	trHashBytes.Write(tx.toBytes(false, true))
 	return key.Verify(quickHexDecode(tx.SignSignature), trHashBytes.Sum(nil))
+}
+
+//PostTransactionResponse structure for call /peer/list
+type PostTransactionResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}
+
+type TransactionPayload struct {
+	Transactions []*Transaction `json:"transactions"`
+}
+
+//PostTransactionError struct to hold error response
+type PostTransactionError struct {
+	Success      bool   `json:"success"`
+	Message      string `json:"message"`
+	ErrorMessage string `json:"error"`
+}
+
+//Error interface function
+func (e PostTransactionError) Error() string {
+	return fmt.Sprintf("ArkServiceApi: %v %v", e.Success, e.ErrorMessage)
+}
+
+//PostTransaction to selected ARKNetwork
+func (s *ArkClient) PostTransaction(tx *Transaction) (PostTransactionResponse, *http.Request, error) {
+	respTr := new(PostTransactionResponse)
+	//errTr := new(PostTransactionError)
+
+	payload := "{transactions: [" + tx.ToJSON() + "]} "
+	log.Println(payload)
+	req, err := s.sling.New().Post("peer/transactions").BodyJSON(payload).Request()
+
+	return *respTr, req, err
 }

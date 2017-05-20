@@ -19,18 +19,19 @@ func TestCreateSignTransaction(t *testing.T) {
 		t.Error("Amount wrong")
 	}
 
-	if tx.Signature != "30450221008b7bc816d2224e34de8dac3dbe7d17789cf74f088a442a38f6e20fac632675bb02202d13119c896a2e282504341870d59cffe431395242834cd4d36afb62fbe27f97" {
-		t.Error("Wrong signature")
-	}
+	if tx.Timestamp == 1 {
+		if tx.Signature != "30450221008b7bc816d2224e34de8dac3dbe7d17789cf74f088a442a38f6e20fac632675bb02202d13119c896a2e282504341870d59cffe431395242834cd4d36afb62fbe27f97" {
+			t.Error("Wrong signature")
+		}
 
-	if tx.SenderPublicKey != "034151a3ec46b5670a682b0a63394f863587d1bc97483b1b6c70eb58e7f0aed192" {
-		t.Error("Wrong Public Key")
-	}
+		if tx.SenderPublicKey != "034151a3ec46b5670a682b0a63394f863587d1bc97483b1b6c70eb58e7f0aed192" {
+			t.Error("Wrong Public Key")
+		}
 
-	if tx.ID != "ccff05469c35db9091dcfb2fdb02b14dbf1b699f95a1ef4123ab891921e4b876" {
-		t.Error("Wrong TX  ID")
+		if tx.ID != "ccff05469c35db9091dcfb2fdb02b14dbf1b699f95a1ef4123ab891921e4b876" {
+			t.Error("Wrong TX  ID")
+		}
 	}
-
 	log.Println(t.Name(), "Transaction created OK, Json: ", tx.ToJSON())
 }
 
@@ -58,4 +59,22 @@ func TestSecondVerifyTransaction(t *testing.T) {
 		t.Error(err.Error())
 	}
 	log.Println(t.Name(), "Success")
+}
+
+func TestPostTransactionTest(t *testing.T) {
+	tx := CreateTransaction("AXoXnFi4z1Z6aFvjEYkDVCtBGW2PaRiM25",
+		133380000000,
+		"This is first transaction from ARK-NET",
+		"this is a top secret passphrase", "second top secret")
+
+	arkapi := NewArkClient(nil)
+
+	res, _, err := arkapi.PostTransaction(tx)
+	if res.Success {
+		log.Println(t.Name(), "Success,")
+
+	} else {
+		t.Error(err.Error())
+	}
+
 }
