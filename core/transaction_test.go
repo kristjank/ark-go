@@ -61,19 +61,20 @@ func TestSecondVerifyTransaction(t *testing.T) {
 	log.Println(t.Name(), "Success")
 }
 
-func TestPostTransactionTest(t *testing.T) {
-	tx := CreateTransaction("AXoXnFi4z1Z6aFvjEYkDVCtBGW2PaRiM25",
-		133380000000,
-		"This is first transaction from ARK-NET",
-		"this is a top secret passphrase", "second top secret")
+func TestPostTransaction(t *testing.T) {
+	tx := CreateTransaction("AUgTuukcKeE4XFdzaK6rEHMD5FLmVBSmHk",
+		999,
+		"ARK-GOLang is saying whoop whooop",
+		"ski rose knock live elder parade dose device fetch betray loan holiday", "")
 
 	arkapi := NewArkClient(nil)
 
-	res, _, err := arkapi.PostTransaction(tx)
+	res, httpresponse, err := arkapi.PostTransaction(tx)
 	if res.Success {
-		log.Println(t.Name(), "Success,")
+		log.Println(t.Name(), "Success,", httpresponse.Status)
 
 	} else {
+		log.Println(res.Message, ",", res.Error)
 		t.Error(err.Error())
 	}
 

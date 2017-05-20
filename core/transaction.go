@@ -15,19 +15,19 @@ import (
 
 //Transaction struct - represents structure of ARK.io blockchain transaction
 type Transaction struct {
-	Timestamp             int32  `json:"timestamp"`
-	RecipientID           string `json:"recipientId"`
-	Amount                int64  `json:"amount"`
-	Asset                 string `json:"asset"`
-	Fee                   int64  `json:"fee"`
+	Timestamp             int32  `json:"timestamp,omitempty"`
+	RecipientID           string `json:"recipientId,omitempty"`
+	Amount                int64  `json:"amount,omitempty"`
+	Asset                 string `json:"asset,omitempty"`
+	Fee                   int64  `json:"fee,omitempty"`
 	Type                  byte   `json:"type"`
-	VendorField           string `json:"vendorField"`
-	Signature             string `json:"signature"`
-	SignSignature         string `json:"signSignature"`
-	SenderPublicKey       string `json:"senderPublicKey"`
-	SecondSenderPublicKey string `json:"secondSenderPublicKey"`
-	RequesterPublicKey    string `json:"requesterPublicKey"`
-	ID                    string `json:"id"`
+	VendorField           string `json:"vendorField,omitempty"`
+	Signature             string `json:"signature,omitempty"`
+	SignSignature         string `json:"signSignature,omitempty"`
+	SenderPublicKey       string `json:"senderPublicKey,omitempty"`
+	SecondSenderPublicKey string `json:"secondSenderPublicKey,omitempty"`
+	RequesterPublicKey    string `json:"requesterPublicKey,omitempty"`
+	ID                    string `json:"id,omitempty"`
 }
 
 //ToBytes returns bytearray of the Transaction object to be signed and send to blockchain
@@ -192,17 +192,21 @@ func (tx *Transaction) SecondVerify() error {
 type PostTransactionResponse struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
+	Error   string `json:"error"`
+	ID      string `json:"id"`
 }
 
-type TransactionPayload struct {
+type transactionPayload struct {
 	Transactions []*Transaction `json:"transactions"`
 }
 
 //PostTransactionError struct to hold error response
 type PostTransactionError struct {
-	Success      bool   `json:"success"`
-	Message      string `json:"message"`
-	ErrorMessage string `json:"error"`
+	Success        bool     `json:"success"`
+	Message        string   `json:"message"`
+	ErrorMessage   string   `json:"error"`
+	Data           string   `json:"data"`
+	TransactionIDs []string `json:"transactionIds"`
 }
 
 //Error interface function
@@ -211,13 +215,18 @@ func (e PostTransactionError) Error() string {
 }
 
 //PostTransaction to selected ARKNetwork
-func (s *ArkClient) PostTransaction(tx *Transaction) (PostTransactionResponse, *http.Request, error) {
+func (s *ArkClient) PostTransaction(tx *Transaction) (PostTransactionResponse, *http.Response, error) {
 	respTr := new(PostTransactionResponse)
-	//errTr := new(PostTransactionError)
+	errTr := new(PostTransactionError)
 
-	payload := "{transactions: [" + tx.ToJSON() + "]} "
-	log.Println(payload)
-	req, err := s.sling.New().Post("peer/transactions").BodyJSON(payload).Request()
+	var payload transactionPayload
+	payload.Transactions = append(payload.Transactions, tx)
 
-	return *respTr, req, err
+	resp, err := s.sling.New().Post("peer/transactions").BodyJSON(payload).Receive(respTr, errTr)
+
+	if err == nil {
+		err = errTr
+	}
+
+	return *respTr, resp, err
 }
