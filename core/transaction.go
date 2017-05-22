@@ -190,34 +190,74 @@ func (tx *Transaction) SecondVerify() error {
 
 //PostTransactionResponse structure for call /peer/list
 type PostTransactionResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	Error   string `json:"error"`
-	ID      string `json:"id"`
+	Success        bool     `json:"success"`
+	Message        string   `json:"message"`
+	Error          string   `json:"error"`
+	TransactionIDs []string `json:"transactionIds"`
 }
 
 type transactionPayload struct {
 	Transactions []*Transaction `json:"transactions"`
 }
 
-//PostTransactionError struct to hold error response
-type PostTransactionError struct {
-	Success        bool     `json:"success"`
-	Message        string   `json:"message"`
-	ErrorMessage   string   `json:"error"`
-	Data           string   `json:"data"`
-	TransactionIDs []string `json:"transactionIds"`
+//TransactionResponseError struct to hold error response from api node
+type TransactionResponseError struct {
+	Success      bool   `json:"success"`
+	Message      string `json:"message"`
+	ErrorMessage string `json:"error"`
+	Data         string `json:"data"`
+}
+
+//TransactionQueryParams for returing filtered list of transactions
+type TransactionQueryParams struct {
+	ID          string `url:"id,omitempty"`
+	BlockID     string `url:"blockId,omitempty"`
+	SenderID    string `url:"senderId,omitempty"`
+	RecipientID string `url:"recipientId,omitempty"`
+	Limit       int    `url:"limit,omitempty"`
+	Offset      int    `url:"offset,omitempty"`
+	OrderBy     string `url:"orderBy,omitempty"` //"Name of column to order. After column name must go 'desc' or 'asc' to choose order type, prefix for column name is t_. Example: orderBy=t_timestamp:desc (String)"
+}
+
+//TransactionResponse structure holds parsed jsong reply from ark-node
+//when calling list methods the Transactions [] has results
+//when calling get methods the transaction object (Single) has results
+type TransactionResponse struct {
+	Success      bool              `json:"success"`
+	Transactions []TransactionData `json:"transactions"`
+	Transaction  TransactionData   `json:"transaction"`
+	Count        string            `json:"count"`
+	Error        string            `json:"error"`
+}
+
+//TransactionData holds parsed Transaction data from rest json responses...
+type TransactionData struct {
+	ID              string `json:"id"`
+	Blockid         string `json:"blockid"`
+	Height          int    `json:"height"`
+	Type            int    `json:"type"`
+	Timestamp       int    `json:"timestamp"`
+	Amount          int    `json:"amount"`
+	Fee             int    `json:"fee"`
+	VendorField     string `json:"vendorField"`
+	SenderID        string `json:"senderId"`
+	RecipientID     string `json:"recipientId"`
+	SenderPublicKey string `json:"senderPublicKey"`
+	Signature       string `json:"signature"`
+	Asset           struct {
+	} `json:"asset"`
+	Confirmations int `json:"confirmations"`
 }
 
 //Error interface function
-func (e PostTransactionError) Error() string {
+func (e TransactionResponseError) Error() string {
 	return fmt.Sprintf("ArkServiceApi: %v %v", e.Success, e.ErrorMessage)
 }
 
 //PostTransaction to selected ARKNetwork
 func (s *ArkClient) PostTransaction(tx *Transaction) (PostTransactionResponse, *http.Response, error) {
 	respTr := new(PostTransactionResponse)
-	errTr := new(PostTransactionError)
+	errTr := new(TransactionResponseError)
 
 	var payload transactionPayload
 	payload.Transactions = append(payload.Transactions, tx)
@@ -229,4 +269,52 @@ func (s *ArkClient) PostTransaction(tx *Transaction) (PostTransactionResponse, *
 	}
 
 	return *respTr, resp, err
+}
+
+//ListTransaction function returns list of peers from ArkNode
+func (s *ArkClient) ListTransaction(params *TransactionQueryParams) (TransactionResponse, *http.Response, error) {
+	transactionResponse := new(TransactionResponse)
+	transactionResponseErr := new(TransactionResponseError)
+	resp, err := s.sling.New().Get("api/transactions").QueryStruct(params).Receive(transactionResponse, transactionResponseErr)
+	if err == nil {
+		err = transactionResponseErr
+	}
+
+	return *transactionResponse, resp, err
+}
+
+//ListTransactionUnconfirmed function returns list of peers from ArkNode
+func (s *ArkClient) ListTransactionUnconfirmed(params *TransactionQueryParams) (TransactionResponse, *http.Response, error) {
+	transactionResponse := new(TransactionResponse)
+	transactionResponseErr := new(TransactionResponseError)
+	resp, err := s.sling.New().Get("api/transactions/unconfirmed").QueryStruct(params).Receive(transactionResponse, transactionResponseErr)
+	if err == nil {
+		err = transactionResponseErr
+	}
+
+	return *transactionResponse, resp, err
+}
+
+//GetTransaction function returns list of peers from ArkNode
+func (s *ArkClient) GetTransaction(params *TransactionQueryParams) (TransactionResponse, *http.Response, error) {
+	transactionResponse := new(TransactionResponse)
+	transactionResponseErr := new(TransactionResponseError)
+	resp, err := s.sling.New().Get("api/transactions/get").QueryStruct(params).Receive(transactionResponse, transactionResponseErr)
+	if err == nil {
+		err = transactionResponseErr
+	}
+
+	return *transactionResponse, resp, err
+}
+
+//GetTransactionUnconfirmed function returns list of peers from ArkNode
+func (s *ArkClient) GetTransactionUnconfirmed(params *TransactionQueryParams) (TransactionResponse, *http.Response, error) {
+	transactionResponse := new(TransactionResponse)
+	transactionResponseErr := new(TransactionResponseError)
+	resp, err := s.sling.New().Get("api/transactions/unconfirmed/get").QueryStruct(params).Receive(transactionResponse, transactionResponseErr)
+	if err == nil {
+		err = transactionResponseErr
+	}
+
+	return *transactionResponse, resp, err
 }
