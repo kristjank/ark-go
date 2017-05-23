@@ -74,7 +74,7 @@ func TestPostTransaction(t *testing.T) {
 		log.Println(t.Name(), "Success,", httpresponse.Status, res.TransactionIDs)
 
 	} else {
-		log.Println(res.Message, ",", res.Error, ", ", httpresponse.StatusCode, httpresponse.Status)
+		log.Println(res.Message, res.Error, httpresponse.Status)
 		t.Error(err.Error(), res.Error)
 	}
 }
@@ -99,7 +99,7 @@ func TestListTransactionUncomfirmed(t *testing.T) {
 
 	transResponse, _, err := arkapi.ListTransactionUnconfirmed(params)
 	if transResponse.Success {
-		log.Println(t.Name(), "Success, returned ", transResponse.Count, "transactions")
+		log.Println(t.Name(), "Success, returned", transResponse.Count, "transactions")
 	} else {
 		t.Error(err.Error())
 	}

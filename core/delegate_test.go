@@ -82,10 +82,8 @@ func TestGetDelegateVoteWeight(t *testing.T) {
 
 	params := DelegateQueryParams{PublicKey: "03e6397071866c994c519f114a9e7957d8e6f06abc2ca34dc9a96b82f7166c2bf9"}
 
-	voteWeight, _, err := arkapi.GetDelegateVoteWeight(params)
-	if err != nil {
-		t.Error(err.Error())
-	}
+	voteWeight, _, _ := arkapi.GetDelegateVoteWeight(params)
+
 	log.Println(t.Name(), "Success, returned delegate vote weight is", voteWeight)
 
 }
