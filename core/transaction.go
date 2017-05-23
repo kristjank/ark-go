@@ -17,23 +17,23 @@ import (
 //It is used to post transaction to mainnet and to receive results from arkapi
 //Empty fields are emmited by default
 type Transaction struct {
-	ID                    string   `json:"id,omitempty"`
-	Timestamp             int32    `json:"timestamp,omitempty"`
-	RecipientID           string   `json:"recipientId,omitempty"`
-	Amount                int64    `json:"amount,omitempty"`
-	Asset                 struct{} `json:"asset,omitempty"`
-	Fee                   int64    `json:"fee,omitempty"`
-	Type                  byte     `json:"type"`
-	VendorField           string   `json:"vendorField,omitempty"`
-	Signature             string   `json:"signature,omitempty"`
-	SignSignature         string   `json:"signSignature,omitempty"`
-	SenderPublicKey       string   `json:"senderPublicKey,omitempty"`
-	SecondSenderPublicKey string   `json:"secondSenderPublicKey,omitempty"`
-	RequesterPublicKey    string   `json:"requesterPublicKey,omitempty"`
-	Blockid               string   `json:"blockid,omitempty"`
-	Height                int      `json:"height,omitempty"`
-	SenderID              string   `json:"senderId,omitempty"`
-	Confirmations         int      `json:"confirmations,omitempty"`
+	ID                    string            `json:"id,omitempty"`
+	Timestamp             int32             `json:"timestamp,omitempty"`
+	RecipientID           string            `json:"recipientId,omitempty"`
+	Amount                int64             `json:"amount,omitempty"`
+	Asset                 map[string]string `json:"asset,omitempty"`
+	Fee                   int64             `json:"fee,omitempty"`
+	Type                  byte              `json:"type"`
+	VendorField           string            `json:"vendorField,omitempty"`
+	Signature             string            `json:"signature,omitempty"`
+	SignSignature         string            `json:"signSignature,omitempty"`
+	SenderPublicKey       string            `json:"senderPublicKey,omitempty"`
+	SecondSenderPublicKey string            `json:"secondSenderPublicKey,omitempty"`
+	RequesterPublicKey    string            `json:"requesterPublicKey,omitempty"`
+	Blockid               string            `json:"blockid,omitempty"`
+	Height                int               `json:"height,omitempty"`
+	SenderID              string            `json:"senderId,omitempty"`
+	Confirmations         int               `json:"confirmations,omitempty"`
 }
 
 //ToBytes returns bytearray of the Transaction object to be signed and send to blockchain
@@ -78,11 +78,13 @@ func (tx *Transaction) toBytes(skipSignature, skipSecondSignature bool) []byte {
 
 	switch tx.Type {
 	case 1:
-		binary.Write(txBuf, binary.LittleEndian, quickHexDecode(tx.Signature))
+		binary.Write(txBuf, binary.LittleEndian, quickHexDecode(tx.Asset["signature"]))
 	case 2:
-		//TODO buffer.Put(Encoding.ASCII.GetBytes(asset["username"]));
+		usernameBytes := []byte(tx.Asset["username"])
+		binary.Write(txBuf, binary.LittleEndian, usernameBytes)
 	case 3:
-		//TODO votes
+		voteBytes := []byte(tx.Asset["votes"])
+		binary.Write(txBuf, binary.LittleEndian, voteBytes)
 	}
 
 	if !skipSignature && len(tx.Signature) > 0 {
@@ -98,11 +100,13 @@ func (tx *Transaction) toBytes(skipSignature, skipSecondSignature bool) []byte {
 
 //CreateTransaction creates and returns new Transaction struct...
 func CreateTransaction(recipientID string, satoshiAmount int64, vendorField, passphrase, secondPassphrase string) *Transaction {
-	tx := Transaction{Type: 0,
+	tx := Transaction{
+		Type:        0,
 		RecipientID: recipientID,
 		Amount:      satoshiAmount,
 		Fee:         arkcoin.ArkCoinMain.Fees.Send,
-		VendorField: vendorField}
+		VendorField: vendorField,
+	}
 
 	tx.Timestamp = GetTime() //1
 	tx.sign(passphrase)
@@ -110,6 +114,69 @@ func CreateTransaction(recipientID string, satoshiAmount int64, vendorField, pas
 	if len(secondPassphrase) > 0 {
 		tx.secondSign(secondPassphrase)
 	}
+
+	tx.getID() //calculates id of transaction
+	return &tx
+}
+
+//CreateVote transaction used to vote for a chosen Delegate
+//if updown value = "+" vot is given to the specified PublicKey
+//if updown value = "-" vot is taken from the specified PublicKey
+func CreateVote(updown, delegatePubKey, passphrase, secondPassphrase string) *Transaction {
+	tx := Transaction{
+		Type:        3,
+		Fee:         arkcoin.ArkCoinMain.Fees.Vote,
+		VendorField: "Delegate vote transaction",
+		Asset:       make(map[string]string),
+	}
+	key := arkcoin.NewPrivateKeyFromPassword(passphrase, arkcoin.ArkCoinMain)
+	tx.RecipientID = key.PublicKey.Address()
+
+	tx.Asset["votes"] = updown + delegatePubKey
+	tx.Timestamp = GetTime() //1
+	tx.sign(passphrase)
+
+	if len(secondPassphrase) > 0 {
+		tx.secondSign(secondPassphrase)
+	}
+
+	tx.getID() //calculates id of transaction
+	return &tx
+}
+
+//CreateDelegate creates and returns new Transaction struct...
+func CreateDelegate(username, passphrase, secondPassphrase string) *Transaction {
+	tx := Transaction{
+		Type:        2,
+		Fee:         arkcoin.ArkCoinMain.Fees.Delegate,
+		VendorField: "Create delegate tx",
+		Asset:       make(map[string]string),
+	}
+	tx.Asset["username"] = username
+	tx.Timestamp = GetTime() //1
+	tx.sign(passphrase)
+
+	if len(secondPassphrase) > 0 {
+		tx.secondSign(secondPassphrase)
+	}
+
+	tx.getID() //calculates id of transaction
+	return &tx
+}
+
+//CreateSecondSignature creates and returns new Transaction struct...
+func CreateSecondSignature(passphrase, secondPassphrase string) *Transaction {
+	tx := Transaction{
+		Type:        1,
+		Fee:         arkcoin.ArkCoinMain.Fees.SecondSignature,
+		VendorField: "Create second signature",
+		Asset:       make(map[string]string),
+	}
+
+	key := arkcoin.NewPrivateKeyFromPassword(secondPassphrase, arkcoin.ArkCoinMain)
+	tx.Asset["signature"] = hex.EncodeToString(key.PublicKey.Serialize())
+	tx.Timestamp = GetTime() //1
+	tx.sign(passphrase)
 
 	tx.getID() //calculates id of transaction
 	return &tx

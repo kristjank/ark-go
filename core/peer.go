@@ -7,16 +7,20 @@ import (
 
 //PeerResponse structure for call /peer/list
 type PeerResponse struct {
-	Success bool `json:"success"`
-	Peers   []struct {
-		IP      string `json:"ip"`
-		Port    int    `json:"port"`
-		Version string `json:"version,omitempty"`
-		Os      string `json:"os,omitempty"`
-		Height  int    `json:"height,omitempty"`
-		Status  string `json:"status"`
-		Delay   int    `json:"delay"`
-	} `json:"peers"`
+	Success    bool   `json:"success"`
+	Peers      []Peer `json:"peers"`
+	SinglePeer Peer   `json:"peer"`
+}
+
+//Peer structure to hold peer data
+type Peer struct {
+	IP      string `json:"ip"`
+	Port    int    `json:"port"`
+	Version string `json:"version,omitempty"`
+	Os      string `json:"os,omitempty"`
+	Height  int    `json:"height,omitempty"`
+	Status  string `json:"status"`
+	Delay   int    `json:"delay"`
 }
 
 // PeerQueryParams - when set, they are automatically added to get requests
@@ -47,7 +51,19 @@ func (e PeerResponseError) Error() string {
 func (s *ArkClient) ListPeers(params PeerQueryParams) (PeerResponse, *http.Response, error) {
 	peerResponse := new(PeerResponse)
 	peerResponseError := new(PeerResponseError)
-	resp, err := s.sling.New().Get("peer/list").QueryStruct(&params).Receive(peerResponse, peerResponseError)
+	resp, err := s.sling.New().Get("api/peers/").QueryStruct(&params).Receive(peerResponse, peerResponseError)
+	if err == nil {
+		err = peerResponseError
+	}
+
+	return *peerResponse, resp, err
+}
+
+//GetPeer function returns one peer with params
+func (s *ArkClient) GetPeer(params PeerQueryParams) (PeerResponse, *http.Response, error) {
+	peerResponse := new(PeerResponse)
+	peerResponseError := new(PeerResponseError)
+	resp, err := s.sling.New().Get("api/peers/get").QueryStruct(&params).Receive(peerResponse, peerResponseError)
 	if err == nil {
 		err = peerResponseError
 	}

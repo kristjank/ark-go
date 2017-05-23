@@ -63,7 +63,7 @@ func TestSecondVerifyTransaction(t *testing.T) {
 
 func TestPostTransaction(t *testing.T) {
 	tx := CreateTransaction("AUgTuukcKeE4XFdzaK6rEHMD5FLmVBSmHk",
-		999,
+		1,
 		"ARK-GOLang is saying whoop whooop",
 		"ski rose knock live elder parade dose device fetch betray loan holiday", "")
 
@@ -117,4 +117,37 @@ func TestGetTransaction(t *testing.T) {
 		log.Println(err.Error(), transResponse.Error)
 		t.Error(err.Error())
 	}
+}
+
+func TestCreateDelegate(t *testing.T) {
+	tx := CreateDelegate("chris", "this is a top secret passphrase", "")
+
+	err := tx.Verify()
+	if err != nil {
+		t.Error(err.Error())
+	}
+	log.Println(t.Name(), "Success")
+
+}
+
+func TestCreateVote(t *testing.T) {
+	tx := CreateVote("+", "034151a3ec46b5670a682b0a63394f863587d1bc97483b1b6c70eb58e7f0aed192", "this is a top secret passphrase", "")
+
+	err := tx.Verify()
+	if err != nil {
+		t.Error(err.Error())
+	}
+	log.Println(t.Name(), "Success")
+
+}
+
+func TestCreateSecondSignature(t *testing.T) {
+	tx := CreateSecondSignature("this is a top secret passphrase", "this is new second passphrase")
+
+	err := tx.Verify()
+	if err != nil {
+		t.Error(err.Error())
+	}
+	log.Println(t.Name(), "Success")
+
 }

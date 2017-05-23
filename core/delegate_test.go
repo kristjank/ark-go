@@ -31,7 +31,7 @@ func TestGetDelegateUsername(t *testing.T) {
 	deleResponse, _, err := arkapi.GetDelegate(params)
 	if deleResponse.Success {
 
-		out, _ := json.Marshal(deleResponse.Delegate)
+		out, _ := json.Marshal(deleResponse.SingleDelegate)
 		log.Println(t.Name(), "Success, returned", string(out))
 
 	} else {
@@ -47,7 +47,7 @@ func TestGetDelegatePubKey(t *testing.T) {
 	deleResponse, _, err := arkapi.GetDelegate(params)
 	if deleResponse.Success {
 
-		out, _ := json.Marshal(deleResponse.Delegate)
+		out, _ := json.Marshal(deleResponse.SingleDelegate)
 		log.Println(t.Name(), "Success, returned", string(out))
 
 	} else {

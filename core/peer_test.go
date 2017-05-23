@@ -18,3 +18,17 @@ func TestListPeers(t *testing.T) {
 		t.Error(err.Error())
 	}
 }
+
+func TestGetPeer(t *testing.T) {
+	arkapi := NewArkClient(nil)
+
+	params := PeerQueryParams{IP: "137.74.90.194", Port: 4001}
+
+	peersResp, _, err := arkapi.GetPeer(params)
+	if peersResp.Success {
+		log.Println(t.Name(), "Success, returned ", peersResp.SinglePeer.Os, peersResp.SinglePeer.Status)
+
+	} else {
+		t.Error(err.Error())
+	}
+}

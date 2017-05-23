@@ -8,10 +8,10 @@ import (
 
 //DelegateResponse data - received from api-call.
 type DelegateResponse struct {
-	Success    bool           `json:"success,omitempty"`
-	Delegates  []DelegateData `json:"delegates,omitempty"`
-	Delegate   DelegateData   `json:"delegate,omitempty"`
-	TotalCount int            `json:"totalCount,omitempty"`
+	Success        bool           `json:"success,omitempty"`
+	Delegates      []DelegateData `json:"delegates,omitempty"`
+	SingleDelegate DelegateData   `json:"delegate,omitempty"`
+	TotalCount     int            `json:"totalCount,omitempty"`
 }
 
 //DelegateVoters struct to hold voters for a publicKey(delegate)
