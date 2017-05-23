@@ -42,10 +42,10 @@ func (e PeerResponseError) Error() string {
 }
 
 //ListPeers function returns list of peers from ArkNode
-func (s *ArkClient) ListPeers(params *PeerQueryParams) (PeerResponse, *http.Response, error) {
+func (s *ArkClient) ListPeers(params PeerQueryParams) (PeerResponse, *http.Response, error) {
 	peerResponse := new(PeerResponse)
 	peerResponseError := new(PeerResponseError)
-	resp, err := s.sling.New().Get("peer/list").QueryStruct(params).Receive(peerResponse, peerResponseError)
+	resp, err := s.sling.New().Get("peer/list").QueryStruct(&params).Receive(peerResponse, peerResponseError)
 	if err == nil {
 		err = peerResponseError
 	}

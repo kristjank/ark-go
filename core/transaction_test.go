@@ -75,7 +75,7 @@ func TestPostTransaction(t *testing.T) {
 
 	} else {
 		log.Println(res.Message, ",", res.Error, ", ", httpresponse.StatusCode, httpresponse.Status)
-		t.Error(err.Error())
+		t.Error(err.Error(), res.Error)
 	}
 }
 
@@ -84,7 +84,7 @@ func TestListTransaction(t *testing.T) {
 
 	params := TransactionQueryParams{Limit: 10, SenderID: "AQLUKKKyKq5wZX7rCh4HJ4YFQ8bpTpPJgK"}
 
-	transResponse, _, err := arkapi.ListTransaction(&params)
+	transResponse, _, err := arkapi.ListTransaction(params)
 	if transResponse.Success {
 		log.Println(t.Name(), "Success, returned ", transResponse.Count, "transactions")
 	} else {
@@ -97,7 +97,7 @@ func TestListTransactionUncomfirmed(t *testing.T) {
 
 	params := TransactionQueryParams{Limit: 10, SenderID: "AQLUKKKyKq5wZX7rCh4HJ4YFQ8bpTpPJgK"}
 
-	transResponse, _, err := arkapi.ListTransactionUnconfirmed(&params)
+	transResponse, _, err := arkapi.ListTransactionUnconfirmed(params)
 	if transResponse.Success {
 		log.Println(t.Name(), "Success, returned ", transResponse.Count, "transactions")
 	} else {
@@ -110,7 +110,7 @@ func TestGetTransaction(t *testing.T) {
 
 	params := TransactionQueryParams{ID: "bb032f1063fdd60844c250d3b76adcef3a75e686a0db2ef61be7e77ea0b8d293"}
 
-	transResponse, _, err := arkapi.GetTransaction(&params)
+	transResponse, _, err := arkapi.GetTransaction(params)
 	if transResponse.Success {
 		log.Println(t.Name(), "Success, returned tx with desc: ", transResponse.Transaction.VendorField, "transactions")
 	} else {

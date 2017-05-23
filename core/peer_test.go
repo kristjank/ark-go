@@ -10,7 +10,7 @@ func TestListPeers(t *testing.T) {
 
 	params := PeerQueryParams{Status: "OK", Version: "1.0.0"}
 
-	peers, _, err := arkapi.ListPeers(&params)
+	peers, _, err := arkapi.ListPeers(params)
 	if peers.Success {
 		log.Println(t.Name(), "Success, returned ", len(peers.Peers), "peers")
 
