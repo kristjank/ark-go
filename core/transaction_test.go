@@ -119,6 +119,20 @@ func TestGetTransaction(t *testing.T) {
 	}
 }
 
+func TestGetTransactionUnconfirmed(t *testing.T) {
+	arkapi := NewArkClient(nil)
+
+	params := TransactionQueryParams{SenderID: "AQLUKKKyKq5wZX7rCh4HJ4YFQ8bpTpPJgK", ID: "2105869df411b4fffd14eaf3bae10715acd176e7ea4a41df4141b35e717f2d39"}
+
+	transResponse, _, err := arkapi.GetTransactionUnconfirmed(params)
+	if transResponse.Success {
+		log.Println(t.Name(), "Success, returned tx with desc: ", transResponse.SingleTransaction.VendorField, "transactions")
+	} else {
+		log.Println(err.Error(), transResponse.Error)
+		t.Error(err.Error())
+	}
+}
+
 func TestCreateDelegate(t *testing.T) {
 	tx := CreateDelegate("chris", "this is a top secret passphrase", "")
 
