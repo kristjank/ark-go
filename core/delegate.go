@@ -48,6 +48,7 @@ type DelegateResponseError struct {
 type DelegateQueryParams struct {
 	UserName  string `url:"username,omitempty"`
 	PublicKey string `url:"publicKey,omitempty"`
+	Offset    int    `url:"offset,omitempty"`
 }
 
 //Error interface function
@@ -56,10 +57,10 @@ func (e DelegateResponseError) Error() string {
 }
 
 //ListDelegates function returns list of delegtes. The top 51 delegates are returned
-func (s *ArkClient) ListDelegates() (DelegateResponse, *http.Response, error) {
+func (s *ArkClient) ListDelegates(params DelegateQueryParams) (DelegateResponse, *http.Response, error) {
 	respData := new(DelegateResponse)
 	respError := new(DelegateResponseError)
-	resp, err := s.sling.New().Get("api/delegates").Receive(respData, respError)
+	resp, err := s.sling.New().Get("api/delegates").QueryStruct(&params).Receive(respData, respError)
 	if err == nil {
 		err = respError
 	}

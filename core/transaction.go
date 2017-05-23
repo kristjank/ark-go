@@ -14,20 +14,26 @@ import (
 )
 
 //Transaction struct - represents structure of ARK.io blockchain transaction
+//It is used to post transaction to mainnet and to receive results from arkapi
+//Empty fields are emmited by default
 type Transaction struct {
-	Timestamp             int32  `json:"timestamp,omitempty"`
-	RecipientID           string `json:"recipientId,omitempty"`
-	Amount                int64  `json:"amount,omitempty"`
-	Asset                 string `json:"asset,omitempty"`
-	Fee                   int64  `json:"fee,omitempty"`
-	Type                  byte   `json:"type"`
-	VendorField           string `json:"vendorField,omitempty"`
-	Signature             string `json:"signature,omitempty"`
-	SignSignature         string `json:"signSignature,omitempty"`
-	SenderPublicKey       string `json:"senderPublicKey,omitempty"`
-	SecondSenderPublicKey string `json:"secondSenderPublicKey,omitempty"`
-	RequesterPublicKey    string `json:"requesterPublicKey,omitempty"`
-	ID                    string `json:"id,omitempty"`
+	ID                    string   `json:"id,omitempty"`
+	Timestamp             int32    `json:"timestamp,omitempty"`
+	RecipientID           string   `json:"recipientId,omitempty"`
+	Amount                int64    `json:"amount,omitempty"`
+	Asset                 struct{} `json:"asset,omitempty"`
+	Fee                   int64    `json:"fee,omitempty"`
+	Type                  byte     `json:"type"`
+	VendorField           string   `json:"vendorField,omitempty"`
+	Signature             string   `json:"signature,omitempty"`
+	SignSignature         string   `json:"signSignature,omitempty"`
+	SenderPublicKey       string   `json:"senderPublicKey,omitempty"`
+	SecondSenderPublicKey string   `json:"secondSenderPublicKey,omitempty"`
+	RequesterPublicKey    string   `json:"requesterPublicKey,omitempty"`
+	Blockid               string   `json:"blockid,omitempty"`
+	Height                int      `json:"height,omitempty"`
+	SenderID              string   `json:"senderId,omitempty"`
+	Confirmations         int      `json:"confirmations,omitempty"`
 }
 
 //ToBytes returns bytearray of the Transaction object to be signed and send to blockchain
@@ -223,30 +229,11 @@ type TransactionQueryParams struct {
 //when calling list methods the Transactions [] has results
 //when calling get methods the transaction object (Single) has results
 type TransactionResponse struct {
-	Success      bool              `json:"success"`
-	Transactions []TransactionData `json:"transactions"`
-	Transaction  TransactionData   `json:"transaction"`
-	Count        string            `json:"count"`
-	Error        string            `json:"error"`
-}
-
-//TransactionData holds parsed Transaction data from rest json responses...
-type TransactionData struct {
-	ID              string `json:"id"`
-	Blockid         string `json:"blockid"`
-	Height          int    `json:"height"`
-	Type            int    `json:"type"`
-	Timestamp       int    `json:"timestamp"`
-	Amount          int    `json:"amount"`
-	Fee             int    `json:"fee"`
-	VendorField     string `json:"vendorField"`
-	SenderID        string `json:"senderId"`
-	RecipientID     string `json:"recipientId"`
-	SenderPublicKey string `json:"senderPublicKey"`
-	Signature       string `json:"signature"`
-	Asset           struct {
-	} `json:"asset"`
-	Confirmations int `json:"confirmations"`
+	Success           bool          `json:"success"`
+	Transactions      []Transaction `json:"transactions"`
+	SingleTransaction Transaction   `json:"transaction"`
+	Count             string        `json:"count"`
+	Error             string        `json:"error"`
 }
 
 //Error interface function

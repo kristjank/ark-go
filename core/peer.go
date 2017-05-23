@@ -28,6 +28,8 @@ type PeerQueryParams struct {
 	Limit   int    `url:"limit,omitempty"`   //Limit to show. Max limit is 100. (Integer)
 	OrderBy string `url:"orderBy,omitempty"` //Name of column to order. After column name must go 'desc' or 'asc' to choose order type. (String)
 	Offset  int    `url:"offset,omitempty"`
+	IP      string `url:"ip,omitempty"`
+	Port    int    `url:"port,omitempty"`
 }
 
 //PeerResponseError struct to hold error response

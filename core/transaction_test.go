@@ -86,7 +86,7 @@ func TestListTransaction(t *testing.T) {
 
 	transResponse, _, err := arkapi.ListTransaction(params)
 	if transResponse.Success {
-		log.Println(t.Name(), "Success, returned ", transResponse.Count, "transactions")
+		log.Println(t.Name(), "Success, returned", transResponse.Count, "transactions")
 	} else {
 		t.Error(err.Error())
 	}
@@ -112,7 +112,7 @@ func TestGetTransaction(t *testing.T) {
 
 	transResponse, _, err := arkapi.GetTransaction(params)
 	if transResponse.Success {
-		log.Println(t.Name(), "Success, returned tx with desc: ", transResponse.Transaction.VendorField, "transactions")
+		log.Println(t.Name(), "Success, returned tx with desc: ", transResponse.SingleTransaction.VendorField, "transactions")
 	} else {
 		log.Println(err.Error(), transResponse.Error)
 		t.Error(err.Error())

@@ -10,11 +10,11 @@ import (
 func TestListDelegates(t *testing.T) {
 	arkapi := NewArkClient(nil)
 
-	//params := TransactionQueryParams{Limit: 10, SenderID: "AQLUKKKyKq5wZX7rCh4HJ4YFQ8bpTpPJgK"}
+	params := DelegateQueryParams{Offset: 100}
 
-	deleResponse, _, err := arkapi.ListDelegates()
+	deleResponse, _, err := arkapi.ListDelegates(params)
 	if deleResponse.Success {
-		log.Println(t.Name(), "Success, returned ", deleResponse.TotalCount, "delegates")
+		log.Println(t.Name(), "Success, returned ", deleResponse.TotalCount, "delegates, received:", len(deleResponse.Delegates))
 		/*for _, element := range deleResponse.Delegates {
 			log.Println(element.Username)
 		}*/
