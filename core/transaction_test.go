@@ -74,7 +74,7 @@ func TestPostTransaction(t *testing.T) {
 		log.Println(t.Name(), "Success,", httpresponse.Status, res.TransactionIDs)
 
 	} else {
-		log.Println(res.Message, ",", res.Error)
+		log.Println(res.Message, ",", res.Error, ", ", httpresponse.StatusCode, httpresponse.Status)
 		t.Error(err.Error())
 	}
 }
