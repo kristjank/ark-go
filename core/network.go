@@ -3,6 +3,7 @@ package core
 import (
 	"ark-go/arkcoin"
 	"net/http"
+	"strconv"
 
 	"github.com/dghubble/sling"
 )
@@ -15,7 +16,7 @@ type ArkClient struct {
 }
 
 func init() {
-	baseURL = SetActiveConfiguration(DEVNET)
+	baseURL = SetActiveConfiguration(MAINNET)
 	coinParams := arkcoin.Params{
 		AddressHeader: EnvironmentParams.Network.AddressVersion,
 	}
@@ -28,8 +29,8 @@ func NewArkClient(httpClient *http.Client) *ArkClient {
 	return &ArkClient{
 		sling: sling.New().Client(httpClient).Base(baseURL).
 			Add("nethash", EnvironmentParams.Network.Nethash).
-			Add("version", "1.0.1").
-			Add("port", "4001").
+			Add("version", EnvironmentParams.Network.ActivePeer.Version).
+			Add("port", strconv.Itoa(EnvironmentParams.Network.ActivePeer.Port)).
 			Add("Content-Type", "application/json"),
 	}
 }
