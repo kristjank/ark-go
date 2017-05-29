@@ -17,7 +17,7 @@ type ArkClient struct {
 func NewArkClient(httpClient *http.Client) *ArkClient {
 	return &ArkClient{
 		sling: sling.New().Client(httpClient).Base(baseURL).
-			Add("nethash", "6e84d08bd299ed97c212c886c98a57e36545c8f5d645ca7eeae63a8bd62d8988").
+			Add("nethash", EnvironmentParams.Network.Nethash).
 			Add("version", "1.0.1").
 			Add("port", "4001").
 			Add("Content-Type", "application/json"),

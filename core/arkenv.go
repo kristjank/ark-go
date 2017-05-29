@@ -1,19 +1,30 @@
 package core
 
-import "fmt"
+import (
+	"encoding/json"
+	"log"
+	"net/http"
+)
+
+type ArkNetworkType int
 
 const (
 	MAINNET = iota
 	DEVNET
 )
 
+//Global ARK EnvironmentParams read from acitve peers
+var EnvironmentParams = new(ArkEnvParams)
+
+//ArkEnvParams structure to hold parameters from autoconfigure
+//structure is filled from peers at arkclient init call
 type ArkEnvParams struct {
 	Success bool    `json:"success"`
 	Network Network `json:"network"`
 	Fees    Fees    `json:"fees"`
 }
 
-//Fees constant parameters for various ArkCoin configurations
+//Fees constant parameters for active configuration
 type Fees struct {
 	Send            int64 `json:"send"`
 	Vote            int64 `json:"vote"`
@@ -22,36 +33,132 @@ type Fees struct {
 	Multisignature  int64 `json:"multisignature"`
 }
 
+//Network parameters
 type Network struct {
-	Nethash  string `json:"nethash"`
-	Token    string `json:"token"`
-	Symbol   string `json:"symbol"`
-	Explorer string `json:"explorer"`
-	Version  int    `json:"version"`
+	Nethash        string `json:"nethash"`
+	Token          string `json:"token"`
+	Symbol         string `json:"symbol"`
+	Explorer       string `json:"explorer"`
+	AddressVersion int    `json:"version"` //this is address generator version!!!
 }
 
-//PeerResponseError struct to hold error response
-type ConfigError struct {
-	Success      bool   `json:"success"`
-	ErrorMessage string `json:"error"`
-}
+func SetActiveConfiguration(arknetwork ArkNetworkType) {
+	if arknetwork == MAINNET {
+		res, _ := http.Get("http://5.39.9.240:4001/api/loader/autoconfigure")
+		json.NewDecoder(res.Body).Decode(&EnvironmentParams)
 
-//Error interface function
-func (e ConfigError) Error() string {
-	return fmt.Sprintf("ArkServiceApi: %v %v", e.Success, e.ErrorMessage)
-}
-
-func (s *ArkClient) AutoConfigureParams() {
-	arkEnvParams := new(ArkEnvParams)
-	configError := new(ConfigError)
-	_, err := s.sling.New().Get("api/loader/autoconfigure").Receive(&arkEnvParams, configError)
-	if err == nil {
-		err = configError
+		res, _ = http.Get("http://5.39.9.240:4001/api/blocks/getfees")
+		json.NewDecoder(res.Body).Decode(&EnvironmentParams)
 	}
-
-	_, err = s.sling.New().Get("api/blocks/getfees").Receive(&arkEnvParams, configError)
-	if err == nil {
-		err = configError
-	}
-
 }
+
+func init() {
+	log.Println("ArkClientAPI Configuration Init - starting")
+	//arkapi := NewArkClient(nil)
+	SetActiveConfiguration(MAINNET)
+	log.Println("ArkClientAPI Configuration Init - completed")
+}
+
+var SeedList = [...]string{
+	"5.39.9.240:4001",
+	"5.39.9.241:4001",
+	"5.39.9.242:4001",
+	"5.39.9.243:4001",
+	"5.39.9.244:4001",
+	"5.39.9.250:4001",
+	"5.39.9.251:4001",
+	"5.39.9.252:4001",
+	"5.39.9.253:4001",
+	"5.39.9.254:4001",
+	"5.39.9.255:4001",
+	"5.39.53.48:4001",
+	"5.39.53.49:4001",
+	"5.39.53.50:4001",
+	"5.39.53.51:4001",
+	"5.39.53.52:4001",
+	"5.39.53.53:4001",
+	"5.39.53.54:4001",
+	"5.39.53.55:4001",
+	"37.59.129.160:4001",
+	"37.59.129.161:4001",
+	"37.59.129.162:4001",
+	"37.59.129.163:4001",
+	"37.59.129.164:4001",
+	"37.59.129.165:4001",
+	"37.59.129.166:4001",
+	"37.59.129.167:4001",
+	"37.59.129.168:4001",
+	"37.59.129.169:4001",
+	"37.59.129.170:4001",
+	"37.59.129.171:4001",
+	"37.59.129.172:4001",
+	"37.59.129.173:4001",
+	"37.59.129.174:4001",
+	"37.59.129.175:4001",
+	"193.70.72.80:4001",
+	"193.70.72.81:4001",
+	"193.70.72.82:4001",
+	"193.70.72.83:4001",
+	"193.70.72.84:4001",
+	"193.70.72.85:4001",
+	"193.70.72.86:4001",
+	"193.70.72.87:4001",
+	"193.70.72.88:4001",
+	"193.70.72.89:4001",
+	"193.70.72.90:4001"}
+
+var TestSeedList = [...]string{
+	"164.8.251.179:4002",
+	"164.8.251.172:4002",
+	"164.8.251.91:4002",
+	"167.114.43.48:4002",
+	"167.114.29.49:4002",
+	"167.114.43.43:4002",
+	"167.114.29.54:4002",
+	"167.114.29.45:4002",
+	"167.114.29.40:4002",
+	"167.114.29.56:4002",
+	"167.114.43.35:4002",
+	"167.114.29.51:4002",
+	"167.114.29.59:4002",
+	"167.114.43.42:4002",
+	"167.114.29.34:4002",
+	"167.114.29.62:4002",
+	"167.114.43.49:4002",
+	"167.114.29.44:4002",
+	"167.114.43.37:4002",
+	"167.114.29.63:4002",
+	"167.114.29.42:4002",
+	"167.114.29.48:4002",
+	"167.114.29.61:4002",
+	"167.114.43.36:4002",
+	"167.114.29.57:4002",
+	"167.114.43.33:4002",
+	"167.114.29.52:4002",
+	"167.114.29.50:4002",
+	"167.114.43.47:4002",
+	"167.114.29.47:4002",
+	"167.114.29.36:4002",
+	"167.114.29.35:4002",
+	"167.114.43.39:4002",
+	"167.114.43.45:4002",
+	"167.114.29.46:4002",
+	"167.114.29.41:4002",
+	"167.114.43.34:4002",
+	"167.114.29.43:4002",
+	"167.114.43.41:4002",
+	"167.114.29.60:4002",
+	"167.114.43.32:4002",
+	"167.114.29.55:4002",
+	"167.114.29.53:4002",
+	"167.114.29.38:4002",
+	"167.114.43.40:4002",
+	"167.114.29.32:4002",
+	"167.114.43.46:4002",
+	"167.114.43.38:4002",
+	"167.114.29.33:4002",
+	"167.114.43.44:4002",
+	"167.114.43.50:4002",
+	"167.114.29.37:4002",
+	"167.114.29.58:4002",
+	"167.114.29.39:4002"}
