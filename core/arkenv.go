@@ -3,7 +3,9 @@ package core
 import (
 	"encoding/json"
 	"log"
+	"math/rand"
 	"net/http"
+	"strings"
 )
 
 type ArkNetworkType int
@@ -28,36 +30,73 @@ type ArkEnvParams struct {
 type Fees struct {
 	Send            int64 `json:"send"`
 	Vote            int64 `json:"vote"`
-	Secondsignature int64 `json:"secondsignature"`
+	SecondSignature int64 `json:"secondsignature"`
 	Delegate        int64 `json:"delegate"`
-	Multisignature  int64 `json:"multisignature"`
+	MultiSignature  int64 `json:"multisignature"`
 }
 
 //Network parameters
 type Network struct {
-	Nethash        string `json:"nethash"`
-	Token          string `json:"token"`
-	Symbol         string `json:"symbol"`
-	Explorer       string `json:"explorer"`
-	AddressVersion int    `json:"version"` //this is address generator version!!!
+	Nethash        string         `json:"nethash"`
+	Token          string         `json:"token"`
+	Symbol         string         `json:"symbol"`
+	Explorer       string         `json:"explorer"`
+	AddressVersion byte           `json:"version"` //this is address generator version!!!
+	Type           ArkNetworkType //holding ark networktype
+	ActivePeer     Peer
 }
 
-func SetActiveConfiguration(arknetwork ArkNetworkType) {
-	if arknetwork == MAINNET {
-		res, _ := http.Get("http://5.39.9.240:4001/api/loader/autoconfigure")
-		json.NewDecoder(res.Body).Decode(&EnvironmentParams)
+//SetActiveConfiguration reads arknetwork parameters from the Network
+//and fills the EnvironmentParams structure
+//selected and connected peer address is returned
+func SetActiveConfiguration(arknetwork ArkNetworkType) string {
+	selectedPeer := ""
+	EnvironmentParams.Network.Type = arknetwork
+	switch arknetwork {
+	case MAINNET:
+		log.Println("Active network is MAINNET")
+		selectedPeer = SeedList[rand.Intn(len(SeedList))]
+		log.Println("Random peer selected: ", selectedPeer)
 
-		res, _ = http.Get("http://5.39.9.240:4001/api/blocks/getfees")
-		json.NewDecoder(res.Body).Decode(&EnvironmentParams)
+	case DEVNET:
+		log.Println("Active network is DEVNET")
+		selectedPeer = TestSeedList[rand.Intn(len(SeedList))]
+		log.Println("Random peer selected: ", selectedPeer)
 	}
+
+	//reading basic network params
+	res, err := http.Get("http://" + selectedPeer + "/api/loader/autoconfigure")
+	if err != nil {
+		log.Fatal("Error receiving autoloader params rest from: ", selectedPeer)
+	}
+	json.NewDecoder(res.Body).Decode(&EnvironmentParams)
+
+	//reading fees
+	res, err = http.Get("http://" + selectedPeer + "/api/blocks/getfees")
+	if err != nil {
+		log.Fatal("Error receiving fees params rest from: ", selectedPeer)
+	}
+	json.NewDecoder(res.Body).Decode(&EnvironmentParams)
+
+	//getting connected peer params
+	peerParams := strings.Split(selectedPeer, ":")
+	peerRes := new(PeerResponse)
+	res, err = http.Get("http://" + selectedPeer + "/api/peers/get/?ip=" + peerParams[0] + "&port=" + peerParams[1])
+	if err != nil {
+		log.Fatal("Error receiving peer status from: ", selectedPeer, err.Error(), res.StatusCode)
+	}
+	json.NewDecoder(res.Body).Decode(peerRes)
+	EnvironmentParams.Network.ActivePeer = peerRes.SinglePeer
+
+	return "http://" + selectedPeer
 }
 
-func init() {
+/*func init() {
 	log.Println("ArkClientAPI Configuration Init - starting")
 	//arkapi := NewArkClient(nil)
 	SetActiveConfiguration(MAINNET)
 	log.Println("ArkClientAPI Configuration Init - completed")
-}
+}*/
 
 var SeedList = [...]string{
 	"5.39.9.240:4001",

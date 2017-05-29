@@ -104,7 +104,7 @@ func CreateTransaction(recipientID string, satoshiAmount int64, vendorField, pas
 		Type:        0,
 		RecipientID: recipientID,
 		Amount:      satoshiAmount,
-		Fee:         arkcoin.ArkCoinMain.Fees.Send,
+		Fee:         EnvironmentParams.Fees.Send,
 		VendorField: vendorField,
 	}
 
@@ -125,11 +125,11 @@ func CreateTransaction(recipientID string, satoshiAmount int64, vendorField, pas
 func CreateVote(updown, delegatePubKey, passphrase, secondPassphrase string) *Transaction {
 	tx := Transaction{
 		Type:        3,
-		Fee:         arkcoin.ArkCoinMain.Fees.Vote,
+		Fee:         EnvironmentParams.Fees.Vote,
 		VendorField: "Delegate vote transaction",
 		Asset:       make(map[string]string),
 	}
-	key := arkcoin.NewPrivateKeyFromPassword(passphrase, arkcoin.ArkCoinMain)
+	key := arkcoin.NewPrivateKeyFromPassword(passphrase, arkcoin.ActiveCoinConfig)
 	tx.RecipientID = key.PublicKey.Address()
 
 	tx.Asset["votes"] = updown + delegatePubKey
@@ -148,7 +148,7 @@ func CreateVote(updown, delegatePubKey, passphrase, secondPassphrase string) *Tr
 func CreateDelegate(username, passphrase, secondPassphrase string) *Transaction {
 	tx := Transaction{
 		Type:        2,
-		Fee:         arkcoin.ArkCoinMain.Fees.Delegate,
+		Fee:         EnvironmentParams.Fees.Delegate,
 		VendorField: "Create delegate tx",
 		Asset:       make(map[string]string),
 	}
@@ -168,12 +168,12 @@ func CreateDelegate(username, passphrase, secondPassphrase string) *Transaction 
 func CreateSecondSignature(passphrase, secondPassphrase string) *Transaction {
 	tx := Transaction{
 		Type:        1,
-		Fee:         arkcoin.ArkCoinMain.Fees.SecondSignature,
+		Fee:         EnvironmentParams.Fees.SecondSignature,
 		VendorField: "Create second signature",
 		Asset:       make(map[string]string),
 	}
 
-	key := arkcoin.NewPrivateKeyFromPassword(secondPassphrase, arkcoin.ArkCoinMain)
+	key := arkcoin.NewPrivateKeyFromPassword(secondPassphrase, arkcoin.ActiveCoinConfig)
 	tx.Asset["signature"] = hex.EncodeToString(key.PublicKey.Serialize())
 	tx.Timestamp = GetTime() //1
 	tx.sign(passphrase)
@@ -184,7 +184,7 @@ func CreateSecondSignature(passphrase, secondPassphrase string) *Transaction {
 
 //Sign the Transaction
 func (tx *Transaction) sign(passphrase string) {
-	key := arkcoin.NewPrivateKeyFromPassword(passphrase, arkcoin.ArkCoinMain)
+	key := arkcoin.NewPrivateKeyFromPassword(passphrase, arkcoin.ActiveCoinConfig)
 
 	tx.SenderPublicKey = hex.EncodeToString(key.PublicKey.Serialize())
 
@@ -199,7 +199,7 @@ func (tx *Transaction) sign(passphrase string) {
 
 //SecondSign the Transaction
 func (tx *Transaction) secondSign(passphrase string) {
-	key := arkcoin.NewPrivateKeyFromPassword(passphrase, arkcoin.ArkCoinMain)
+	key := arkcoin.NewPrivateKeyFromPassword(passphrase, arkcoin.ActiveCoinConfig)
 
 	tx.SecondSenderPublicKey = hex.EncodeToString(key.PublicKey.Serialize())
 	trHashBytes := sha256.New()
@@ -239,7 +239,7 @@ func quickHexDecode(data string) []byte {
 //Verify function verifies if tx is validly signed
 //if return == nill verification was succesfull
 func (tx *Transaction) Verify() error {
-	key, err := arkcoin.NewPublicKey(quickHexDecode(tx.SenderPublicKey), arkcoin.ArkCoinMain)
+	key, err := arkcoin.NewPublicKey(quickHexDecode(tx.SenderPublicKey), arkcoin.ActiveCoinConfig)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -252,7 +252,7 @@ func (tx *Transaction) Verify() error {
 //SecondVerify function verifies if tx is validly signed
 //if return == nill verification was succesfull
 func (tx *Transaction) SecondVerify() error {
-	key, err := arkcoin.NewPublicKey(quickHexDecode(tx.SecondSenderPublicKey), arkcoin.ArkCoinMain)
+	key, err := arkcoin.NewPublicKey(quickHexDecode(tx.SecondSenderPublicKey), arkcoin.ActiveCoinConfig)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

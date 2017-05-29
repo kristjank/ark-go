@@ -6,7 +6,8 @@ import (
 )
 
 func TestKeys(t *testing.T) {
-	address := GetAddress("this is a top secret passphrase")
+	address := GetAddress("this is chrises top secret dev account passphrase")
+
 	log.Println("address=", address)
 
 }

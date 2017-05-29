@@ -8,7 +8,7 @@ import (
 func TestListPeers(t *testing.T) {
 	arkapi := NewArkClient(nil)
 
-	params := PeerQueryParams{Status: "OK", Version: "1.0.0"}
+	params := PeerQueryParams{Status: "OK", Version: "1.0.1"}
 
 	peers, _, err := arkapi.ListPeers(params)
 	if peers.Success {

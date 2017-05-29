@@ -1,6 +1,7 @@
 package core
 
 import (
+	"ark-go/arkcoin"
 	"log"
 	"testing"
 )
@@ -164,4 +165,19 @@ func TestCreateSecondSignature(t *testing.T) {
 	}
 	log.Println(t.Name(), "Success")
 
+}
+
+func TestAddress(t *testing.T) {
+	key := arkcoin.NewPrivateKeyFromPassword("this is a top secret passphrase", arkcoin.ActiveCoinConfig)
+
+	if EnvironmentParams.Network.Type == MAINNET {
+		if key.PublicKey.Address() != "AGeYmgbg2LgGxRW2vNNJvQ88PknEJsYizC" {
+			t.Error("Address generation failed. Generated Address: ", key.PublicKey.Address())
+		}
+	}
+	if EnvironmentParams.Network.Type == DEVNET {
+		if key.PublicKey.Address() != "D61mfSggzbvQgTUe6JhYKH2doHaqJ3Dyib" {
+			t.Error("Address generation failed. Generated Address: ", key.PublicKey.Address())
+		}
+	}
 }

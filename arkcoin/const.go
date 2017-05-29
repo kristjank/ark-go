@@ -2,21 +2,24 @@ package arkcoin
 
 //BitcoinMain is params for main net.
 var (
+	ActiveCoinConfig = &Params{} //Dynamic ActiveCoinConfig received from Network
+
+	//Settings below are obsolete
 	ArkCoinMain = &Params{
 		DumpedPrivateKeyHeader: []byte{170}, //wif
 		AddressHeader:          23,          //0x17
 		//P2SHHeader:             5,
 		//HDPrivateKeyID:         []byte{0x04, 0x88, 0xad, 0xe4},
 		//HDPublicKeyID:          []byte{0x04, 0x88, 0xb2, 0x1e},
-		Fees: Fees{
-			Send:            10000000,
-			Vote:            100000000,
-			Delegate:        2500000000,
-			SecondSignature: 500000000,
-			MultiSignature:  500000000,
-			DistributedApp:  2500000000,
-		},
 	}
+	ArkCoinDevTest = &Params{
+		DumpedPrivateKeyHeader: []byte{239}, //wif
+		AddressHeader:          30,          //0x17
+		//P2SHHeader:             5,
+		//HDPrivateKeyID:         []byte{0x04, 0x88, 0xad, 0xe4},
+		//HDPublicKeyID:          []byte{0x04, 0x88, 0xb2, 0x1e},
+	}
+
 	BitcoinMain = &Params{
 		DumpedPrivateKeyHeader: []byte{128},
 		AddressHeader:          0,
@@ -33,3 +36,9 @@ var (
 		//HDPublicKeyID:          []byte{0x04, 0x35, 0x87, 0xcf},
 	}
 )
+
+//SetActiveCoinConfiguration should be called right after Network config is received
+//it sets the coin parametes
+func SetActiveCoinConfiguration(params *Params) {
+	ActiveCoinConfig = params
+}
