@@ -70,7 +70,17 @@ func TestPostTransaction(t *testing.T) {
 
 	arkapi := NewArkClient(nil)
 
-	res, httpresponse, err := arkapi.PostTransaction(tx)
+	var payload TransactionPayload
+	payload.Transactions = append(payload.Transactions, tx)
+
+	tx1 := CreateTransaction("AUgTuukcKeE4XFdzaK6rEHMD5FLmVBSmHk",
+		2,
+		"ARK-GOLang is saying whoop whooop 22",
+		"ski rose knock live elder parade dose device fetch betray loan holiday", "")
+
+	payload.Transactions = append(payload.Transactions, tx1)
+
+	res, httpresponse, err := arkapi.PostTransaction(payload)
 	if res.Success {
 		log.Println(t.Name(), "Success,", httpresponse.Status, res.TransactionIDs)
 

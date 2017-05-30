@@ -96,22 +96,25 @@ func TestCalculcateVotersProfit(t *testing.T) {
 	votersEarnings := arkapi.CalculateVotersProfit(params, 0.70)
 
 	//log.Println(t.Name(), "Success", votersEarnings)
-
-	sumEarned := 0
+	//log.Println(t.Name(), "Success", votersEarnings)
+	sumEarned := 0.9
 	sumRatio := 0.0
-	sumShareEarned := 0
+	sumShareEarned := 0.0
+	feeAmount := float64(len(votersEarnings)) * (float64(EnvironmentParams.Fees.Send) / SATOSHI)
 	for _, element := range votersEarnings {
-		log.Println(fmt.Sprintf("|%s|%20d|%15.10f|%15d|%15d|%4d|",
+		log.Println(fmt.Sprintf("|%s|%15.8f|%15.8f|%15.8f|%15.8f|%4d|%25d|",
 			element.Address,
 			element.VoteWeight,
 			element.VoteWeightShare,
 			element.EarnedAmount100,
 			element.EarnedAmountXX,
-			element.VoteDuration))
+			element.VoteDuration,
+			int(element.EarnedAmountXX*SATOSHI)))
 
 		sumEarned += element.EarnedAmount100
 		sumShareEarned += element.EarnedAmountXX
 		sumRatio += element.VoteWeightShare
 	}
-	log.Println("Full forged amount: ", sumEarned, "Ratio calc check sum: ", sumRatio, "Amount to voters: ", sumShareEarned, "Ratio shared: ", float64(sumShareEarned)/float64(sumEarned))
+	log.Println("Full forged amount: ", sumEarned, "Ratio calc check sum: ", sumRatio, "Amount to voters: ", sumShareEarned, "Ratio shared: ", float64(sumShareEarned)/float64(sumEarned), "Lottery:", int64((sumEarned-sumShareEarned-feeAmount)*SATOSHI))
+	log.Println(fmt.Sprintf("Payment fees: %2.2f", feeAmount))
 }

@@ -46,11 +46,11 @@ type DelegateQueryParams struct {
 
 type DelegateDataProfit struct {
 	Address         string
-	VoteWeight      int
+	VoteWeight      float64
 	VoteWeightShare float64
-	EarnedAmount100 int   //100 earned amount.
-	EarnedAmountXX  int   //XX share to be payed
-	VoteDuration    int32 //Duration of vote in Hours
+	EarnedAmount100 float64 //100 earned amount.
+	EarnedAmountXX  float64 //XX share to be payed
+	VoteDuration    int32   //Duration of vote in Hours
 }
 
 //ListDelegates function returns list of delegtes. The top 51 delegates are returned
@@ -115,8 +115,8 @@ func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio
 	voters, _, _ := s.GetDelegateVoters(params)
 	accountRes, _, _ := s.GetAccount(AccountQueryParams{Address: delegateRes.SingleDelegate.Address})
 
-	delegateBalance, _ := strconv.Atoi(accountRes.Account.Balance)
-	//delegateBalance = int(float64(delegateBalance) * float64(share) / 100)
+	delegateBalance, _ := strconv.ParseFloat(accountRes.Account.Balance, 64)
+	delegateBalance = float64(delegateBalance) / SATOSHI
 	//calculating vote weight
 	votersProfit := []DelegateDataProfit{}
 	delelgateVoteWeight := 0
@@ -132,11 +132,11 @@ func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio
 		deleProfit := DelegateDataProfit{
 			Address: element.Address,
 		}
-		currentVoterBalance, _ := strconv.Atoi(element.Balance)
-		deleProfit.VoteWeight = currentVoterBalance
+		currentVoterBalance, _ := strconv.ParseFloat(element.Balance, 64)
+		deleProfit.VoteWeight = currentVoterBalance / SATOSHI
 		deleProfit.VoteWeightShare = float64(currentVoterBalance) / float64(delelgateVoteWeight)
-		deleProfit.EarnedAmount100 = int(float64(delegateBalance) * deleProfit.VoteWeightShare)
-		deleProfit.EarnedAmountXX = int(float64(delegateBalance) * deleProfit.VoteWeightShare * shareRatio)
+		deleProfit.EarnedAmount100 = float64(delegateBalance) * deleProfit.VoteWeightShare
+		deleProfit.EarnedAmountXX = float64(delegateBalance) * deleProfit.VoteWeightShare * shareRatio
 		deleProfit.VoteDuration = s.GetFidelityFactor(element.Address)
 		votersProfit = append(votersProfit, deleProfit)
 	}

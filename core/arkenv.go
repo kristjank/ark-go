@@ -16,6 +16,10 @@ const (
 	DEVNET
 )
 
+const (
+	SATOSHI = 100000000
+)
+
 //Global ARK EnvironmentParams read from acitve peers
 var EnvironmentParams = new(ArkEnvParams)
 

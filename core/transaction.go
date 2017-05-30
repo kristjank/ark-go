@@ -278,7 +278,7 @@ type PostTransactionResponse struct {
 	TransactionIDs []string `json:"transactionIds"`
 }
 
-type transactionPayload struct {
+type TransactionPayload struct {
 	Transactions []*Transaction `json:"transactions"`
 }
 
@@ -305,13 +305,13 @@ type TransactionResponse struct {
 }
 
 //PostTransaction to selected ARKNetwork
-func (s *ArkClient) PostTransaction(tx *Transaction) (PostTransactionResponse, *http.Response, error) {
+func (s *ArkClient) PostTransaction(payload TransactionPayload) (PostTransactionResponse, *http.Response, error) {
 	respTr := new(PostTransactionResponse)
 	errTr := new(ArkApiResponseError)
 
-	var payload transactionPayload
+	/*var payload transactionPayload
 	payload.Transactions = append(payload.Transactions, tx)
-
+	*/
 	resp, err := s.sling.New().Post("peer/transactions").BodyJSON(payload).Receive(respTr, errTr)
 
 	if err == nil {
