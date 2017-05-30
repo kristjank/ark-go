@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"strconv"
 	"testing"
@@ -92,7 +93,16 @@ func TestCalculcateVotersProfit(t *testing.T) {
 
 	params := DelegateQueryParams{PublicKey: "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"}
 
-	votersEarnings, _, _ := arkapi.CalculateVotersProfit(params)
+	delegateRes, _, _ := arkapi.GetDelegate(params)
+	voters, _, _ := arkapi.GetDelegateVoters(params)
+	accountRes, _, _ := arkapi.GetAccount(AccountQueryParams{Address: delegateRes.SingleDelegate.Address})
 
-	log.Println(t.Name(), "Success", len(votersEarnings))
+	votersEarnings := CalculateVotersProfit(voters, delegateRes.SingleDelegate, accountRes.Account)
+
+	//log.Println(t.Name(), "Success", votersEarnings)
+
+	for _, element := range votersEarnings {
+
+		log.Println(fmt.Sprintf("|%s|%30d|%30d|%30d|", element.Address, element.VoteWeight, element.VoteWeightShare, element.EarnedAmmount))
+	}
 }

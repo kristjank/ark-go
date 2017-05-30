@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type ArkNetworkType int
@@ -50,17 +51,20 @@ type Network struct {
 //and fills the EnvironmentParams structure
 //selected and connected peer address is returned
 func SetActiveConfiguration(arknetwork ArkNetworkType) string {
+	s1 := rand.NewSource(time.Now().UnixNano())
+	r1 := rand.New(s1)
+
 	selectedPeer := ""
 	EnvironmentParams.Network.Type = arknetwork
 	switch arknetwork {
 	case MAINNET:
 		log.Println("Active network is MAINNET")
-		selectedPeer = SeedList[rand.Intn(len(SeedList))]
+		selectedPeer = SeedList[r1.Intn(len(SeedList))]
 		log.Println("Random peer selected: ", selectedPeer)
 
 	case DEVNET:
 		log.Println("Active network is DEVNET")
-		selectedPeer = TestSeedList[rand.Intn(len(SeedList))]
+		selectedPeer = TestSeedList[r1.Intn(len(SeedList))]
 		log.Println("Random peer selected: ", selectedPeer)
 	}
 

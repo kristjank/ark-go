@@ -8,7 +8,6 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 )
@@ -273,14 +272,6 @@ type transactionPayload struct {
 	Transactions []*Transaction `json:"transactions"`
 }
 
-//TransactionResponseError struct to hold error response from api node
-type TransactionResponseError struct {
-	Success      bool   `json:"success"`
-	Message      string `json:"message"`
-	ErrorMessage string `json:"error"`
-	Data         string `json:"data"`
-}
-
 //TransactionQueryParams for returing filtered list of transactions
 type TransactionQueryParams struct {
 	ID          string `url:"id,omitempty"`
@@ -303,15 +294,10 @@ type TransactionResponse struct {
 	Error             string        `json:"error"`
 }
 
-//Error interface function
-func (e TransactionResponseError) Error() string {
-	return fmt.Sprintf("ArkServiceApi: %v %v", e.Success, e.ErrorMessage)
-}
-
 //PostTransaction to selected ARKNetwork
 func (s *ArkClient) PostTransaction(tx *Transaction) (PostTransactionResponse, *http.Response, error) {
 	respTr := new(PostTransactionResponse)
-	errTr := new(TransactionResponseError)
+	errTr := new(ArkApiResponseError)
 
 	var payload transactionPayload
 	payload.Transactions = append(payload.Transactions, tx)
@@ -328,7 +314,7 @@ func (s *ArkClient) PostTransaction(tx *Transaction) (PostTransactionResponse, *
 //ListTransaction function returns list of peers from ArkNode
 func (s *ArkClient) ListTransaction(params TransactionQueryParams) (TransactionResponse, *http.Response, error) {
 	transactionResponse := new(TransactionResponse)
-	transactionResponseErr := new(TransactionResponseError)
+	transactionResponseErr := new(ArkApiResponseError)
 	resp, err := s.sling.New().Get("api/transactions").QueryStruct(&params).Receive(transactionResponse, transactionResponseErr)
 	if err == nil {
 		err = transactionResponseErr
@@ -340,7 +326,7 @@ func (s *ArkClient) ListTransaction(params TransactionQueryParams) (TransactionR
 //ListTransactionUnconfirmed function returns list of peers from ArkNode
 func (s *ArkClient) ListTransactionUnconfirmed(params TransactionQueryParams) (TransactionResponse, *http.Response, error) {
 	transactionResponse := new(TransactionResponse)
-	transactionResponseErr := new(TransactionResponseError)
+	transactionResponseErr := new(ArkApiResponseError)
 	resp, err := s.sling.New().Get("api/transactions/unconfirmed").QueryStruct(&params).Receive(transactionResponse, transactionResponseErr)
 	if err == nil {
 		err = transactionResponseErr
@@ -352,7 +338,7 @@ func (s *ArkClient) ListTransactionUnconfirmed(params TransactionQueryParams) (T
 //GetTransaction function returns list of peers from ArkNode
 func (s *ArkClient) GetTransaction(params TransactionQueryParams) (TransactionResponse, *http.Response, error) {
 	transactionResponse := new(TransactionResponse)
-	transactionResponseErr := new(TransactionResponseError)
+	transactionResponseErr := new(ArkApiResponseError)
 	resp, err := s.sling.New().Get("api/transactions/get").QueryStruct(&params).Receive(transactionResponse, transactionResponseErr)
 	if err == nil {
 		err = transactionResponseErr
@@ -364,7 +350,7 @@ func (s *ArkClient) GetTransaction(params TransactionQueryParams) (TransactionRe
 //GetTransactionUnconfirmed function returns list of peers from ArkNode
 func (s *ArkClient) GetTransactionUnconfirmed(params TransactionQueryParams) (TransactionResponse, *http.Response, error) {
 	transactionResponse := new(TransactionResponse)
-	transactionResponseErr := new(TransactionResponseError)
+	transactionResponseErr := new(ArkApiResponseError)
 	resp, err := s.sling.New().Get("api/transactions/unconfirmed/get").QueryStruct(&params).Receive(transactionResponse, transactionResponseErr)
 	if err == nil {
 		err = transactionResponseErr

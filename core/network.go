@@ -2,6 +2,7 @@ package core
 
 import (
 	"ark-go/arkcoin"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -9,6 +10,19 @@ import (
 )
 
 var baseURL = ""
+
+//ArkApiResponseError struct to hold error response from api node
+type ArkApiResponseError struct {
+	Success      bool   `json:"success,omitempty"`
+	Message      string `json:"message,omitempty"`
+	ErrorMessage string `json:"error,omitempty"`
+	Data         string `json:"data,omitempty"`
+}
+
+//Error interface function
+func (e ArkApiResponseError) Error() string {
+	return fmt.Sprintf("ArkServiceApi: %v %v", e.Success, e.ErrorMessage, e.Data, e.Message)
+}
 
 //ArkClient sling rest pointer
 type ArkClient struct {

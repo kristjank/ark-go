@@ -1,9 +1,6 @@
 package core
 
-import (
-	"fmt"
-	"net/http"
-)
+import "net/http"
 
 //PeerResponse structure for call /peer/list
 type PeerResponse struct {
@@ -36,21 +33,10 @@ type PeerQueryParams struct {
 	Port    int    `url:"port,omitempty"`
 }
 
-//PeerResponseError struct to hold error response
-type PeerResponseError struct {
-	Success      bool   `json:"success"`
-	ErrorMessage string `json:"error"`
-}
-
-//Error interface function
-func (e PeerResponseError) Error() string {
-	return fmt.Sprintf("ArkServiceApi: %v %v", e.Success, e.ErrorMessage)
-}
-
 //ListPeers function returns list of peers from ArkNode
 func (s *ArkClient) ListPeers(params PeerQueryParams) (PeerResponse, *http.Response, error) {
 	peerResponse := new(PeerResponse)
-	peerResponseError := new(PeerResponseError)
+	peerResponseError := new(ArkApiResponseError)
 	resp, err := s.sling.New().Get("api/peers/").QueryStruct(&params).Receive(peerResponse, peerResponseError)
 	if err == nil {
 		err = peerResponseError
@@ -62,7 +48,7 @@ func (s *ArkClient) ListPeers(params PeerQueryParams) (PeerResponse, *http.Respo
 //GetPeer function returns one peer with params
 func (s *ArkClient) GetPeer(params PeerQueryParams) (PeerResponse, *http.Response, error) {
 	peerResponse := new(PeerResponse)
-	peerResponseError := new(PeerResponseError)
+	peerResponseError := new(ArkApiResponseError)
 	resp, err := s.sling.New().Get("api/peers/get").QueryStruct(&params).Receive(peerResponse, peerResponseError)
 	if err == nil {
 		err = peerResponseError

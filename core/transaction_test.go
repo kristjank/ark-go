@@ -63,7 +63,7 @@ func TestSecondVerifyTransaction(t *testing.T) {
 }
 
 func TestPostTransaction(t *testing.T) {
-	tx := CreateTransaction("AUgTuukcKeE4XFdzaK6rEHMD5FLmVBSmHk",
+	/*tx := CreateTransaction("AUgTuukcKeE4XFdzaK6rEHMD5FLmVBSmHk",
 		1,
 		"ARK-GOLang is saying whoop whooop",
 		"ski rose knock live elder parade dose device fetch betray loan holiday", "")
@@ -77,7 +77,7 @@ func TestPostTransaction(t *testing.T) {
 	} else {
 		log.Println(res.Message, res.Error, httpresponse.Status)
 		t.Error(err.Error(), res.Error)
-	}
+	}*/
 }
 
 func TestListTransaction(t *testing.T) {

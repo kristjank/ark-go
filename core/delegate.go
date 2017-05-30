@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -38,12 +37,6 @@ type DelegateData struct {
 	Productivity   float64 `json:"productivity"`
 }
 
-//DelegateResponseError struct to hold error response
-type DelegateResponseError struct {
-	Success      bool   `json:"success"`
-	ErrorMessage string `json:"error"`
-}
-
 //DelegateQueryParams - when set, they are automatically added to get requests
 type DelegateQueryParams struct {
 	UserName  string `url:"username,omitempty"`
@@ -54,19 +47,14 @@ type DelegateQueryParams struct {
 type DelegateDataProfit struct {
 	Address         string
 	VoteWeight      int
-	VoteWeightShare float64
+	VoteWeightShare int
 	EarnedAmmount   int
-}
-
-//Error interface function
-func (e DelegateResponseError) Error() string {
-	return fmt.Sprintf("ArkServiceApi: %v %v", e.Success, e.ErrorMessage)
 }
 
 //ListDelegates function returns list of delegtes. The top 51 delegates are returned
 func (s *ArkClient) ListDelegates(params DelegateQueryParams) (DelegateResponse, *http.Response, error) {
 	respData := new(DelegateResponse)
-	respError := new(DelegateResponseError)
+	respError := new(ArkApiResponseError)
 	resp, err := s.sling.New().Get("api/delegates").QueryStruct(&params).Receive(respData, respError)
 	if err == nil {
 		err = respError
@@ -78,7 +66,7 @@ func (s *ArkClient) ListDelegates(params DelegateQueryParams) (DelegateResponse,
 //GetDelegate function returns a delegate
 func (s *ArkClient) GetDelegate(params DelegateQueryParams) (DelegateResponse, *http.Response, error) {
 	respData := new(DelegateResponse)
-	respError := new(DelegateResponseError)
+	respError := new(ArkApiResponseError)
 	resp, err := s.sling.New().Get("api/delegates/get").QueryStruct(&params).Receive(respData, respError)
 	if err == nil {
 		err = respError
@@ -90,7 +78,7 @@ func (s *ArkClient) GetDelegate(params DelegateQueryParams) (DelegateResponse, *
 //GetDelegateVoters function returns a delegate
 func (s *ArkClient) GetDelegateVoters(params DelegateQueryParams) (DelegateVoters, *http.Response, error) {
 	respData := new(DelegateVoters)
-	respError := new(DelegateResponseError)
+	respError := new(ArkApiResponseError)
 	resp, err := s.sling.New().Get("api/delegates/voters").QueryStruct(&params).Receive(respData, respError)
 	if err == nil {
 		err = respError
@@ -102,7 +90,7 @@ func (s *ArkClient) GetDelegateVoters(params DelegateQueryParams) (DelegateVoter
 //GetDelegateVoteWeight function returns a summary of ARK voted for selected delegate
 func (s *ArkClient) GetDelegateVoteWeight(params DelegateQueryParams) (int, *http.Response, error) {
 	respData := new(DelegateVoters)
-	respError := new(DelegateResponseError)
+	respError := new(ArkApiResponseError)
 	resp, err := s.sling.New().Get("api/delegates/voters").QueryStruct(&params).Receive(respData, respError)
 	if err == nil {
 		err = respError
@@ -120,38 +108,29 @@ func (s *ArkClient) GetDelegateVoteWeight(params DelegateQueryParams) (int, *htt
 	return balance, resp, err
 }
 
-func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams) ([]DelegateDataProfit, *http.Response, error) {
-	respData := new(DelegateVoters)
-	respError := new(DelegateResponseError)
-	resp, err := s.sling.New().Get("api/delegates/voters").QueryStruct(&params).Receive(respData, respError)
-	if err == nil {
-		err = respError
-	}
-
+func CalculateVotersProfit(voters DelegateVoters, delegate DelegateData, account AccountData) []DelegateDataProfit {
+	delegateBalance, _ := strconv.Atoi(account.Balance)
 	//calculating vote weight
 	votersProfit := []DelegateDataProfit{}
-	balance := 0
-	if respData.Success {
-		//computing summ of all votes
-		for _, element := range respData.Accounts {
-			intBalance, _ := strconv.Atoi(element.Balance)
-			balance += intBalance
-		}
+	delelgateVoteWeight := 0
 
-		//calculating
-		for _, element := range respData.Accounts {
-			deleProfit := DelegateDataProfit{
-				Address: element.Address,
-			}
-
-			currentBalance, _ := strconv.Atoi(element.Balance)
-			deleProfit.VoteWeight = currentBalance
-			deleProfit.VoteWeightShare = float64(currentBalance) / float64(balance)
-
-			votersProfit = append(votersProfit, deleProfit)
-		}
-
+	//computing summ of all votes
+	for _, element := range voters.Accounts {
+		intBalance, _ := strconv.Atoi(element.Balance)
+		delelgateVoteWeight += intBalance
 	}
 
-	return votersProfit, resp, err
+	//calculating
+	for _, element := range voters.Accounts {
+		deleProfit := DelegateDataProfit{
+			Address: element.Address,
+		}
+		currentVoterBalance, _ := strconv.Atoi(element.Balance)
+		deleProfit.VoteWeight = currentVoterBalance
+		deleProfit.VoteWeightShare = int(float64(currentVoterBalance) / float64(delelgateVoteWeight) * 100)
+		deleProfit.EarnedAmmount = delegateBalance * deleProfit.VoteWeightShare
+		votersProfit = append(votersProfit, deleProfit)
+	}
+
+	return votersProfit
 }
