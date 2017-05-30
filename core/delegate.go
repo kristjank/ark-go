@@ -51,6 +51,13 @@ type DelegateQueryParams struct {
 	Offset    int    `url:"offset,omitempty"`
 }
 
+type DelegateDataProfit struct {
+	Address         string
+	VoteWeight      int
+	VoteWeightShare float32
+	EarnedAmmount   int
+}
+
 //Error interface function
 func (e DelegateResponseError) Error() string {
 	return fmt.Sprintf("ArkServiceApi: %v %v", e.Success, e.ErrorMessage)
@@ -111,4 +118,40 @@ func (s *ArkClient) GetDelegateVoteWeight(params DelegateQueryParams) (int, *htt
 	}
 
 	return balance, resp, err
+}
+
+func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams) ([]DelegateDataProfit, *http.Response, error) {
+	respData := new(DelegateVoters)
+	respError := new(DelegateResponseError)
+	resp, err := s.sling.New().Get("api/delegates/voters").QueryStruct(&params).Receive(respData, respError)
+	if err == nil {
+		err = respError
+	}
+
+	//calculating vote weight
+	votersProfit := []DelegateDataProfit{}
+	balance := 0
+	if respData.Success {
+		//computing summ of all votes
+		for _, element := range respData.Accounts {
+			intBalance, _ := strconv.Atoi(element.Balance)
+			balance += intBalance
+		}
+
+		//calculating
+		for _, element := range respData.Accounts {
+			deleProfit := DelegateDataProfit{
+				Address: element.Address,
+			}
+
+			currentBalance, _ := strconv.Atoi(element.Balance)
+			deleProfit.VoteWeight = currentBalance
+			deleProfit.VoteWeightShare = float32(currentBalance / balance)
+
+			votersProfit = append(votersProfit, deleProfit)
+		}
+
+	}
+
+	return votersProfit, resp, err
 }

@@ -85,5 +85,14 @@ func TestGetDelegateVoteWeight(t *testing.T) {
 	voteWeight, _, _ := arkapi.GetDelegateVoteWeight(params)
 
 	log.Println(t.Name(), "Success, returned delegate vote weight is", voteWeight)
+}
 
+func TestCalculcateVotersProfit(t *testing.T) {
+	arkapi := NewArkClient(nil)
+
+	params := DelegateQueryParams{PublicKey: "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"}
+
+	votersEarnings, _, _ := arkapi.CalculateVotersProfit(params)
+
+	log.Println(t.Name(), "Success", len(votersEarnings))
 }
