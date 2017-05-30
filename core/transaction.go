@@ -12,6 +12,16 @@ import (
 	"net/http"
 )
 
+type TransactionType byte
+
+const (
+	SENDARK         = 0
+	SECONDSIGNATURE = 1
+	CREATEDELEGATE  = 2
+	VOTE            = 3
+	MULTISIGNATURE  = 4
+)
+
 //Transaction struct - represents structure of ARK.io blockchain transaction
 //It is used to post transaction to mainnet and to receive results from arkapi
 //Empty fields are emmited by default
@@ -22,7 +32,7 @@ type Transaction struct {
 	Amount                int64             `json:"amount,omitempty"`
 	Asset                 map[string]string `json:"asset,omitempty"`
 	Fee                   int64             `json:"fee,omitempty"`
-	Type                  byte              `json:"type"`
+	Type                  TransactionType   `json:"type"`
 	VendorField           string            `json:"vendorField,omitempty"`
 	Signature             string            `json:"signature,omitempty"`
 	SignSignature         string            `json:"signSignature,omitempty"`
@@ -76,12 +86,12 @@ func (tx *Transaction) toBytes(skipSignature, skipSecondSignature bool) []byte {
 	binary.Write(txBuf, binary.LittleEndian, uint64(tx.Fee))
 
 	switch tx.Type {
-	case 1:
+	case SECONDSIGNATURE:
 		binary.Write(txBuf, binary.LittleEndian, quickHexDecode(tx.Asset["signature"]))
-	case 2:
+	case CREATEDELEGATE:
 		usernameBytes := []byte(tx.Asset["username"])
 		binary.Write(txBuf, binary.LittleEndian, usernameBytes)
-	case 3:
+	case VOTE:
 		voteBytes := []byte(tx.Asset["votes"])
 		binary.Write(txBuf, binary.LittleEndian, voteBytes)
 	}
@@ -100,7 +110,7 @@ func (tx *Transaction) toBytes(skipSignature, skipSecondSignature bool) []byte {
 //CreateTransaction creates and returns new Transaction struct...
 func CreateTransaction(recipientID string, satoshiAmount int64, vendorField, passphrase, secondPassphrase string) *Transaction {
 	tx := Transaction{
-		Type:        0,
+		Type:        SENDARK,
 		RecipientID: recipientID,
 		Amount:      satoshiAmount,
 		Fee:         EnvironmentParams.Fees.Send,
@@ -123,7 +133,7 @@ func CreateTransaction(recipientID string, satoshiAmount int64, vendorField, pas
 //if updown value = "-" vot is taken from the specified PublicKey
 func CreateVote(updown, delegatePubKey, passphrase, secondPassphrase string) *Transaction {
 	tx := Transaction{
-		Type:        3,
+		Type:        VOTE,
 		Fee:         EnvironmentParams.Fees.Vote,
 		VendorField: "Delegate vote transaction",
 		Asset:       make(map[string]string),
@@ -146,7 +156,7 @@ func CreateVote(updown, delegatePubKey, passphrase, secondPassphrase string) *Tr
 //CreateDelegate creates and returns new Transaction struct...
 func CreateDelegate(username, passphrase, secondPassphrase string) *Transaction {
 	tx := Transaction{
-		Type:        2,
+		Type:        CREATEDELEGATE,
 		Fee:         EnvironmentParams.Fees.Delegate,
 		VendorField: "Create delegate tx",
 		Asset:       make(map[string]string),
@@ -166,7 +176,7 @@ func CreateDelegate(username, passphrase, secondPassphrase string) *Transaction 
 //CreateSecondSignature creates and returns new Transaction struct...
 func CreateSecondSignature(passphrase, secondPassphrase string) *Transaction {
 	tx := Transaction{
-		Type:        1,
+		Type:        SECONDSIGNATURE,
 		Fee:         EnvironmentParams.Fees.SecondSignature,
 		VendorField: "Create second signature",
 		Asset:       make(map[string]string),

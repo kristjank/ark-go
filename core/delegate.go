@@ -47,8 +47,10 @@ type DelegateQueryParams struct {
 type DelegateDataProfit struct {
 	Address         string
 	VoteWeight      int
-	VoteWeightShare int
-	EarnedAmmount   int
+	VoteWeightShare float64
+	EarnedAmount100 int   //100 earned amount.
+	EarnedAmountXX  int   //XX share to be payed
+	VoteDuration    int32 //Duration of vote in Hours
 }
 
 //ListDelegates function returns list of delegtes. The top 51 delegates are returned
@@ -108,8 +110,13 @@ func (s *ArkClient) GetDelegateVoteWeight(params DelegateQueryParams) (int, *htt
 	return balance, resp, err
 }
 
-func CalculateVotersProfit(voters DelegateVoters, delegate DelegateData, account AccountData) []DelegateDataProfit {
-	delegateBalance, _ := strconv.Atoi(account.Balance)
+func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio float64) []DelegateDataProfit {
+	delegateRes, _, _ := s.GetDelegate(params)
+	voters, _, _ := s.GetDelegateVoters(params)
+	accountRes, _, _ := s.GetAccount(AccountQueryParams{Address: delegateRes.SingleDelegate.Address})
+
+	delegateBalance, _ := strconv.Atoi(accountRes.Account.Balance)
+	//delegateBalance = int(float64(delegateBalance) * float64(share) / 100)
 	//calculating vote weight
 	votersProfit := []DelegateDataProfit{}
 	delelgateVoteWeight := 0
@@ -127,10 +134,27 @@ func CalculateVotersProfit(voters DelegateVoters, delegate DelegateData, account
 		}
 		currentVoterBalance, _ := strconv.Atoi(element.Balance)
 		deleProfit.VoteWeight = currentVoterBalance
-		deleProfit.VoteWeightShare = int(float64(currentVoterBalance) / float64(delelgateVoteWeight) * 100)
-		deleProfit.EarnedAmmount = delegateBalance * deleProfit.VoteWeightShare
+		deleProfit.VoteWeightShare = float64(currentVoterBalance) / float64(delelgateVoteWeight)
+		deleProfit.EarnedAmount100 = int(float64(delegateBalance) * deleProfit.VoteWeightShare)
+		deleProfit.EarnedAmountXX = int(float64(delegateBalance) * deleProfit.VoteWeightShare * shareRatio)
+		deleProfit.VoteDuration = s.GetFidelityFactor(element.Address)
 		votersProfit = append(votersProfit, deleProfit)
 	}
 
 	return votersProfit
+}
+
+func (s *ArkClient) GetFidelityFactor(address string) int32 {
+
+	transQuery := TransactionQueryParams{SenderID: address}
+
+	transResp, _, _ := s.ListTransaction(transQuery)
+
+	for _, element := range transResp.Transactions {
+		if element.Type == VOTE {
+			//log.Println("Found Transaction", element.ToJSON())
+			return GetDurationTime(element.Timestamp)
+		}
+	}
+	return 0
 }

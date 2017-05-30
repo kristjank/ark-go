@@ -1,63 +1,33 @@
 package cmd
 
 import (
-	"ark-go/arkcoin"
 	"ark-go/core"
-	"crypto/sha256"
-	"encoding/json"
 	"fmt"
 	"log"
-
-	"github.com/btcsuite/btcd/btcec"
 )
 
-//GetKey returns public/private key pair
-func GetKey(password string) string {
-	h := sha256.New()
-	h.Write([]byte(password))
-	b := h.Sum(nil)
+func calculcateVoteRatio() {
+	arkapi := core.NewArkClient(nil)
+	params := core.DelegateQueryParams{PublicKey: "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"}
 
-	privKey, pubKey := btcec.PrivKeyFromBytes(btcec.S256(), b)
+	votersEarnings := arkapi.CalculateVotersProfit(params, 0.70)
 
-	fmt.Println("Private Key :")
-	fmt.Printf("%x \n", privKey.Serialize())
-	fmt.Println("Public Key :")
-	fmt.Printf("%x \n", pubKey.SerializeCompressed())
-	//fmt.Printf(privKey.X)
+	sumEarned := 0
+	sumRatio := 0.0
+	sumShareEarned := 0
+	for _, element := range votersEarnings {
+		log.Println(fmt.Sprintf("|%s|%20d|%15.10f|%15d|%15d|%4d|",
+			element.Address,
+			element.VoteWeight,
+			element.VoteWeightShare,
+			element.EarnedAmount100,
+			element.EarnedAmountXX,
+			element.VoteDuration))
 
-	//GetAddress(pubKey.SerializeCompressed(), byte('\x17'))
-
-	return ""
-}
-
-func GetAddress(password string) string {
-	h := sha256.New()
-	h.Write([]byte("this is a top secret passphrase"))
-	b := h.Sum(nil)
-
-	key1 := arkcoin.NewPrivateKey(b, arkcoin.ArkCoinMain)
-	//arkcoin.NewPrivateKey(pb, param)
-	key := arkcoin.NewPrivateKeyFromPassword(password, arkcoin.ArkCoinMain)
-
-	//adr := key.PublicKey.Address()
-
-	fmt.Printf("%x \n", key1.PublicKey.Serialize())
-	//fmt.Printf(key.PublicKey.Address())
-
-	fmt.Printf("%x \n", key1.Serialize())
-	return key.PublicKey.Address()
-}
-
-func main() {
-	tx := core.CreateTransaction("AXoXnFi4z1Z6aFvjEYkDVCtBGW2PaRiM25",
-		133380000000,
-		"This is first transaction from ARK-NET",
-		"this is a top secret passphrase", "")
-
-	b, err := json.Marshal(&tx)
-	if err != nil {
-		log.Println(b)
-	} else {
-		log.Fatal(err.Error())
+		sumEarned += element.EarnedAmount100
+		sumShareEarned += element.EarnedAmountXX
+		sumRatio += element.VoteWeightShare
 	}
+	log.Println("Full forged amount: ", sumEarned, "Ratio calc check sum: ", sumRatio, "Amount to voters: ", sumShareEarned, "Ratio shared: ", float64(sumShareEarned)/float64(sumEarned))
+
 }
