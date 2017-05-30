@@ -54,7 +54,7 @@ type DelegateQueryParams struct {
 type DelegateDataProfit struct {
 	Address         string
 	VoteWeight      int
-	VoteWeightShare float32
+	VoteWeightShare float64
 	EarnedAmmount   int
 }
 
@@ -146,7 +146,7 @@ func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams) ([]Delegat
 
 			currentBalance, _ := strconv.Atoi(element.Balance)
 			deleProfit.VoteWeight = currentBalance
-			deleProfit.VoteWeightShare = float32(currentBalance / balance)
+			deleProfit.VoteWeightShare = float64(currentBalance) / float64(balance)
 
 			votersProfit = append(votersProfit, deleProfit)
 		}
