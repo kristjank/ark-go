@@ -1,12 +1,24 @@
 package main
 
 import (
+	"ark-go/arkcoin"
 	"ark-go/core"
+	"bufio"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
+	"os/exec"
+	"runtime"
+
+	"github.com/fatih/color"
 )
 
-func calculcateVoteRatio() {
+var arkclient = core.NewArkClient(nil)
+var passphrase1 = ""
+var passphrase2 = ""
+
+func calculcateVoteRatio() core.TransactionPayload {
 	arkapi := core.NewArkClient(nil)
 
 	deleKey := "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"
@@ -26,7 +38,7 @@ func calculcateVoteRatio() {
 	fmt.Scanln(&input)
 	fmt.Print(input)
 
-	sumEarned := 0.9
+	sumEarned := 0.0
 	sumRatio := 0.0
 	sumShareEarned := 0.0
 	feeAmount := float64(len(votersEarnings)) * (float64(core.EnvironmentParams.Fees.Send) / core.SATOSHI)
@@ -65,6 +77,8 @@ func calculcateVoteRatio() {
 
 	payload.Transactions = append(payload.Transactions, tx)
 
+	return payload
+
 	/*//payload complete - posting
 	res, httpresponse, err := arkapi.PostTransaction(payload)
 	if res.Success {
@@ -76,7 +90,85 @@ func calculcateVoteRatio() {
 	}*/
 }
 
+func readAccountData() {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Enter account passphrase: ")
+	passphrase1, _ = reader.ReadString('\n')
+
+	key := arkcoin.NewPrivateKeyFromPassword(passphrase1, arkcoin.ActiveCoinConfig)
+
+	accountResp, _, _ := arkclient.GetAccount(core.AccountQueryParams{Address: key.PublicKey.Address()})
+	if !accountResp.Success {
+		log.Println("Error getting account data for address", key.PublicKey.Address())
+		return
+	}
+
+	if accountResp.Account.SecondSignature == 1 {
+		fmt.Print("Enter second account passphrase: ")
+		passphrase2, _ = reader.ReadString('\n')
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+var clear map[string]func() //create a map for storing clear funcs
+
+func init() {
+	clear = make(map[string]func()) //Initialize it
+	clear["linux"] = func() {
+		cmd := exec.Command("clear") //Linux example, its tested
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	}
+	clear["windows"] = func() {
+		cmd := exec.Command("cls") //Windows example it is untested, but I think its working
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	}
+}
+
+func CallClear() {
+	value, ok := clear[runtime.GOOS] //runtime.GOOS -> linux, windows, darwin etc.
+	if ok {                          //if we defined a clear func for that platform:
+		value() //we execute it
+	} else { //unsupported platform
+		panic("Your platform is unsupported! I can't clear terminal screen :(")
+	}
+}
+
+func printMenu() {
+	CallClear()
+	color.Set(color.FgHiGreen)
+	dat, _ := ioutil.ReadFile("banner1.txt")
+
+	fmt.Print(string(dat))
+	color.Unset()
+
+	fmt.Println("==========================")
+	fmt.Println("1-Display contributors")
+	fmt.Println("2-Link account")
+	fmt.Println("0-Exit")
+	fmt.Println("==========================")
+	color.Unset()
+}
+
 func main() {
-	fmt.Println("Hello from ARK")
-	calculcateVoteRatio()
+	var choice int
+
+	for choice != 9 {
+		printMenu()
+		fmt.Scan(&choice)
+		switch choice {
+		case 1:
+			calculcateVoteRatio()
+		case 2:
+
+		case 3:
+
+		case 4:
+			fmt.Println("Bye!")
+		default:
+			fmt.Printf("Are you sure you have chosen properly?")
+		}
+	}
 }
