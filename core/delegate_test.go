@@ -26,8 +26,13 @@ func TestListDelegates(t *testing.T) {
 
 func TestGetDelegateUsername(t *testing.T) {
 	arkapi := NewArkClient(nil)
+	deleUserName := "chris"
 
-	params := DelegateQueryParams{UserName: "acf"}
+	if EnvironmentParams.Network.Type == DEVNET {
+		deleUserName = "d_chris"
+	}
+
+	params := DelegateQueryParams{UserName: deleUserName}
 
 	deleResponse, _, err := arkapi.GetDelegate(params)
 	if deleResponse.Success {
@@ -42,8 +47,13 @@ func TestGetDelegateUsername(t *testing.T) {
 
 func TestGetDelegatePubKey(t *testing.T) {
 	arkapi := NewArkClient(nil)
+	deleKey := "03e6397071866c994c519f114a9e7957d8e6f06abc2ca34dc9a96b82f7166c2bf9"
 
-	params := DelegateQueryParams{PublicKey: "03e6397071866c994c519f114a9e7957d8e6f06abc2ca34dc9a96b82f7166c2bf9"}
+	if EnvironmentParams.Network.Type == DEVNET {
+		deleKey = "02bcfa0951a92e7876db1fb71996a853b57f996972ed059a950d910f7d541706c9"
+	}
+
+	params := DelegateQueryParams{PublicKey: deleKey}
 
 	deleResponse, _, err := arkapi.GetDelegate(params)
 	if deleResponse.Success {
@@ -91,7 +101,12 @@ func TestGetDelegateVoteWeight(t *testing.T) {
 func TestCalculcateVotersProfit(t *testing.T) {
 	arkapi := NewArkClient(nil)
 
-	params := DelegateQueryParams{PublicKey: "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"}
+	deleKey := "03e6397071866c994c519f114a9e7957d8e6f06abc2ca34dc9a96b82f7166c2bf9"
+	if EnvironmentParams.Network.Type == DEVNET {
+		deleKey = "02bcfa0951a92e7876db1fb71996a853b57f996972ed059a950d910f7d541706c9"
+	}
+
+	params := DelegateQueryParams{PublicKey: deleKey}
 
 	votersEarnings := arkapi.CalculateVotersProfit(params, 0.70)
 

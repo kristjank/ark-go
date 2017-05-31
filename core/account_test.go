@@ -7,7 +7,13 @@ import (
 
 func TestGetAccount(t *testing.T) {
 	arkapi := NewArkClient(nil)
-	params := AccountQueryParams{Address: "ANqeL7CP2som7q9NFbRuaUc5WUnwYkSbFY"}
+	address := "ANqeL7CP2som7q9NFbRuaUc5WUnwYkSbFY"
+
+	if EnvironmentParams.Network.Type == DEVNET {
+		address = "DQUjMT6fhJWbwhaYL5pPdX9v5qPiRcAzRb"
+	}
+
+	params := AccountQueryParams{Address: address}
 
 	accRest, resp, err := arkapi.GetAccount(params)
 	if accRest.Success {

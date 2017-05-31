@@ -63,22 +63,23 @@ func TestSecondVerifyTransaction(t *testing.T) {
 }
 
 func TestPostTransaction(t *testing.T) {
-	/*tx := CreateTransaction("AUgTuukcKeE4XFdzaK6rEHMD5FLmVBSmHk",
+	recepient := "AUgTuukcKeE4XFdzaK6rEHMD5FLmVBSmHk"
+	passphrase := "ski rose knock live elder parade dose device fetch betray loan holiday"
+
+	if EnvironmentParams.Network.Type == DEVNET {
+		recepient = "DFTzLwEHKKn3VGce6vZSueEmoPWpEZswhB"
+		passphrase = "outer behind tray slice trash cave table divert wild buddy snap news"
+	}
+
+	tx := CreateTransaction(recepient,
 		1,
 		"ARK-GOLang is saying whoop whooop",
-		"ski rose knock live elder parade dose device fetch betray loan holiday", "")
+		passphrase, "")
 
 	arkapi := NewArkClient(nil)
 
 	var payload TransactionPayload
 	payload.Transactions = append(payload.Transactions, tx)
-
-	tx1 := CreateTransaction("AUgTuukcKeE4XFdzaK6rEHMD5FLmVBSmHk",
-		2,
-		"ARK-GOLang is saying whoop whooop 22",
-		"ski rose knock live elder parade dose device fetch betray loan holiday", "")
-
-	payload.Transactions = append(payload.Transactions, tx1)
 
 	res, httpresponse, err := arkapi.PostTransaction(payload)
 	if res.Success {
@@ -87,13 +88,16 @@ func TestPostTransaction(t *testing.T) {
 	} else {
 		log.Println(res.Message, res.Error, httpresponse.Status)
 		t.Error(err.Error(), res.Error)
-	}*/
+	}
 }
 
 func TestListTransaction(t *testing.T) {
 	arkapi := NewArkClient(nil)
-
-	params := TransactionQueryParams{Limit: 10, SenderID: "AQLUKKKyKq5wZX7rCh4HJ4YFQ8bpTpPJgK"}
+	senderID := "AQLUKKKyKq5wZX7rCh4HJ4YFQ8bpTpPJgK"
+	if EnvironmentParams.Network.Type == DEVNET {
+		senderID = "D61mfSggzbvQgTUe6JhYKH2doHaqJ3Dyib"
+	}
+	params := TransactionQueryParams{Limit: 10, SenderID: senderID}
 
 	transResponse, _, err := arkapi.ListTransaction(params)
 	if transResponse.Success {
@@ -106,7 +110,12 @@ func TestListTransaction(t *testing.T) {
 func TestListTransactionUncomfirmed(t *testing.T) {
 	arkapi := NewArkClient(nil)
 
-	params := TransactionQueryParams{Limit: 10, SenderID: "AQLUKKKyKq5wZX7rCh4HJ4YFQ8bpTpPJgK"}
+	senderID := "AQLUKKKyKq5wZX7rCh4HJ4YFQ8bpTpPJgK"
+	if EnvironmentParams.Network.Type == DEVNET {
+		senderID = "D61mfSggzbvQgTUe6JhYKH2doHaqJ3Dyib"
+	}
+
+	params := TransactionQueryParams{Limit: 10, SenderID: senderID}
 
 	transResponse, _, err := arkapi.ListTransactionUnconfirmed(params)
 	if transResponse.Success {
@@ -119,7 +128,12 @@ func TestListTransactionUncomfirmed(t *testing.T) {
 func TestGetTransaction(t *testing.T) {
 	arkapi := NewArkClient(nil)
 
-	params := TransactionQueryParams{ID: "bb032f1063fdd60844c250d3b76adcef3a75e686a0db2ef61be7e77ea0b8d293"}
+	transID := "bb032f1063fdd60844c250d3b76adcef3a75e686a0db2ef61be7e77ea0b8d293"
+	if EnvironmentParams.Network.Type == DEVNET {
+		transID = "2b2998c61919ffaf45876994554e4b19e79b4b8438502df07fb02b08165c8a21"
+	}
+
+	params := TransactionQueryParams{ID: transID}
 
 	transResponse, _, err := arkapi.GetTransaction(params)
 	if transResponse.Success {
@@ -133,7 +147,15 @@ func TestGetTransaction(t *testing.T) {
 func TestGetTransactionUnconfirmed(t *testing.T) {
 	arkapi := NewArkClient(nil)
 
-	params := TransactionQueryParams{SenderID: "AQLUKKKyKq5wZX7rCh4HJ4YFQ8bpTpPJgK", ID: "2105869df411b4fffd14eaf3bae10715acd176e7ea4a41df4141b35e717f2d39"}
+	senderID := "AQLUKKKyKq5wZX7rCh4HJ4YFQ8bpTpPJgK"
+	transID := "2105869df411b4fffd14eaf3bae10715acd176e7ea4a41df4141b35e717f2d39"
+
+	if EnvironmentParams.Network.Type == DEVNET {
+		senderID = "D61mfSggzbvQgTUe6JhYKH2doHaqJ3Dyib"
+		transID = "ef522bc53bfea94ffc0568ba094bf93c9899ed1ad24dbca3d5c317f9acd6b1c1"
+	}
+
+	params := TransactionQueryParams{SenderID: senderID, ID: transID}
 
 	transResponse, _, err := arkapi.GetTransactionUnconfirmed(params)
 	if transResponse.Success {

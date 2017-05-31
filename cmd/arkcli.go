@@ -8,7 +8,13 @@ import (
 
 func calculcateVoteRatio() {
 	arkapi := core.NewArkClient(nil)
-	params := core.DelegateQueryParams{PublicKey: "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"}
+
+	deleKey := "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"
+	if core.EnvironmentParams.Network.Type == core.DEVNET {
+		deleKey = "02bcfa0951a92e7876db1fb71996a853b57f996972ed059a950d910f7d541706c9 "
+	}
+
+	params := core.DelegateQueryParams{PublicKey: deleKey}
 
 	votersEarnings := arkapi.CalculateVotersProfit(params, 0.70)
 

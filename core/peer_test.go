@@ -21,8 +21,15 @@ func TestListPeers(t *testing.T) {
 
 func TestGetPeer(t *testing.T) {
 	arkapi := NewArkClient(nil)
+	ipAddress := "137.74.90.194"
+	portNum := 4001
 
-	params := PeerQueryParams{IP: "137.74.90.194", Port: 4001}
+	if EnvironmentParams.Network.Type == DEVNET {
+		ipAddress = "164.8.251.91"
+		portNum = 4002
+	}
+
+	params := PeerQueryParams{IP: ipAddress, Port: portNum}
 
 	peersResp, _, err := arkapi.GetPeer(params)
 	if peersResp.Success {
