@@ -284,13 +284,14 @@ type TransactionPayload struct {
 
 //TransactionQueryParams for returing filtered list of transactions
 type TransactionQueryParams struct {
-	ID          string `url:"id,omitempty"`
-	BlockID     string `url:"blockId,omitempty"`
-	SenderID    string `url:"senderId,omitempty"`
-	RecipientID string `url:"recipientId,omitempty"`
-	Limit       int    `url:"limit,omitempty"`
-	Offset      int    `url:"offset,omitempty"`
-	OrderBy     string `url:"orderBy,omitempty"` //"Name of column to order. After column name must go 'desc' or 'asc' to choose order type, prefix for column name is t_. Example: orderBy=t_timestamp:desc (String)"
+	ID          string          `url:"id,omitempty"`
+	BlockID     string          `url:"blockId,omitempty"`
+	SenderID    string          `url:"senderId,omitempty"`
+	RecipientID string          `url:"recipientId,omitempty"`
+	Limit       int             `url:"limit,omitempty"`
+	Offset      int             `url:"offset,omitempty"`
+	OrderBy     string          `url:"orderBy,omitempty"` //"Name of column to order. After column name must go 'desc' or 'asc' to choose order type, prefix for column name is t_. Example: orderBy=t_timestamp:desc (String)"
+	Type        TransactionType `url:"type,omitempty"`
 }
 
 //TransactionResponse structure holds parsed jsong reply from ark-node

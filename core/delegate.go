@@ -37,11 +37,20 @@ type DelegateData struct {
 	Productivity   float64 `json:"productivity"`
 }
 
+type ForgedDetails struct {
+	Success bool   `json:"success"`
+	Fees    string `json:"fees"`
+	Rewards string `json:"rewards"`
+	Forged  string `json:"forged"`
+}
+
 //DelegateQueryParams - when set, they are automatically added to get requests
 type DelegateQueryParams struct {
 	UserName  string `url:"username,omitempty"`
 	PublicKey string `url:"publicKey,omitempty"`
 	Offset    int    `url:"offset,omitempty"`
+	OrderBy   string `url:"orderBy,omitempty"`
+	Limit     int    `url:"limit,omitempty"`
 }
 
 type DelegateDataProfit struct {
@@ -58,6 +67,21 @@ func (s *ArkClient) ListDelegates(params DelegateQueryParams) (DelegateResponse,
 	respData := new(DelegateResponse)
 	respError := new(ArkApiResponseError)
 	resp, err := s.sling.New().Get("api/delegates").QueryStruct(&params).Receive(respData, respError)
+	if err == nil {
+		err = respError
+	}
+
+	return *respData, resp, err
+}
+
+//GetDelegateForging details
+func (s *ArkClient) GetForgedData(params DelegateQueryParams) (ForgedDetails, *http.Response, error) {
+	respData := new(ForgedDetails)
+	respError := new(ArkApiResponseError)
+
+	qstr := "generatorPublicKey=" + params.PublicKey
+
+	resp, err := s.sling.New().Get("api/delegates/forging/getForgedByAccount?"+qstr).Receive(respData, respError)
 	if err == nil {
 		err = respError
 	}

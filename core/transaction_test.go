@@ -66,28 +66,29 @@ func TestPostTransaction(t *testing.T) {
 	recepient := "AUgTuukcKeE4XFdzaK6rEHMD5FLmVBSmHk"
 	passphrase := "ski rose knock live elder parade dose device fetch betray loan holiday"
 
+	//only posting on DEVNET
 	if EnvironmentParams.Network.Type == DEVNET {
 		recepient = "DFTzLwEHKKn3VGce6vZSueEmoPWpEZswhB"
 		passphrase = "outer behind tray slice trash cave table divert wild buddy snap news"
-	}
 
-	tx := CreateTransaction(recepient,
-		1,
-		"ARK-GOLang is saying whoop whooop",
-		passphrase, "")
+		tx := CreateTransaction(recepient,
+			1,
+			"ARK-GOLang is saying whoop whooop",
+			passphrase, "")
 
-	arkapi := NewArkClient(nil)
+		arkapi := NewArkClient(nil)
 
-	var payload TransactionPayload
-	payload.Transactions = append(payload.Transactions, tx)
+		var payload TransactionPayload
+		payload.Transactions = append(payload.Transactions, tx)
 
-	res, httpresponse, err := arkapi.PostTransaction(payload)
-	if res.Success {
-		log.Println(t.Name(), "Success,", httpresponse.Status, res.TransactionIDs)
+		res, httpresponse, err := arkapi.PostTransaction(payload)
+		if res.Success {
+			log.Println(t.Name(), "Success,", httpresponse.Status, res.TransactionIDs)
 
-	} else {
-		log.Println(res.Message, res.Error, httpresponse.Status)
-		t.Error(err.Error(), res.Error)
+		} else {
+			log.Println(res.Message, res.Error, httpresponse.Status)
+			t.Error(err.Error(), res.Error)
+		}
 	}
 }
 

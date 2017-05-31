@@ -11,7 +11,7 @@ import (
 func TestListDelegates(t *testing.T) {
 	arkapi := NewArkClient(nil)
 
-	params := DelegateQueryParams{Offset: 100}
+	params := DelegateQueryParams{OrderBy: "rate:asc", Limit: 51}
 
 	deleResponse, _, err := arkapi.ListDelegates(params)
 	if deleResponse.Success {
@@ -101,7 +101,7 @@ func TestGetDelegateVoteWeight(t *testing.T) {
 func TestCalculcateVotersProfit(t *testing.T) {
 	arkapi := NewArkClient(nil)
 
-	deleKey := "03e6397071866c994c519f114a9e7957d8e6f06abc2ca34dc9a96b82f7166c2bf9"
+	deleKey := "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"
 	if EnvironmentParams.Network.Type == DEVNET {
 		deleKey = "02bcfa0951a92e7876db1fb71996a853b57f996972ed059a950d910f7d541706c9"
 	}
@@ -112,7 +112,7 @@ func TestCalculcateVotersProfit(t *testing.T) {
 
 	//log.Println(t.Name(), "Success", votersEarnings)
 	//log.Println(t.Name(), "Success", votersEarnings)
-	sumEarned := 0.9
+	sumEarned := 0.0
 	sumRatio := 0.0
 	sumShareEarned := 0.0
 	feeAmount := float64(len(votersEarnings)) * (float64(EnvironmentParams.Fees.Send) / SATOSHI)
@@ -130,6 +130,24 @@ func TestCalculcateVotersProfit(t *testing.T) {
 		sumShareEarned += element.EarnedAmountXX
 		sumRatio += element.VoteWeightShare
 	}
-	log.Println("Full forged amount: ", sumEarned, "Ratio calc check sum: ", sumRatio, "Amount to voters: ", sumShareEarned, "Ratio shared: ", float64(sumShareEarned)/float64(sumEarned), "Lottery:", int64((sumEarned-sumShareEarned-feeAmount)*SATOSHI))
+	log.Println("Delegate wallet amount: ", sumEarned, "Ratio calc check sum: ", sumRatio, "Amount to voters: ", sumShareEarned, "Ratio shared: ", float64(sumShareEarned)/float64(sumEarned), "Lottery:", int64((sumEarned-sumShareEarned-feeAmount)*SATOSHI))
 	log.Println(fmt.Sprintf("Payment fees: %2.2f", feeAmount))
+}
+
+func TestGetForgedData(t *testing.T) {
+	arkapi := NewArkClient(nil)
+	deleKey := "03e6397071866c994c519f114a9e7957d8e6f06abc2ca34dc9a96b82f7166c2bf9"
+	if EnvironmentParams.Network.Type == DEVNET {
+		deleKey = "02bcfa0951a92e7876db1fb71996a853b57f996972ed059a950d910f7d541706c9"
+	}
+	params := DelegateQueryParams{PublicKey: deleKey}
+
+	resp, _, err := arkapi.GetForgedData(params)
+
+	if resp.Success {
+		log.Println(t.Name(), "Delegate forged:", resp.Forged, "fees:", resp.Fees, "rewards", resp.Rewards)
+	} else {
+		t.Error(err.Error())
+	}
+
 }

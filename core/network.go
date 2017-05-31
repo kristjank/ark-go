@@ -30,7 +30,7 @@ type ArkClient struct {
 }
 
 func init() {
-	baseURL = SetActiveConfiguration(DEVNET)
+	baseURL = SetActiveConfiguration(MAINNET)
 	coinParams := arkcoin.Params{
 		AddressHeader:          EnvironmentParams.Network.AddressVersion,
 		DumpedPrivateKeyHeader: []byte{170},

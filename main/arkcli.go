@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"ark-go/core"
@@ -74,4 +74,9 @@ func calculcateVoteRatio() {
 		log.Println(res.Message, res.Error, httpresponse.Status, err.Error())
 
 	}*/
+}
+
+func main() {
+	fmt.Println("Hello from ARK")
+	calculcateVoteRatio()
 }
