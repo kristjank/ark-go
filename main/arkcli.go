@@ -120,17 +120,18 @@ func SendPayments() {
 
 	payload.Transactions = append(payload.Transactions, tx)
 
-	pause()
+	//pause()
 
-	/*//payload complete - posting
-	res, httpresponse, err := arkapi.PostTransaction(payload)
-	if res.Success {
-		log.Println("Success,", httpresponse.Status, res.TransactionIDs)
+	//payload complete - posting
+	/*
+		res, httpresponse, err := arkclient.PostTransaction(payload)
+		if res.Success {
+			logger.Println("Success,", httpresponse.Status, res.TransactionIDs)
 
-	} else {
-		log.Println(res.Message, res.Error, httpresponse.Status, err.Error())
+		} else {
+			logger.Println(res.Message, res.Error, httpresponse.Status, err.Error())
 
-	}*/
+		}*/
 }
 
 func readAccountData() (string, string) {
