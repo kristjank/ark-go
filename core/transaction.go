@@ -8,26 +8,41 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 )
 
+type TransactionType byte
+
+const (
+	SENDARK         = 0
+	SECONDSIGNATURE = 1
+	CREATEDELEGATE  = 2
+	VOTE            = 3
+	MULTISIGNATURE  = 4
+)
+
 //Transaction struct - represents structure of ARK.io blockchain transaction
+//It is used to post transaction to mainnet and to receive results from arkapi
+//Empty fields are emmited by default
 type Transaction struct {
-	Timestamp             int32  `json:"timestamp,omitempty"`
-	RecipientID           string `json:"recipientId,omitempty"`
-	Amount                int64  `json:"amount,omitempty"`
-	Asset                 string `json:"asset,omitempty"`
-	Fee                   int64  `json:"fee,omitempty"`
-	Type                  byte   `json:"type"`
-	VendorField           string `json:"vendorField,omitempty"`
-	Signature             string `json:"signature,omitempty"`
-	SignSignature         string `json:"signSignature,omitempty"`
-	SenderPublicKey       string `json:"senderPublicKey,omitempty"`
-	SecondSenderPublicKey string `json:"secondSenderPublicKey,omitempty"`
-	RequesterPublicKey    string `json:"requesterPublicKey,omitempty"`
-	ID                    string `json:"id,omitempty"`
+	ID                    string            `json:"id,omitempty"`
+	Timestamp             int32             `json:"timestamp,omitempty"`
+	RecipientID           string            `json:"recipientId,omitempty"`
+	Amount                int64             `json:"amount,omitempty"`
+	Asset                 map[string]string `json:"asset,omitempty"`
+	Fee                   int64             `json:"fee,omitempty"`
+	Type                  TransactionType   `json:"type"`
+	VendorField           string            `json:"vendorField,omitempty"`
+	Signature             string            `json:"signature,omitempty"`
+	SignSignature         string            `json:"signSignature,omitempty"`
+	SenderPublicKey       string            `json:"senderPublicKey,omitempty"`
+	SecondSenderPublicKey string            `json:"secondSenderPublicKey,omitempty"`
+	RequesterPublicKey    string            `json:"requesterPublicKey,omitempty"`
+	Blockid               string            `json:"blockid,omitempty"`
+	Height                int               `json:"height,omitempty"`
+	SenderID              string            `json:"senderId,omitempty"`
+	Confirmations         int               `json:"confirmations,omitempty"`
 }
 
 //ToBytes returns bytearray of the Transaction object to be signed and send to blockchain
@@ -71,12 +86,14 @@ func (tx *Transaction) toBytes(skipSignature, skipSecondSignature bool) []byte {
 	binary.Write(txBuf, binary.LittleEndian, uint64(tx.Fee))
 
 	switch tx.Type {
-	case 1:
-		binary.Write(txBuf, binary.LittleEndian, quickHexDecode(tx.Signature))
-	case 2:
-		//TODO buffer.Put(Encoding.ASCII.GetBytes(asset["username"]));
-	case 3:
-		//TODO votes
+	case SECONDSIGNATURE:
+		binary.Write(txBuf, binary.LittleEndian, quickHexDecode(tx.Asset["signature"]))
+	case CREATEDELEGATE:
+		usernameBytes := []byte(tx.Asset["username"])
+		binary.Write(txBuf, binary.LittleEndian, usernameBytes)
+	case VOTE:
+		voteBytes := []byte(tx.Asset["votes"])
+		binary.Write(txBuf, binary.LittleEndian, voteBytes)
 	}
 
 	if !skipSignature && len(tx.Signature) > 0 {
@@ -92,11 +109,13 @@ func (tx *Transaction) toBytes(skipSignature, skipSecondSignature bool) []byte {
 
 //CreateTransaction creates and returns new Transaction struct...
 func CreateTransaction(recipientID string, satoshiAmount int64, vendorField, passphrase, secondPassphrase string) *Transaction {
-	tx := Transaction{Type: 0,
+	tx := Transaction{
+		Type:        SENDARK,
 		RecipientID: recipientID,
 		Amount:      satoshiAmount,
-		Fee:         arkcoin.ArkCoinMain.Fees.Send,
-		VendorField: vendorField}
+		Fee:         EnvironmentParams.Fees.Send,
+		VendorField: vendorField,
+	}
 
 	tx.Timestamp = GetTime() //1
 	tx.sign(passphrase)
@@ -109,9 +128,72 @@ func CreateTransaction(recipientID string, satoshiAmount int64, vendorField, pas
 	return &tx
 }
 
+//CreateVote transaction used to vote for a chosen Delegate
+//if updown value = "+" vot is given to the specified PublicKey
+//if updown value = "-" vot is taken from the specified PublicKey
+func CreateVote(updown, delegatePubKey, passphrase, secondPassphrase string) *Transaction {
+	tx := Transaction{
+		Type:        VOTE,
+		Fee:         EnvironmentParams.Fees.Vote,
+		VendorField: "Delegate vote transaction",
+		Asset:       make(map[string]string),
+	}
+	key := arkcoin.NewPrivateKeyFromPassword(passphrase, arkcoin.ActiveCoinConfig)
+	tx.RecipientID = key.PublicKey.Address()
+
+	tx.Asset["votes"] = updown + delegatePubKey
+	tx.Timestamp = GetTime() //1
+	tx.sign(passphrase)
+
+	if len(secondPassphrase) > 0 {
+		tx.secondSign(secondPassphrase)
+	}
+
+	tx.getID() //calculates id of transaction
+	return &tx
+}
+
+//CreateDelegate creates and returns new Transaction struct...
+func CreateDelegate(username, passphrase, secondPassphrase string) *Transaction {
+	tx := Transaction{
+		Type:        CREATEDELEGATE,
+		Fee:         EnvironmentParams.Fees.Delegate,
+		VendorField: "Create delegate tx",
+		Asset:       make(map[string]string),
+	}
+	tx.Asset["username"] = username
+	tx.Timestamp = GetTime() //1
+	tx.sign(passphrase)
+
+	if len(secondPassphrase) > 0 {
+		tx.secondSign(secondPassphrase)
+	}
+
+	tx.getID() //calculates id of transaction
+	return &tx
+}
+
+//CreateSecondSignature creates and returns new Transaction struct...
+func CreateSecondSignature(passphrase, secondPassphrase string) *Transaction {
+	tx := Transaction{
+		Type:        SECONDSIGNATURE,
+		Fee:         EnvironmentParams.Fees.SecondSignature,
+		VendorField: "Create second signature",
+		Asset:       make(map[string]string),
+	}
+
+	key := arkcoin.NewPrivateKeyFromPassword(secondPassphrase, arkcoin.ActiveCoinConfig)
+	tx.Asset["signature"] = hex.EncodeToString(key.PublicKey.Serialize())
+	tx.Timestamp = GetTime() //1
+	tx.sign(passphrase)
+
+	tx.getID() //calculates id of transaction
+	return &tx
+}
+
 //Sign the Transaction
 func (tx *Transaction) sign(passphrase string) {
-	key := arkcoin.NewPrivateKeyFromPassword(passphrase, arkcoin.ArkCoinMain)
+	key := arkcoin.NewPrivateKeyFromPassword(passphrase, arkcoin.ActiveCoinConfig)
 
 	tx.SenderPublicKey = hex.EncodeToString(key.PublicKey.Serialize())
 
@@ -126,7 +208,7 @@ func (tx *Transaction) sign(passphrase string) {
 
 //SecondSign the Transaction
 func (tx *Transaction) secondSign(passphrase string) {
-	key := arkcoin.NewPrivateKeyFromPassword(passphrase, arkcoin.ArkCoinMain)
+	key := arkcoin.NewPrivateKeyFromPassword(passphrase, arkcoin.ActiveCoinConfig)
 
 	tx.SecondSenderPublicKey = hex.EncodeToString(key.PublicKey.Serialize())
 	trHashBytes := sha256.New()
@@ -166,7 +248,7 @@ func quickHexDecode(data string) []byte {
 //Verify function verifies if tx is validly signed
 //if return == nill verification was succesfull
 func (tx *Transaction) Verify() error {
-	key, err := arkcoin.NewPublicKey(quickHexDecode(tx.SenderPublicKey), arkcoin.ArkCoinMain)
+	key, err := arkcoin.NewPublicKey(quickHexDecode(tx.SenderPublicKey), arkcoin.ActiveCoinConfig)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -179,7 +261,7 @@ func (tx *Transaction) Verify() error {
 //SecondVerify function verifies if tx is validly signed
 //if return == nill verification was succesfull
 func (tx *Transaction) SecondVerify() error {
-	key, err := arkcoin.NewPublicKey(quickHexDecode(tx.SecondSenderPublicKey), arkcoin.ArkCoinMain)
+	key, err := arkcoin.NewPublicKey(quickHexDecode(tx.SecondSenderPublicKey), arkcoin.ActiveCoinConfig)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -196,72 +278,41 @@ type PostTransactionResponse struct {
 	TransactionIDs []string `json:"transactionIds"`
 }
 
-type transactionPayload struct {
+type TransactionPayload struct {
 	Transactions []*Transaction `json:"transactions"`
-}
-
-//TransactionResponseError struct to hold error response from api node
-type TransactionResponseError struct {
-	Success      bool   `json:"success"`
-	Message      string `json:"message"`
-	ErrorMessage string `json:"error"`
-	Data         string `json:"data"`
 }
 
 //TransactionQueryParams for returing filtered list of transactions
 type TransactionQueryParams struct {
-	ID          string `url:"id,omitempty"`
-	BlockID     string `url:"blockId,omitempty"`
-	SenderID    string `url:"senderId,omitempty"`
-	RecipientID string `url:"recipientId,omitempty"`
-	Limit       int    `url:"limit,omitempty"`
-	Offset      int    `url:"offset,omitempty"`
-	OrderBy     string `url:"orderBy,omitempty"` //"Name of column to order. After column name must go 'desc' or 'asc' to choose order type, prefix for column name is t_. Example: orderBy=t_timestamp:desc (String)"
+	ID          string          `url:"id,omitempty"`
+	BlockID     string          `url:"blockId,omitempty"`
+	SenderID    string          `url:"senderId,omitempty"`
+	RecipientID string          `url:"recipientId,omitempty"`
+	Limit       int             `url:"limit,omitempty"`
+	Offset      int             `url:"offset,omitempty"`
+	OrderBy     string          `url:"orderBy,omitempty"` //"Name of column to order. After column name must go 'desc' or 'asc' to choose order type, prefix for column name is t_. Example: orderBy=t_timestamp:desc (String)"
+	Type        TransactionType `url:"type,omitempty"`
 }
 
 //TransactionResponse structure holds parsed jsong reply from ark-node
 //when calling list methods the Transactions [] has results
 //when calling get methods the transaction object (Single) has results
 type TransactionResponse struct {
-	Success      bool              `json:"success"`
-	Transactions []TransactionData `json:"transactions"`
-	Transaction  TransactionData   `json:"transaction"`
-	Count        string            `json:"count"`
-	Error        string            `json:"error"`
-}
-
-//TransactionData holds parsed Transaction data from rest json responses...
-type TransactionData struct {
-	ID              string `json:"id"`
-	Blockid         string `json:"blockid"`
-	Height          int    `json:"height"`
-	Type            int    `json:"type"`
-	Timestamp       int    `json:"timestamp"`
-	Amount          int    `json:"amount"`
-	Fee             int    `json:"fee"`
-	VendorField     string `json:"vendorField"`
-	SenderID        string `json:"senderId"`
-	RecipientID     string `json:"recipientId"`
-	SenderPublicKey string `json:"senderPublicKey"`
-	Signature       string `json:"signature"`
-	Asset           struct {
-	} `json:"asset"`
-	Confirmations int `json:"confirmations"`
-}
-
-//Error interface function
-func (e TransactionResponseError) Error() string {
-	return fmt.Sprintf("ArkServiceApi: %v %v", e.Success, e.ErrorMessage)
+	Success           bool          `json:"success"`
+	Transactions      []Transaction `json:"transactions"`
+	SingleTransaction Transaction   `json:"transaction"`
+	Count             string        `json:"count"`
+	Error             string        `json:"error"`
 }
 
 //PostTransaction to selected ARKNetwork
-func (s *ArkClient) PostTransaction(tx *Transaction) (PostTransactionResponse, *http.Response, error) {
+func (s *ArkClient) PostTransaction(payload TransactionPayload) (PostTransactionResponse, *http.Response, error) {
 	respTr := new(PostTransactionResponse)
-	errTr := new(TransactionResponseError)
+	errTr := new(ArkApiResponseError)
 
-	var payload transactionPayload
+	/*var payload transactionPayload
 	payload.Transactions = append(payload.Transactions, tx)
-
+	*/
 	resp, err := s.sling.New().Post("peer/transactions").BodyJSON(payload).Receive(respTr, errTr)
 
 	if err == nil {
@@ -274,7 +325,7 @@ func (s *ArkClient) PostTransaction(tx *Transaction) (PostTransactionResponse, *
 //ListTransaction function returns list of peers from ArkNode
 func (s *ArkClient) ListTransaction(params TransactionQueryParams) (TransactionResponse, *http.Response, error) {
 	transactionResponse := new(TransactionResponse)
-	transactionResponseErr := new(TransactionResponseError)
+	transactionResponseErr := new(ArkApiResponseError)
 	resp, err := s.sling.New().Get("api/transactions").QueryStruct(&params).Receive(transactionResponse, transactionResponseErr)
 	if err == nil {
 		err = transactionResponseErr
@@ -286,7 +337,7 @@ func (s *ArkClient) ListTransaction(params TransactionQueryParams) (TransactionR
 //ListTransactionUnconfirmed function returns list of peers from ArkNode
 func (s *ArkClient) ListTransactionUnconfirmed(params TransactionQueryParams) (TransactionResponse, *http.Response, error) {
 	transactionResponse := new(TransactionResponse)
-	transactionResponseErr := new(TransactionResponseError)
+	transactionResponseErr := new(ArkApiResponseError)
 	resp, err := s.sling.New().Get("api/transactions/unconfirmed").QueryStruct(&params).Receive(transactionResponse, transactionResponseErr)
 	if err == nil {
 		err = transactionResponseErr
@@ -298,7 +349,7 @@ func (s *ArkClient) ListTransactionUnconfirmed(params TransactionQueryParams) (T
 //GetTransaction function returns list of peers from ArkNode
 func (s *ArkClient) GetTransaction(params TransactionQueryParams) (TransactionResponse, *http.Response, error) {
 	transactionResponse := new(TransactionResponse)
-	transactionResponseErr := new(TransactionResponseError)
+	transactionResponseErr := new(ArkApiResponseError)
 	resp, err := s.sling.New().Get("api/transactions/get").QueryStruct(&params).Receive(transactionResponse, transactionResponseErr)
 	if err == nil {
 		err = transactionResponseErr
@@ -310,7 +361,7 @@ func (s *ArkClient) GetTransaction(params TransactionQueryParams) (TransactionRe
 //GetTransactionUnconfirmed function returns list of peers from ArkNode
 func (s *ArkClient) GetTransactionUnconfirmed(params TransactionQueryParams) (TransactionResponse, *http.Response, error) {
 	transactionResponse := new(TransactionResponse)
-	transactionResponseErr := new(TransactionResponseError)
+	transactionResponseErr := new(ArkApiResponseError)
 	resp, err := s.sling.New().Get("api/transactions/unconfirmed/get").QueryStruct(&params).Receive(transactionResponse, transactionResponseErr)
 	if err == nil {
 		err = transactionResponseErr

@@ -1,25 +1,44 @@
 package core
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/dghubble/sling"
 )
 
-const baseURL = "http://5.39.9.240:4001"
+var BaseURL = ""
+
+//ArkApiResponseError struct to hold error response from api node
+type ArkApiResponseError struct {
+	Success      bool   `json:"success,omitempty"`
+	Message      string `json:"message,omitempty"`
+	ErrorMessage string `json:"error,omitempty"`
+	Data         string `json:"data,omitempty"`
+}
+
+//Error interface function
+func (e ArkApiResponseError) Error() string {
+	return fmt.Sprintf("ArkServiceApi: %v %v", e.Success, e.ErrorMessage, e.Data, e.Message)
+}
 
 //ArkClient sling rest pointer
 type ArkClient struct {
 	sling *sling.Sling
 }
 
-//NewArkClient creations
+func init() {
+	switchNetwork(MAINNET)
+}
+
+//NewArkClient creations with supported network
 func NewArkClient(httpClient *http.Client) *ArkClient {
 	return &ArkClient{
-		sling: sling.New().Client(httpClient).Base(baseURL).
-			Add("nethash", "6e84d08bd299ed97c212c886c98a57e36545c8f5d645ca7eeae63a8bd62d8988").
-			Add("version", "1.0.1").
-			Add("port", "4001").
+		sling: sling.New().Client(httpClient).Base(BaseURL).
+			Add("nethash", EnvironmentParams.Network.Nethash).
+			Add("version", EnvironmentParams.Network.ActivePeer.Version).
+			Add("port", strconv.Itoa(EnvironmentParams.Network.ActivePeer.Port)).
 			Add("Content-Type", "application/json"),
 	}
 }

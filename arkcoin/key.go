@@ -22,17 +22,6 @@ type Params struct {
 	P2SHHeader             byte
 	HDPrivateKeyID         []byte
 	HDPublicKeyID          []byte
-	Fees
-}
-
-//Fees constant parameters for various ArkCoin configurations
-type Fees struct {
-	Send            int64
-	Vote            int64
-	Delegate        int64
-	SecondSignature int64
-	MultiSignature  int64
-	DistributedApp  int64
 }
 
 //PublicKey represents public key for bitcoin

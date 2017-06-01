@@ -9,7 +9,7 @@ import (
 )
 
 func TestKeys2(t *testing.T) {
-	key, err := Generate(BitcoinTest)
+	key, err := Generate(ArkCoinMain)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -18,7 +18,7 @@ func TestKeys2(t *testing.T) {
 	wif := key.WIFAddress()
 	log.Println("wif=", wif)
 
-	key2, err := FromWIF(wif, BitcoinTest)
+	key2, err := FromWIF(wif, ArkCoinMain)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -31,7 +31,7 @@ func TestKeys2(t *testing.T) {
 }
 
 func TestKeys(t *testing.T) {
-	key, err := Generate(BitcoinMain)
+	key, err := Generate(ArkCoinMain)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -40,7 +40,7 @@ func TestKeys(t *testing.T) {
 	wif := key.WIFAddress()
 	log.Println("wif=", wif)
 
-	key2, err := FromWIF(wif, BitcoinMain)
+	key2, err := FromWIF(wif, ArkCoinMain)
 	if err != nil {
 		t.Errorf(err.Error())
 	}

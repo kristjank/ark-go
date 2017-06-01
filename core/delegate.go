@@ -1,17 +1,16 @@
 package core
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 )
 
 //DelegateResponse data - received from api-call.
 type DelegateResponse struct {
-	Success    bool           `json:"success,omitempty"`
-	Delegates  []DelegateData `json:"delegates,omitempty"`
-	Delegate   DelegateData   `json:"delegate,omitempty"`
-	TotalCount int            `json:"totalCount,omitempty"`
+	Success        bool           `json:"success,omitempty"`
+	Delegates      []DelegateData `json:"delegates,omitempty"`
+	SingleDelegate DelegateData   `json:"delegate,omitempty"`
+	TotalCount     int            `json:"totalCount,omitempty"`
 }
 
 //DelegateVoters struct to hold voters for a publicKey(delegate)
@@ -38,28 +37,51 @@ type DelegateData struct {
 	Productivity   float64 `json:"productivity"`
 }
 
-//DelegateResponseError struct to hold error response
-type DelegateResponseError struct {
-	Success      bool   `json:"success"`
-	ErrorMessage string `json:"error"`
+type ForgedDetails struct {
+	Success bool   `json:"success"`
+	Fees    string `json:"fees"`
+	Rewards string `json:"rewards"`
+	Forged  string `json:"forged"`
 }
 
 //DelegateQueryParams - when set, they are automatically added to get requests
 type DelegateQueryParams struct {
 	UserName  string `url:"username,omitempty"`
 	PublicKey string `url:"publicKey,omitempty"`
+	Offset    int    `url:"offset,omitempty"`
+	OrderBy   string `url:"orderBy,omitempty"`
+	Limit     int    `url:"limit,omitempty"`
 }
 
-//Error interface function
-func (e DelegateResponseError) Error() string {
-	return fmt.Sprintf("ArkServiceApi: %v %v", e.Success, e.ErrorMessage)
+type DelegateDataProfit struct {
+	Address         string
+	VoteWeight      float64
+	VoteWeightShare float64
+	EarnedAmount100 float64 //100 earned amount.
+	EarnedAmountXX  float64 //XX share to be payed
+	VoteDuration    int32   //Duration of vote in Hours
 }
 
 //ListDelegates function returns list of delegtes. The top 51 delegates are returned
-func (s *ArkClient) ListDelegates() (DelegateResponse, *http.Response, error) {
+func (s *ArkClient) ListDelegates(params DelegateQueryParams) (DelegateResponse, *http.Response, error) {
 	respData := new(DelegateResponse)
-	respError := new(DelegateResponseError)
-	resp, err := s.sling.New().Get("api/delegates").Receive(respData, respError)
+	respError := new(ArkApiResponseError)
+	resp, err := s.sling.New().Get("api/delegates").QueryStruct(&params).Receive(respData, respError)
+	if err == nil {
+		err = respError
+	}
+
+	return *respData, resp, err
+}
+
+//GetDelegateForging details
+func (s *ArkClient) GetForgedData(params DelegateQueryParams) (ForgedDetails, *http.Response, error) {
+	respData := new(ForgedDetails)
+	respError := new(ArkApiResponseError)
+
+	qstr := "generatorPublicKey=" + params.PublicKey
+
+	resp, err := s.sling.New().Get("api/delegates/forging/getForgedByAccount?"+qstr).Receive(respData, respError)
 	if err == nil {
 		err = respError
 	}
@@ -70,7 +92,7 @@ func (s *ArkClient) ListDelegates() (DelegateResponse, *http.Response, error) {
 //GetDelegate function returns a delegate
 func (s *ArkClient) GetDelegate(params DelegateQueryParams) (DelegateResponse, *http.Response, error) {
 	respData := new(DelegateResponse)
-	respError := new(DelegateResponseError)
+	respError := new(ArkApiResponseError)
 	resp, err := s.sling.New().Get("api/delegates/get").QueryStruct(&params).Receive(respData, respError)
 	if err == nil {
 		err = respError
@@ -82,7 +104,7 @@ func (s *ArkClient) GetDelegate(params DelegateQueryParams) (DelegateResponse, *
 //GetDelegateVoters function returns a delegate
 func (s *ArkClient) GetDelegateVoters(params DelegateQueryParams) (DelegateVoters, *http.Response, error) {
 	respData := new(DelegateVoters)
-	respError := new(DelegateResponseError)
+	respError := new(ArkApiResponseError)
 	resp, err := s.sling.New().Get("api/delegates/voters").QueryStruct(&params).Receive(respData, respError)
 	if err == nil {
 		err = respError
@@ -94,7 +116,7 @@ func (s *ArkClient) GetDelegateVoters(params DelegateQueryParams) (DelegateVoter
 //GetDelegateVoteWeight function returns a summary of ARK voted for selected delegate
 func (s *ArkClient) GetDelegateVoteWeight(params DelegateQueryParams) (int, *http.Response, error) {
 	respData := new(DelegateVoters)
-	respError := new(DelegateResponseError)
+	respError := new(ArkApiResponseError)
 	resp, err := s.sling.New().Get("api/delegates/voters").QueryStruct(&params).Receive(respData, respError)
 	if err == nil {
 		err = respError
@@ -110,4 +132,54 @@ func (s *ArkClient) GetDelegateVoteWeight(params DelegateQueryParams) (int, *htt
 	}
 
 	return balance, resp, err
+}
+
+func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio float64) []DelegateDataProfit {
+	delegateRes, _, _ := s.GetDelegate(params)
+	voters, _, _ := s.GetDelegateVoters(params)
+	accountRes, _, _ := s.GetAccount(AccountQueryParams{Address: delegateRes.SingleDelegate.Address})
+
+	delegateBalance, _ := strconv.ParseFloat(accountRes.Account.Balance, 64)
+	delegateBalance = float64(delegateBalance) / SATOSHI
+
+	//calculating vote weight
+	votersProfit := []DelegateDataProfit{}
+	delelgateVoteWeight := 0
+
+	//computing summ of all votes
+	for _, element := range voters.Accounts {
+		intBalance, _ := strconv.Atoi(element.Balance)
+		delelgateVoteWeight += intBalance
+	}
+
+	//calculating
+	for _, element := range voters.Accounts {
+		deleProfit := DelegateDataProfit{
+			Address: element.Address,
+		}
+		currentVoterBalance, _ := strconv.ParseFloat(element.Balance, 64)
+		deleProfit.VoteWeight = currentVoterBalance / SATOSHI
+		deleProfit.VoteWeightShare = float64(currentVoterBalance) / float64(delelgateVoteWeight)
+		deleProfit.EarnedAmount100 = float64(delegateBalance) * deleProfit.VoteWeightShare
+		deleProfit.EarnedAmountXX = float64(delegateBalance) * deleProfit.VoteWeightShare * shareRatio
+		deleProfit.VoteDuration = s.GetFidelityFactor(element.Address)
+		votersProfit = append(votersProfit, deleProfit)
+	}
+
+	return votersProfit
+}
+
+func (s *ArkClient) GetFidelityFactor(address string) int32 {
+
+	transQuery := TransactionQueryParams{SenderID: address}
+
+	transResp, _, _ := s.ListTransaction(transQuery)
+
+	for _, element := range transResp.Transactions {
+		if element.Type == VOTE {
+			//log.Println("Found Transaction", element.ToJSON())
+			return GetDurationTime(element.Timestamp)
+		}
+	}
+	return 0
 }
