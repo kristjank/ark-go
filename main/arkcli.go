@@ -77,12 +77,12 @@ func DisplayCalculatedVoteRatio() {
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
 	fmt.Println("")
 	fmt.Println("Available amount:", sumEarned)
-	fmt.Println("Amount to voters:", sumShareEarned)
-	fmt.Println("Amount to costs:", costAmount)
-	fmt.Println("Amount to reserve:", reserveAmount)
+	fmt.Println("Amount to voters:", sumShareEarned, viper.GetFloat64("voters.shareratio"))
+	fmt.Println("Amount to costs:", costAmount, viper.GetFloat64("costs.shareratio"))
+	fmt.Println("Amount to reserve:", reserveAmount, viper.GetFloat64("reserve.shareratio"))
 
-	fmt.Println("Ratio calc check:", sumRatio)
-	fmt.Println("Ratio share check:", float64(sumShareEarned)/float64(sumEarned))
+	fmt.Println("Ratio calc check:", sumRatio, "(should be = 1)")
+	fmt.Println("Ratio share check:", float64(sumShareEarned)/float64(sumEarned), "should be=", viper.GetFloat64("voters.shareratio"))
 
 	pause()
 }
@@ -176,23 +176,24 @@ func SendPayments() {
 	color.Set(color.FgHiYellow)
 	fmt.Println("")
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
-	fmt.Print("Send transactions and complete reward payments [Y,N]: ")
+	fmt.Print("Send transactions and complete reward payments [Y/N]: ")
 
 	c, _ := reader.ReadByte()
 
 	if c == []byte("Y")[0] || c == []byte("y")[0] {
-		fmt.Println("Thank you for pressing Y to continue!")
 		res, httpresponse, err := arkclient.PostTransaction(payload)
 		if res.Success {
 			logger.Println("Success,", httpresponse.Status, res.TransactionIDs)
 			log.Println("Success,", httpresponse.Status, res.TransactionIDs, err.Error())
 		} else {
+			color.Set(color.FgHiRed)
 			logger.Println(res.Message, res.Error, httpresponse.Status, err.Error())
-			log.Println("Failed", httpresponse.Status, res.TransactionIDs)
+			fmt.Println()
+			fmt.Println("Failed", res.Error)
 		}
+		reader.ReadString('\n')
+		pause()
 	}
-	reader.ReadString('\n')
-	pause()
 }
 
 func readAccountData() (string, string) {
