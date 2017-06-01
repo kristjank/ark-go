@@ -2,19 +2,23 @@
 address = "ASJBHz4JfWVUGDyN61hMMnW1Y4ZCTBHL1K"
 pubkey = "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"
 
+#DEVNET PARMS
+#address = "DQUjMT6fhJWbwhaYL5pPdX9v5qPiRcAzRb "
+#pubkey = "02bcfa0951a92e7876db1fb71996a853b57f996972ed059a950d910f7d541706c9"
+
 [voters]
 shareRatio = 0.70 # 70 percent goes to voters
-tx_description = "chris delegate: payment sharing |tx by ark-go"
+txdescription = "chris delegate: payment sharing. Thank you! |tx by ark-go"
 
 [[costs]]
 address = "ANqeL7CP2som7q9NFbRuaUc5WUnwYkSbFY" #project reserve fund
 addressRatio = 0.15
-tx_description = "chris delegate project costs |tx by ark-go"
+txdescription = "chris delegate project costs. Thank you! |tx by ark-go"
 
 [[costs]]
 address = "AKB7z6QLpCctVsj62nA7pBHk9zF6ocxZdJ" #node and other costs
 addressRatio = 0.15
-tx_description = "chris delegate project costs |tx by ark-go"
+txdescription = "chris delegate project costs |tx by ark-go"
 
 [client]
 logfile = "ark-goclient.log"

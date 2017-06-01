@@ -1,6 +1,7 @@
 package core
 
 import (
+	"ark-go/arkcoin"
 	"encoding/json"
 	"log"
 	"math/rand"
@@ -54,7 +55,7 @@ type Network struct {
 //SetActiveConfiguration reads arknetwork parameters from the Network
 //and fills the EnvironmentParams structure
 //selected and connected peer address is returned
-func SetActiveConfiguration(arknetwork ArkNetworkType) string {
+func LoadActiveConfiguration(arknetwork ArkNetworkType) string {
 	s1 := rand.NewSource(time.Now().UnixNano())
 	r1 := rand.New(s1)
 
@@ -99,12 +100,26 @@ func SetActiveConfiguration(arknetwork ArkNetworkType) string {
 	return "http://" + selectedPeer
 }
 
-/*func init() {
-	log.Println("ArkClientAPI Configuration Init - starting")
-	//arkapi := NewArkClient(nil)
-	SetActiveConfiguration(MAINNET)
-	log.Println("ArkClientAPI Configuration Init - completed")
-}*/
+func switchNetwork(arkNetwork ArkNetworkType) {
+	BaseURL = LoadActiveConfiguration(arkNetwork)
+	var wifHeader = []byte{170}
+
+	if arkNetwork == DEVNET {
+		wifHeader = []byte{239}
+	}
+
+	coinParams := arkcoin.Params{
+		AddressHeader:          EnvironmentParams.Network.AddressVersion,
+		DumpedPrivateKeyHeader: wifHeader,
+	}
+	arkcoin.SetActiveCoinConfiguration(&coinParams)
+
+}
+
+func (s *ArkClient) SetActiveConfiguration(arkNetwork ArkNetworkType) *ArkClient {
+	switchNetwork(arkNetwork)
+	return NewArkClient(nil)
+}
 
 var SeedList = [...]string{
 	"5.39.9.240:4001",

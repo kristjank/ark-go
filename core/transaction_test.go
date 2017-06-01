@@ -63,6 +63,7 @@ func TestSecondVerifyTransaction(t *testing.T) {
 }
 
 func TestPostTransaction(t *testing.T) {
+	arkapi := NewArkClient(nil)
 	recepient := "AUgTuukcKeE4XFdzaK6rEHMD5FLmVBSmHk"
 	passphrase := "ski rose knock live elder parade dose device fetch betray loan holiday"
 
@@ -75,8 +76,6 @@ func TestPostTransaction(t *testing.T) {
 			1,
 			"ARK-GOLang is saying whoop whooop",
 			passphrase, "")
-
-		arkapi := NewArkClient(nil)
 
 		var payload TransactionPayload
 		payload.Transactions = append(payload.Transactions, tx)
@@ -110,7 +109,6 @@ func TestListTransaction(t *testing.T) {
 
 func TestListTransactionUncomfirmed(t *testing.T) {
 	arkapi := NewArkClient(nil)
-
 	senderID := "AQLUKKKyKq5wZX7rCh4HJ4YFQ8bpTpPJgK"
 	if EnvironmentParams.Network.Type == DEVNET {
 		senderID = "D61mfSggzbvQgTUe6JhYKH2doHaqJ3Dyib"
@@ -128,7 +126,6 @@ func TestListTransactionUncomfirmed(t *testing.T) {
 
 func TestGetTransaction(t *testing.T) {
 	arkapi := NewArkClient(nil)
-
 	transID := "bb032f1063fdd60844c250d3b76adcef3a75e686a0db2ef61be7e77ea0b8d293"
 	if EnvironmentParams.Network.Type == DEVNET {
 		transID = "2b2998c61919ffaf45876994554e4b19e79b4b8438502df07fb02b08165c8a21"
@@ -147,7 +144,6 @@ func TestGetTransaction(t *testing.T) {
 
 func TestGetTransactionUnconfirmed(t *testing.T) {
 	arkapi := NewArkClient(nil)
-
 	senderID := "AQLUKKKyKq5wZX7rCh4HJ4YFQ8bpTpPJgK"
 	transID := "2105869df411b4fffd14eaf3bae10715acd176e7ea4a41df4141b35e717f2d39"
 

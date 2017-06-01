@@ -20,5 +20,23 @@ func TestAutoConfigure(t *testing.T) {
 }
 
 func TestGetConfigurationNative(t *testing.T) {
-	//GetConfigurationNative()
+	arkapi := NewArkClient(nil)
+	arkapi = arkapi.SetActiveConfiguration(MAINNET)
+	log.Println(t.Name(), "Active network: ", EnvironmentParams.Network.Type, "BaseUrl", BaseURL)
+	if EnvironmentParams.Network.Type != MAINNET {
+		t.Error("Wrong network on init")
+	}
+
+	arkapi = arkapi.SetActiveConfiguration(DEVNET)
+	log.Println(t.Name(), "Active network: ", EnvironmentParams.Network.Type, "BaseUrl", BaseURL)
+	if EnvironmentParams.Network.Type != DEVNET {
+		t.Error("Wrong network on init")
+	}
+
+	arkapi = arkapi.SetActiveConfiguration(MAINNET)
+	log.Println(t.Name(), "Active network: ", EnvironmentParams.Network.Type, "BaseUrl", BaseURL)
+	if EnvironmentParams.Network.Type != MAINNET {
+		t.Error("Wrong network on init")
+	}
+
 }

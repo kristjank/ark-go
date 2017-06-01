@@ -1,7 +1,6 @@
 package core
 
 import (
-	"ark-go/arkcoin"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -9,7 +8,7 @@ import (
 	"github.com/dghubble/sling"
 )
 
-var baseURL = ""
+var BaseURL = ""
 
 //ArkApiResponseError struct to hold error response from api node
 type ArkApiResponseError struct {
@@ -30,19 +29,13 @@ type ArkClient struct {
 }
 
 func init() {
-	baseURL = SetActiveConfiguration(MAINNET)
-	coinParams := arkcoin.Params{
-		AddressHeader:          EnvironmentParams.Network.AddressVersion,
-		DumpedPrivateKeyHeader: []byte{170},
-	}
-	arkcoin.SetActiveCoinConfiguration(&coinParams)
+	switchNetwork(MAINNET)
 }
 
-//NewArkClient creations
+//NewArkClient creations with supported network
 func NewArkClient(httpClient *http.Client) *ArkClient {
-
 	return &ArkClient{
-		sling: sling.New().Client(httpClient).Base(baseURL).
+		sling: sling.New().Client(httpClient).Base(BaseURL).
 			Add("nethash", EnvironmentParams.Network.Nethash).
 			Add("version", EnvironmentParams.Network.ActivePeer.Version).
 			Add("port", strconv.Itoa(EnvironmentParams.Network.ActivePeer.Port)).
