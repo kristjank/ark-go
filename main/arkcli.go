@@ -181,6 +181,7 @@ func SendPayments() {
 	c, _ := reader.ReadByte()
 
 	if c == []byte("Y")[0] || c == []byte("y")[0] {
+		fmt.Println("Sending rewards to voters and sharing accounts.............")
 		res, httpresponse, err := arkclient.PostTransaction(payload)
 		if res.Success {
 			logger.Println("Success,", httpresponse.Status, res.TransactionIDs)
