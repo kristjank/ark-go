@@ -25,10 +25,6 @@ var errorlog *os.File
 var logger *log.Logger
 
 func init() {
-	fname := viper.GetString("client.logfile")
-	re := regexp.MustCompile("\r?\n")
-	fname = re.ReplaceAllString(fname, "")
-
 	errorlog, err := os.OpenFile("ark-goclient.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		fmt.Printf("error opening file: %v", err)
