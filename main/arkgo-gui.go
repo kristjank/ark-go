@@ -4,6 +4,7 @@ import (
 	"ark-go/arkcoin"
 	"ark-go/core"
 	"bufio"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -25,7 +26,7 @@ var errorlog *os.File
 var logger *log.Logger
 
 func init() {
-	errorlog, err := os.OpenFile("ark-goclient.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	errorlog, err := os.OpenFile("arkgo-gui.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		fmt.Printf("error opening file: %v", err)
 		os.Exit(1)
@@ -290,6 +291,18 @@ func main() {
 	err := viper.ReadInConfig()     // Find and read the config file
 	if err != nil {                 // Handle errors reading the config file
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
+	}
+	//SILENT MODE CHECKING AND AUTOMATION RUNNING
+	modeSilentPtr := flag.Bool("silent", false, "Is silent mode")
+	//autoPayment := flag.Bool("autopay", true, "Process auto payment")
+	flag.Parse()
+	logger.Println(flag.Args())
+	if *modeSilentPtr {
+		logger.Println("Silent Mode active")
+		logger.Println("Starting to send payments")
+		SendPayments()
+		logger.Println("Exiting silent mode and ark-go")
+		os.Exit(1985)
 	}
 
 	//switch to preset network
