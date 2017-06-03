@@ -216,32 +216,42 @@ func getSystemEnv() string {
 	return buffer.String()
 }
 
-func save(p string) {
-	key := arkcoin.NewPrivateKeyFromPassword(p, arkcoin.ArkCoinMain)
-	ciphertext, err := encrypt([]byte(key.WIFAddress()), getRandHash())
+func save(p1, p2 string) {
+	var buffer bytes.Buffer
+	key1 := arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ArkCoinMain)
+	ciphertext, err := encrypt([]byte(key1.WIFAddress()), getRandHash())
 	if err != nil {
 		logger.Println("Error encrypting")
 	}
-	ioutil.WriteFile("assembly", ciphertext, 0644)
+	buffer.Write(ciphertext)
+
+	if p2 != "" {
+		key2 := arkcoin.NewPrivateKeyFromPassword(p2, arkcoin.ArkCoinMain)
+		ciphertext1, err1 := encrypt([]byte(key2.WIFAddress()), getRandHash())
+		if err1 != nil {
+			logger.Println("Error encrypting")
+		}
+		buffer.Write(ciphertext1)
+	}
+	ioutil.WriteFile("assembly.ark", buffer.Bytes(), 0644)
 }
 
-func read() (*arkcoin.PrivateKey, error) {
-	dat, err := ioutil.ReadFile("assembly")
+func read() (*arkcoin.PrivateKey, *arkcoin.PrivateKey) {
+	dat, err := ioutil.ReadFile("assembly.ark")
 	if err != nil {
 		logger.Println(err.Error())
 	}
 
-	b := make([]byte, 32)
-	rand.Read(b)
-	log.Println(b)
+	plaintext, _ := decrypt(dat[:80], getRandHash())
+	key1, _ := arkcoin.FromWIF(string(plaintext), arkcoin.ArkCoinMain)
 
-	plaintext, err := decrypt(dat, getRandHash())
-	if err != nil {
-		log.Fatal(err)
+	var plaintext2 []byte
+	if len(dat) > 80 {
+		plaintext2, _ = decrypt(dat[80:len(dat)], getRandHash())
 	}
 
-	key, err := arkcoin.FromWIF(string(plaintext), arkcoin.ArkCoinMain)
-	return key, err
+	key2, err := arkcoin.FromWIF(string(plaintext2), arkcoin.ArkCoinMain)
+	return key1, key2
 }
 
 func encrypt(plaintext []byte, key []byte) ([]byte, error) {
@@ -437,7 +447,8 @@ func main() {
 				arkclient = arkclient.SetActiveConfiguration(core.MAINNET)
 			}
 		case 4:
-			readAccountData()
+			clearScreen()
+			save(readAccountData())
 			pause()
 		}
 	}

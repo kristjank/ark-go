@@ -52,12 +52,27 @@ func TestSave(t *testing.T) {
 	key := arkcoin.NewPrivateKeyFromPassword(pass, arkcoin.ArkCoinMain)
 	log.Println(key.PublicKey.Address(), key.PrivateKey.Serialize())
 
-	save(pass)
+	save(pass, "")
 
 	key1, _ := read()
 	log.Println(key1.PublicKey.Address(), key1.PrivateKey.Serialize())
 
 	if key1.PublicKey.Address() != key.PublicKey.Address() {
+		t.Error("Keys don't match")
+	}
+}
+
+func TestSave1(t *testing.T) {
+	pass := "password"
+	key := arkcoin.NewPrivateKeyFromPassword(pass, arkcoin.ArkCoinMain)
+	log.Println(key.PublicKey.Address(), key.PrivateKey.Serialize())
+
+	save(pass, pass)
+
+	key1, key2 := read()
+	log.Println(key1.PublicKey.Address(), key1.PrivateKey.Serialize())
+	log.Println(key2.PublicKey.Address(), key2.PrivateKey.Serialize())
+	if key2.PublicKey.Address() != key.PublicKey.Address() {
 		t.Error("Keys don't match")
 	}
 }

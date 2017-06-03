@@ -24,3 +24,4 @@ _testmain.go
 *.prof
 main/debug
 main/assembly
+main/assembly.ark
