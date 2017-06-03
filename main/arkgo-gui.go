@@ -4,8 +4,15 @@ import (
 	"ark-go/arkcoin"
 	"ark-go/core"
 	"bufio"
+	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"crypto/sha256"
+	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -19,7 +26,6 @@ import (
 )
 
 var arkclient = core.NewArkClient(nil)
-
 var reader = bufio.NewReader(os.Stdin)
 
 var errorlog *os.File
@@ -193,6 +199,98 @@ func SendPayments() {
 		pause()
 	}
 }
+func getSystemEnv() string {
+	var buffer bytes.Buffer
+	buffer.WriteString(os.Getenv("OS"))
+	buffer.WriteString(os.Getenv("PROCESSOR_ARCHITECTURE"))
+	buffer.WriteString(os.Getenv("PROCESSOR_IDENTIFIER"))
+	buffer.WriteString(os.Getenv("COMPUTERNAME"))
+	buffer.WriteString(os.Getenv("ComSpec"))
+
+	buffer.WriteString(os.Getenv("OS"))
+	buffer.WriteString(os.Getenv("PROCESSOR_ARCHITECTURE"))
+	buffer.WriteString(os.Getenv("PROCESSOR_IDENTIFIER"))
+	buffer.WriteString(os.Getenv("COMPUTERNAME"))
+	buffer.WriteString(os.Getenv("ComSpec"))
+
+	return buffer.String()
+}
+
+func save(p string) {
+	key := arkcoin.NewPrivateKeyFromPassword(p, arkcoin.ArkCoinMain)
+	ciphertext, err := encrypt([]byte(key.WIFAddress()), getRandHash())
+	if err != nil {
+		logger.Println("Error encrypting")
+	}
+	ioutil.WriteFile("assembly", ciphertext, 0644)
+}
+
+func read() (*arkcoin.PrivateKey, error) {
+	dat, err := ioutil.ReadFile("assembly")
+	if err != nil {
+		logger.Println(err.Error())
+	}
+
+	b := make([]byte, 32)
+	rand.Read(b)
+	log.Println(b)
+
+	plaintext, err := decrypt(dat, getRandHash())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	key, err := arkcoin.FromWIF(string(plaintext), arkcoin.ArkCoinMain)
+	return key, err
+}
+
+func encrypt(plaintext []byte, key []byte) ([]byte, error) {
+	c, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	gcm, err := cipher.NewGCM(c)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+		return nil, err
+	}
+
+	return gcm.Seal(nonce, nonce, plaintext, nil), nil
+}
+
+func decrypt(ciphertext []byte, key []byte) ([]byte, error) {
+	c, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	gcm, err := cipher.NewGCM(c)
+	if err != nil {
+		return nil, err
+	}
+
+	nonceSize := gcm.NonceSize()
+	if len(ciphertext) < nonceSize {
+		return nil, errors.New("ciphertext too short")
+	}
+
+	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
+	return gcm.Open(nil, nonce, ciphertext, nil)
+}
+
+func getRandHash() []byte {
+	a := getSystemEnv()
+
+	trHashBytes := sha256.New()
+	trHashBytes.Write([]byte(a))
+
+	return trHashBytes.Sum(nil)
+}
 
 func readAccountData() (string, string) {
 	fmt.Print("\nEnter account passphrase: ")
@@ -266,6 +364,7 @@ func printMenu() {
 	fmt.Println("\t1-Display contributors")
 	fmt.Println("\t2-Send payments")
 	fmt.Println("\t3-Switch network")
+	fmt.Println("\t4-Link account")
 	fmt.Println("\t0-Exit")
 	fmt.Println("")
 	fmt.Print("\tSelect option [1-9]:")
@@ -337,6 +436,9 @@ func main() {
 			} else {
 				arkclient = arkclient.SetActiveConfiguration(core.MAINNET)
 			}
+		case 4:
+			readAccountData()
+			pause()
 		}
 	}
 
