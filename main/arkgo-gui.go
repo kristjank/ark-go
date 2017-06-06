@@ -303,7 +303,8 @@ func getRandHash() []byte {
 }
 
 func readAccountData() (string, string) {
-	fmt.Print("\nEnter account passphrase: ")
+	fmt.Println("\nEnter account passphrase")
+	fmt.Print("-->")
 	pass1, _ := reader.ReadString('\n')
 	re := regexp.MustCompile("\r?\n")
 	pass1 = re.ReplaceAllString(pass1, "")
@@ -312,13 +313,15 @@ func readAccountData() (string, string) {
 	key := arkcoin.NewPrivateKeyFromPassword(pass1, arkcoin.ActiveCoinConfig)
 
 	accountResp, _, _ := arkclient.GetAccount(core.AccountQueryParams{Address: key.PublicKey.Address()})
+	deleResp, _, _ := arkclient.GetDelegate(core.DelegateQueryParams{PublicKey: string(key.PublicKey.Serialize())})
 	if !accountResp.Success {
-		logger.Println("Error getting account data for address", key.PublicKey.Address())
+		logger.Println("Error getting account data for delegate: " + deleResp.SingleDelegate.Username + "[" + key.PublicKey.Address() + "]")
 		return "error", ""
 	}
 
 	if accountResp.Account.SecondSignature == 1 {
-		fmt.Print("Enter second account passphrase (" + key.PublicKey.Address() + "):")
+		fmt.Println("\nEnter second account passphrase for delegate: " + deleResp.SingleDelegate.Username + "[" + key.PublicKey.Address() + "]")
+		fmt.Print("\n-->")
 		pass2, _ = reader.ReadString('\n')
 		re := regexp.MustCompile("\r?\n")
 		pass2 = re.ReplaceAllString(pass2, "")
