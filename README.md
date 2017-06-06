@@ -12,8 +12,8 @@ $> go get github.com/kristjank/ark-go
 ## How to get started? 
 All ark-node services have available reponses have their struct representations. It's best to let the code do the speaking. Every class implementation has it's own test class method. **So it's best to start learning by looking at actual test code**.
 
-## Ark-GO Client init
-**First call should be network selection, so all settings can initialize from the peers before going into action.**
+## Ark-GO Client Usage
+**First call should be network selection, so all settings can initialize from the peers before going into action.**  By default MAINNET is active.
 
 ### Init
 [GoDoc documentation available on this link](https://godoc.org/github.com/kristjank/ark-go/core)
@@ -22,7 +22,7 @@ import "ark-go/core"
 var arkclient = core.NewArkClient(nil)
 ```
 
-### Usage
+### Communication
 Queries to the blockchain are done with the Query struct parameters:
 
 ```go
