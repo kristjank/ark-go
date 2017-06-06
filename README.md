@@ -11,7 +11,7 @@ Ark-GO is the ARK Ecosystem library client implemented in GOLANG programming lan
 $> go get github.com/kristjank/ark-go
 ```
 ## How to get started? 
-All ark-node services have available reponses have their struct representations. It's best to let the code do the speaking. Every class implementation has it's own test class method. So it's best to start learning by looking at actual test code.
+All ark-node services have available reponses have their struct representations. It's best to let the code do the speaking. Every class implementation has it's own test class method. **So it's best to start learning by looking at actual test code**.
 
 ## Ark-GO Client init
 **First call should be network selection, so all settings can initialize from the peers before going into action.**
