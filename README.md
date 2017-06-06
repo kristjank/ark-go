@@ -20,12 +20,12 @@ var arkclient = core.NewArkClient(nil)
 ```
 
 ### Usage
-Query to the blockchain are done with the combination of setting up the Query struct parameters:
+Queries to the blockchain are done with the Query struct parameters:
 
 ```go
 params := TransactionQueryParams{Limit: 10, SenderID: senderID}
 ```
-... and querying the blockchaing for the reponse. Reponse is also parametrized.
+... and the results -  reponse is also parametrized.
 ```go
 transResponse, _, err := arkapi.ListTransaction(params)
 if transResponse.Success {
@@ -51,11 +51,8 @@ tx := CreateTransaction(recepient,1,"ARK-GOLang is saying whoop whooop",passphra
 payload.Transactions = append(payload.Transactions, tx)
 res, httpresponse, err := arkapi.PostTransaction(payload)
 ```
-
-
 ## More information about ARK Ecosystem and etc
 * [ARK Ecosystem Wiki](https://github.com/ArkEcosystem/wiki)
-* **Ebook** [Programming The Blockchain in C#](https://www.gitbook.com/book/programmingblockchain/programmingblockchain/details)
 
 Please, use github issues for questions or feedback. For confidential requests or specific demands, contact us on our public channels.
 
