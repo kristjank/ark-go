@@ -1,6 +1,9 @@
 [![GitHub issues](https://img.shields.io/github/issues/kristjank/ark-net.svg)](https://github.com/kristjank/ark-net/issues)&nbsp;[![GitHub forks](https://img.shields.io/github/forks/kristjank/ark-net.svg)](https://github.com/kristjank/ark-net/network)&nbsp;[![GitHub stars](https://img.shields.io/github/stars/kristjank/ark-net.svg)](https://github.com/kristjank/ark-net/stargazers)&nbsp;[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/kristjank/ark-net/master/LICENSE)
 
 ## Why Ark-GO
+GoLang is an open source programming language developed by Google and designed for building fast, simple and reliable software. Go is fairly a new and modern language (it was developed in 2007 and released to wider audience in 2009).
+The main force behind Go's success is its ease of learning and pragmatic nature. It is not about theoretical concepts such as monads and virtual inheritance, but more about **hands-on experience**.
+
 Ark-GO is the ARK Ecosystem library client implemented in GOLANG programming language. It implements all most relevant ARK functionalities to help you  **develop efficient, fast and scalable GOLANG applications built upon ARK platform**. It provides also low level access to ARK so you can easily build your application on top of it. 
 
 ## How to install?
