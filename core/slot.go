@@ -23,3 +23,11 @@ func GetDurationTime(timestamp int32) int32 {
 
 	return int32(diff.Hours())
 }
+
+//GetTransactionTime from timestamp
+func GetTransactionTime(timestamp int32) time.Time {
+	var durationSeconds time.Duration = time.Duration(timestamp) * time.Second
+	timeCalculcated := mainNetStart.Add(durationSeconds)
+
+	return timeCalculcated
+}

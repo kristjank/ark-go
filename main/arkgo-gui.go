@@ -9,6 +9,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/csv"
 	"errors"
 	"flag"
 	"fmt"
@@ -122,7 +123,13 @@ func SendPayments() {
 	sumRatio := 0.0
 	sumShareEarned := 0.0
 
-	p1, p2 := readAccountData()
+	p1, p2 := "", ""
+	if _, err := os.Stat("/path/to/whatever"); err == nil {
+		// path/to/whatever exists
+	} else {
+		p1, p2 = readAccountData()
+	}
+
 	clearScreen()
 
 	for _, element := range votersEarnings {
@@ -185,10 +192,14 @@ func SendPayments() {
 
 	if c == []byte("Y")[0] || c == []byte("y")[0] {
 		fmt.Println("Sending rewards to voters and sharing accounts.............")
+
 		res, httpresponse, err := arkclient.PostTransaction(payload)
 		if res.Success {
-			logger.Println("Success,", httpresponse.Status, res.TransactionIDs)
-			log.Println("Success,", httpresponse.Status, res.TransactionIDs, err.Error())
+			color.Set(color.FgHiGreen)
+			logger.Println("Transactions sent with Success,", httpresponse.Status, res.TransactionIDs)
+			log.Println("Transactions sent with Success,", httpresponse.Status)
+			log.Println("Audit log of sent transactions is in file paymentLog.csv!")
+			log2csv(payload, res.TransactionIDs, votersEarnings)
 		} else {
 			color.Set(color.FgHiRed)
 			logger.Println(res.Message, res.Error, httpresponse.Status, err.Error())
@@ -199,6 +210,35 @@ func SendPayments() {
 		pause()
 	}
 }
+
+func log2csv(payload core.TransactionPayload, txids []string, voterCalcs []core.DelegateDataProfit) {
+	records := [][]string{
+		{"ADDRESS", "SENT AMOUNT", "WALLET BALANCE", "Fidelity(h)", "TimeStamp", "TxId"},
+	}
+
+	for ix, el := range payload.Transactions {
+		//		sAmount := fmt.Sprintf("%15.8f", float64(el.Amount)/float64(core.SATOSHI))
+		timeTx := core.GetTransactionTime(el.Timestamp)
+		localTime := timeTx.Local()
+
+		wBalance := "N/A"
+		wDuration := "N/A"
+		if ix < len(voterCalcs) {
+			wBalance = strconv.FormatFloat(voterCalcs[ix].VoteWeight, 'f', -1, 64)
+			wDuration = strconv.FormatInt(int64(voterCalcs[ix].VoteDuration), 10)
+		}
+
+		line := []string{el.RecipientID, strconv.FormatFloat(float64(el.Amount)/float64(core.SATOSHI), 'f', -1, 64), wBalance, wDuration, localTime.Format("2006-01-02 15:04:05"), txids[ix]}
+		records = append(records, line)
+
+	}
+	file, _ := os.Create("paymentLog.csv")
+	w := csv.NewWriter(file)
+	defer w.Flush()
+	w.WriteAll(records)
+	file.Close()
+}
+
 func getSystemEnv() string {
 	var buffer bytes.Buffer
 	buffer.WriteString(os.Getenv("OS"))
@@ -218,16 +258,16 @@ func getSystemEnv() string {
 
 func save(p1, p2 string) {
 	var buffer bytes.Buffer
-	key1 := arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ArkCoinMain)
-	ciphertext, err := encrypt([]byte(key1.WIFAddress()), getRandHash())
+	//key1 := arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ArkCoinMain)
+	ciphertext, err := encrypt([]byte(p1), getRandHash())
 	if err != nil {
 		logger.Println("Error encrypting")
 	}
 	buffer.Write(ciphertext)
 
 	if p2 != "" {
-		key2 := arkcoin.NewPrivateKeyFromPassword(p2, arkcoin.ArkCoinMain)
-		ciphertext1, err1 := encrypt([]byte(key2.WIFAddress()), getRandHash())
+		//key2 := arkcoin.NewPrivateKeyFromPassword(p2, arkcoin.ArkCoinMain)
+		ciphertext1, err1 := encrypt([]byte(p2), getRandHash())
 		if err1 != nil {
 			logger.Println("Error encrypting")
 		}
@@ -243,14 +283,14 @@ func read() (*arkcoin.PrivateKey, *arkcoin.PrivateKey) {
 	}
 
 	plaintext, _ := decrypt(dat[:80], getRandHash())
-	key1, _ := arkcoin.FromWIF(string(plaintext), arkcoin.ArkCoinMain)
+	key1 := arkcoin.NewPrivateKeyFromPassword(string(plaintext), arkcoin.ActiveCoinConfig)
 
 	var plaintext2 []byte
 	if len(dat) > 80 {
 		plaintext2, _ = decrypt(dat[80:len(dat)], getRandHash())
 	}
 
-	key2, err := arkcoin.FromWIF(string(plaintext2), arkcoin.ArkCoinMain)
+	key2 := arkcoin.NewPrivateKeyFromPassword(string(plaintext2), arkcoin.ActiveCoinConfig)
 	return key1, key2
 }
 
@@ -321,7 +361,7 @@ func readAccountData() (string, string) {
 
 	if accountResp.Account.SecondSignature == 1 {
 		fmt.Println("\nEnter second account passphrase for delegate: " + deleResp.SingleDelegate.Username + "[" + key.PublicKey.Address() + "]")
-		fmt.Print("\n-->")
+		fmt.Print("-->")
 		pass2, _ = reader.ReadString('\n')
 		re := regexp.MustCompile("\r?\n")
 		pass2 = re.ReplaceAllString(pass2, "")

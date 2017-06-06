@@ -25,3 +25,4 @@ _testmain.go
 main/debug
 main/assembly
 main/assembly.ark
+main/paymentLog.csv
