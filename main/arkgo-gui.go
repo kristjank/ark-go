@@ -10,6 +10,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/csv"
+	"encoding/hex"
 	"errors"
 	"flag"
 	"fmt"
@@ -49,6 +50,17 @@ func DisplayCalculatedVoteRatio() {
 		pubKey = viper.GetString("delegate.Dpubkey")
 	}
 
+	var key1 *arkcoin.PrivateKey
+	var p1 string
+	isLinked := false
+	if _, err := os.Stat("assembly.ark"); err == nil {
+		logger.Println("Linked accound data found. Using saved account information.")
+		p1, _ = read()
+		key1 = arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ActiveCoinConfig)
+		pubKey = hex.EncodeToString(key1.PublicKey.Serialize())
+		isLinked = true
+	}
+
 	params := core.DelegateQueryParams{PublicKey: pubKey}
 	deleResp, _, _ := arkclient.GetDelegate(params)
 	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"))
@@ -60,7 +72,9 @@ func DisplayCalculatedVoteRatio() {
 
 	color.Set(color.FgHiGreen)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
-	fmt.Println("Displaying voter information for delegate:", deleResp.SingleDelegate.Username, deleResp.SingleDelegate.Address)
+	fmt.Println("Displaying voter information for delegate:")
+	fmt.Println("\tusername:", deleResp.SingleDelegate.Username, "[linked:", isLinked, "]")
+	fmt.Println("\taddress:", deleResp.SingleDelegate.Address)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
 	fmt.Println(fmt.Sprintf("|%-34s|%18s|%8s|%17s|%17s|%6s|", "Voter address", "Balance", "Weight", "Reward-100%", "Reward-"+shareRatioStr, "Hours"))
 	color.Set(color.FgCyan)
@@ -104,14 +118,29 @@ func checkConfigSharingRatio() bool {
 }
 
 //SendPayments based on parameters in config.toml
-func SendPayments() {
+func SendPayments(silent bool) {
 	if !checkConfigSharingRatio() {
 		logger.Fatal("Unable to calculcate.")
 	}
 
+	isLinked := false
 	pubKey := viper.GetString("delegate.pubkey")
 	if core.EnvironmentParams.Network.Type == core.DEVNET {
 		pubKey = viper.GetString("delegate.Dpubkey")
+	}
+
+	var p1, p2 string
+	var key1 *arkcoin.PrivateKey
+	if _, err := os.Stat("assembly.ark"); err == nil {
+		logger.Println("Linked accound data found. Using saved account information.")
+
+		p1, p2 = read()
+
+		key1 = arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ActiveCoinConfig)
+		pubKey = hex.EncodeToString(key1.PublicKey.Serialize())
+		isLinked = true
+	} else {
+		p1, p2 = readAccountData()
 	}
 
 	params := core.DelegateQueryParams{PublicKey: pubKey}
@@ -122,13 +151,6 @@ func SendPayments() {
 	sumEarned := 0.0
 	sumRatio := 0.0
 	sumShareEarned := 0.0
-
-	p1, p2 := "", ""
-	if _, err := os.Stat("/path/to/whatever"); err == nil {
-		// path/to/whatever exists
-	} else {
-		p1, p2 = readAccountData()
-	}
 
 	clearScreen()
 
@@ -151,8 +173,11 @@ func SendPayments() {
 	//summary and conversion checks
 	if (costAmount + reserveAmount + sumShareEarned) != sumEarned {
 		color.Set(color.FgHiRed)
-		log.Println("Calculation of ratios NOT OK - overall summary failing")
-		logger.Println("Calculation of ratios NOT OK - overall summary failing")
+		diff := sumEarned - (costAmount + reserveAmount + sumShareEarned)
+		if diff > 0.00000001 {
+			log.Println("Calculation of ratios NOT OK - overall summary failing for diff=", diff)
+			logger.Println("Calculation of ratios NOT OK - overall summary failing diff=", diff)
+		}
 	}
 
 	costAmount2Send := int64(costAmount*core.SATOSHI) - core.EnvironmentParams.Fees.Send
@@ -174,7 +199,9 @@ func SendPayments() {
 
 	color.Set(color.FgHiGreen)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
-	fmt.Println("Transactions to be sent:")
+	fmt.Println("Transactions to be sent from:")
+	fmt.Println("\tDelegate address:", key1.PublicKey.Address(), "[linked:", isLinked, "]")
+	fmt.Println("\tDelegate pubkey:", pubKey)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
 	color.Set(color.FgHiCyan)
 	for _, el := range payload.Transactions {
@@ -186,9 +213,16 @@ func SendPayments() {
 	color.Set(color.FgHiYellow)
 	fmt.Println("")
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
-	fmt.Print("Send transactions and complete reward payments [Y/N]: ")
 
-	c, _ := reader.ReadByte()
+	var c byte
+	if !silent {
+		fmt.Print("Send transactions and complete reward payments [Y/N]: ")
+		c, _ = reader.ReadByte()
+	} else {
+		fmt.Print("Sending automated transactions")
+		logger.Println("Sending automated transactions")
+		c = []byte("Y")[0]
+	}
 
 	if c == []byte("Y")[0] || c == []byte("y")[0] {
 		fmt.Println("Sending rewards to voters and sharing accounts.............")
@@ -206,8 +240,10 @@ func SendPayments() {
 			fmt.Println()
 			fmt.Println("Failed", res.Error)
 		}
-		reader.ReadString('\n')
-		pause()
+		if !silent {
+			reader.ReadString('\n')
+			pause()
+		}
 	}
 }
 
@@ -257,41 +293,53 @@ func getSystemEnv() string {
 }
 
 func save(p1, p2 string) {
-	var buffer bytes.Buffer
-	//key1 := arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ArkCoinMain)
-	ciphertext, err := encrypt([]byte(p1), getRandHash())
-	if err != nil {
-		logger.Println("Error encrypting")
-	}
-	buffer.Write(ciphertext)
+	ciphertext, _ := encrypt([]byte(p1), getRandHash())
+	ioutil.WriteFile("assembly.ark", ciphertext, 0644)
 
 	if p2 != "" {
-		//key2 := arkcoin.NewPrivateKeyFromPassword(p2, arkcoin.ArkCoinMain)
-		ciphertext1, err1 := encrypt([]byte(p2), getRandHash())
-		if err1 != nil {
+		ciphertext, err := encrypt([]byte(p2), getRandHash())
+		if err != nil {
 			logger.Println("Error encrypting")
 		}
-		buffer.Write(ciphertext1)
+		ioutil.WriteFile("assembly1.ark", ciphertext, 0644)
+	} else {
+		os.Remove("assembly1.ark")
 	}
-	ioutil.WriteFile("assembly.ark", buffer.Bytes(), 0644)
 }
 
-func read() (*arkcoin.PrivateKey, *arkcoin.PrivateKey) {
+/*func read() (*arkcoin.PrivateKey, *arkcoin.PrivateKey) {
 	dat, err := ioutil.ReadFile("assembly.ark")
 	if err != nil {
 		logger.Println(err.Error())
 	}
-
-	plaintext, _ := decrypt(dat[:80], getRandHash())
+	plaintext, _ := decrypt(dat, getRandHash())
 	key1 := arkcoin.NewPrivateKeyFromPassword(string(plaintext), arkcoin.ActiveCoinConfig)
 
-	var plaintext2 []byte
-	if len(dat) > 80 {
-		plaintext2, _ = decrypt(dat[80:len(dat)], getRandHash())
+	var key2 *arkcoin.PrivateKey
+	if _, err := os.Stat("assembly1.ark"); err == nil {
+		dat, _ = ioutil.ReadFile("assembly1.ark")
+		plaintext, _ = decrypt(dat, getRandHash())
+		key2 = arkcoin.NewPrivateKeyFromPassword(string(plaintext), arkcoin.ActiveCoinConfig)
 	}
 
-	key2 := arkcoin.NewPrivateKeyFromPassword(string(plaintext2), arkcoin.ActiveCoinConfig)
 	return key1, key2
+}*/
+
+func read() (string, string) {
+	dat, err := ioutil.ReadFile("assembly.ark")
+	if err != nil {
+		logger.Println(err.Error())
+	}
+	p1, _ := decrypt(dat, getRandHash())
+
+	var p2 []byte
+
+	if _, err := os.Stat("assembly1.ark"); err == nil {
+		dat, _ = ioutil.ReadFile("assembly1.ark")
+		p2, _ = decrypt(dat, getRandHash())
+	}
+
+	return string(p1), string(p2)
 }
 
 func encrypt(plaintext []byte, key []byte) ([]byte, error) {
@@ -444,6 +492,11 @@ func main() {
 	if err != nil {                 // Handle errors reading the config file
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
+	//switch to preset network
+	if viper.GetString("client.network") == "DEVNET" {
+		arkclient = arkclient.SetActiveConfiguration(core.DEVNET)
+	}
+
 	//SILENT MODE CHECKING AND AUTOMATION RUNNING
 	modeSilentPtr := flag.Bool("silent", false, "Is silent mode")
 	//autoPayment := flag.Bool("autopay", true, "Process auto payment")
@@ -452,14 +505,9 @@ func main() {
 	if *modeSilentPtr {
 		logger.Println("Silent Mode active")
 		logger.Println("Starting to send payments")
-		SendPayments()
+		SendPayments(true)
 		logger.Println("Exiting silent mode and ark-go")
 		os.Exit(1985)
-	}
-
-	//switch to preset network
-	if viper.GetString("client.network") == "DEVNET" {
-		arkclient = arkclient.SetActiveConfiguration(core.DEVNET)
 	}
 
 	var choice = 1
@@ -480,7 +528,7 @@ func main() {
 		case 2:
 			clearScreen()
 			color.Set(color.FgHiGreen)
-			SendPayments()
+			SendPayments(false)
 			color.Unset()
 
 		case 3:
@@ -492,6 +540,9 @@ func main() {
 		case 4:
 			clearScreen()
 			save(readAccountData())
+			color.Set(color.FgHiGreen)
+			logger.Println("Account succesfully linked")
+			fmt.Println("Account succesfully linked")
 			pause()
 		}
 	}
