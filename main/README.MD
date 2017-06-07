@@ -18,4 +18,5 @@ Application was developed to help testing of the core library and to provide a t
 Thank you for checking in. 
 
 For more information about ark-go see the core package. That is where it all happens: https://github.com/kristjank/ark-go/tree/master/core
+
 --chris
