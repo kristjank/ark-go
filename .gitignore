@@ -23,3 +23,7 @@ _testmain.go
 *.test
 *.prof
 main/debug
+main/assembly
+main/assembly.ark
+main/paymentLog.csv
+main/arkgo-gui

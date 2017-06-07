@@ -4,7 +4,16 @@ import (
 	"ark-go/arkcoin"
 	"ark-go/core"
 	"bufio"
+	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/csv"
+	"errors"
+	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -18,18 +27,13 @@ import (
 )
 
 var arkclient = core.NewArkClient(nil)
-
 var reader = bufio.NewReader(os.Stdin)
 
 var errorlog *os.File
 var logger *log.Logger
 
 func init() {
-	fname := viper.GetString("client.logfile")
-	re := regexp.MustCompile("\r?\n")
-	fname = re.ReplaceAllString(fname, "")
-
-	errorlog, err := os.OpenFile("ark-goclient.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	errorlog, err := os.OpenFile("arkgo-gui.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		fmt.Printf("error opening file: %v", err)
 		os.Exit(1)
@@ -119,7 +123,13 @@ func SendPayments() {
 	sumRatio := 0.0
 	sumShareEarned := 0.0
 
-	p1, p2 := readAccountData()
+	p1, p2 := "", ""
+	if _, err := os.Stat("/path/to/whatever"); err == nil {
+		// path/to/whatever exists
+	} else {
+		p1, p2 = readAccountData()
+	}
+
 	clearScreen()
 
 	for _, element := range votersEarnings {
@@ -182,10 +192,14 @@ func SendPayments() {
 
 	if c == []byte("Y")[0] || c == []byte("y")[0] {
 		fmt.Println("Sending rewards to voters and sharing accounts.............")
+
 		res, httpresponse, err := arkclient.PostTransaction(payload)
 		if res.Success {
-			logger.Println("Success,", httpresponse.Status, res.TransactionIDs)
-			log.Println("Success,", httpresponse.Status, res.TransactionIDs, err.Error())
+			color.Set(color.FgHiGreen)
+			logger.Println("Transactions sent with Success,", httpresponse.Status, res.TransactionIDs)
+			log.Println("Transactions sent with Success,", httpresponse.Status)
+			log.Println("Audit log of sent transactions is in file paymentLog.csv!")
+			log2csv(payload, res.TransactionIDs, votersEarnings)
 		} else {
 			color.Set(color.FgHiRed)
 			logger.Println(res.Message, res.Error, httpresponse.Status, err.Error())
@@ -197,8 +211,140 @@ func SendPayments() {
 	}
 }
 
+func log2csv(payload core.TransactionPayload, txids []string, voterCalcs []core.DelegateDataProfit) {
+	records := [][]string{
+		{"ADDRESS", "SENT AMOUNT", "WALLET BALANCE", "Fidelity(h)", "TimeStamp", "TxId"},
+	}
+
+	for ix, el := range payload.Transactions {
+		//		sAmount := fmt.Sprintf("%15.8f", float64(el.Amount)/float64(core.SATOSHI))
+		timeTx := core.GetTransactionTime(el.Timestamp)
+		localTime := timeTx.Local()
+
+		wBalance := "N/A"
+		wDuration := "N/A"
+		if ix < len(voterCalcs) {
+			wBalance = strconv.FormatFloat(voterCalcs[ix].VoteWeight, 'f', -1, 64)
+			wDuration = strconv.FormatInt(int64(voterCalcs[ix].VoteDuration), 10)
+		}
+
+		line := []string{el.RecipientID, strconv.FormatFloat(float64(el.Amount)/float64(core.SATOSHI), 'f', -1, 64), wBalance, wDuration, localTime.Format("2006-01-02 15:04:05"), txids[ix]}
+		records = append(records, line)
+
+	}
+	file, _ := os.Create("paymentLog.csv")
+	w := csv.NewWriter(file)
+	defer w.Flush()
+	w.WriteAll(records)
+	file.Close()
+}
+
+func getSystemEnv() string {
+	var buffer bytes.Buffer
+	buffer.WriteString(os.Getenv("OS"))
+	buffer.WriteString(os.Getenv("PROCESSOR_ARCHITECTURE"))
+	buffer.WriteString(os.Getenv("PROCESSOR_IDENTIFIER"))
+	buffer.WriteString(os.Getenv("COMPUTERNAME"))
+	buffer.WriteString(os.Getenv("ComSpec"))
+
+	buffer.WriteString(os.Getenv("OS"))
+	buffer.WriteString(os.Getenv("PROCESSOR_ARCHITECTURE"))
+	buffer.WriteString(os.Getenv("PROCESSOR_IDENTIFIER"))
+	buffer.WriteString(os.Getenv("COMPUTERNAME"))
+	buffer.WriteString(os.Getenv("ComSpec"))
+
+	return buffer.String()
+}
+
+func save(p1, p2 string) {
+	var buffer bytes.Buffer
+	//key1 := arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ArkCoinMain)
+	ciphertext, err := encrypt([]byte(p1), getRandHash())
+	if err != nil {
+		logger.Println("Error encrypting")
+	}
+	buffer.Write(ciphertext)
+
+	if p2 != "" {
+		//key2 := arkcoin.NewPrivateKeyFromPassword(p2, arkcoin.ArkCoinMain)
+		ciphertext1, err1 := encrypt([]byte(p2), getRandHash())
+		if err1 != nil {
+			logger.Println("Error encrypting")
+		}
+		buffer.Write(ciphertext1)
+	}
+	ioutil.WriteFile("assembly.ark", buffer.Bytes(), 0644)
+}
+
+func read() (*arkcoin.PrivateKey, *arkcoin.PrivateKey) {
+	dat, err := ioutil.ReadFile("assembly.ark")
+	if err != nil {
+		logger.Println(err.Error())
+	}
+
+	plaintext, _ := decrypt(dat[:80], getRandHash())
+	key1 := arkcoin.NewPrivateKeyFromPassword(string(plaintext), arkcoin.ActiveCoinConfig)
+
+	var plaintext2 []byte
+	if len(dat) > 80 {
+		plaintext2, _ = decrypt(dat[80:len(dat)], getRandHash())
+	}
+
+	key2 := arkcoin.NewPrivateKeyFromPassword(string(plaintext2), arkcoin.ActiveCoinConfig)
+	return key1, key2
+}
+
+func encrypt(plaintext []byte, key []byte) ([]byte, error) {
+	c, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	gcm, err := cipher.NewGCM(c)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+		return nil, err
+	}
+
+	return gcm.Seal(nonce, nonce, plaintext, nil), nil
+}
+
+func decrypt(ciphertext []byte, key []byte) ([]byte, error) {
+	c, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	gcm, err := cipher.NewGCM(c)
+	if err != nil {
+		return nil, err
+	}
+
+	nonceSize := gcm.NonceSize()
+	if len(ciphertext) < nonceSize {
+		return nil, errors.New("ciphertext too short")
+	}
+
+	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
+	return gcm.Open(nil, nonce, ciphertext, nil)
+}
+
+func getRandHash() []byte {
+	a := getSystemEnv()
+
+	trHashBytes := sha256.New()
+	trHashBytes.Write([]byte(a))
+
+	return trHashBytes.Sum(nil)
+}
+
 func readAccountData() (string, string) {
-	fmt.Print("\nEnter account passphrase: ")
+	fmt.Println("\nEnter account passphrase")
+	fmt.Print("-->")
 	pass1, _ := reader.ReadString('\n')
 	re := regexp.MustCompile("\r?\n")
 	pass1 = re.ReplaceAllString(pass1, "")
@@ -207,13 +353,15 @@ func readAccountData() (string, string) {
 	key := arkcoin.NewPrivateKeyFromPassword(pass1, arkcoin.ActiveCoinConfig)
 
 	accountResp, _, _ := arkclient.GetAccount(core.AccountQueryParams{Address: key.PublicKey.Address()})
+	deleResp, _, _ := arkclient.GetDelegate(core.DelegateQueryParams{PublicKey: string(key.PublicKey.Serialize())})
 	if !accountResp.Success {
-		logger.Println("Error getting account data for address", key.PublicKey.Address())
+		logger.Println("Error getting account data for delegate: " + deleResp.SingleDelegate.Username + "[" + key.PublicKey.Address() + "]")
 		return "error", ""
 	}
 
 	if accountResp.Account.SecondSignature == 1 {
-		fmt.Print("Enter second account passphrase (" + key.PublicKey.Address() + "):")
+		fmt.Println("\nEnter second account passphrase for delegate: " + deleResp.SingleDelegate.Username + "[" + key.PublicKey.Address() + "]")
+		fmt.Print("-->")
 		pass2, _ = reader.ReadString('\n')
 		re := regexp.MustCompile("\r?\n")
 		pass2 = re.ReplaceAllString(pass2, "")
@@ -269,6 +417,7 @@ func printMenu() {
 	fmt.Println("\t1-Display contributors")
 	fmt.Println("\t2-Send payments")
 	fmt.Println("\t3-Switch network")
+	fmt.Println("\t4-Link account")
 	fmt.Println("\t0-Exit")
 	fmt.Println("")
 	fmt.Print("\tSelect option [1-9]:")
@@ -294,6 +443,18 @@ func main() {
 	err := viper.ReadInConfig()     // Find and read the config file
 	if err != nil {                 // Handle errors reading the config file
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
+	}
+	//SILENT MODE CHECKING AND AUTOMATION RUNNING
+	modeSilentPtr := flag.Bool("silent", false, "Is silent mode")
+	//autoPayment := flag.Bool("autopay", true, "Process auto payment")
+	flag.Parse()
+	logger.Println(flag.Args())
+	if *modeSilentPtr {
+		logger.Println("Silent Mode active")
+		logger.Println("Starting to send payments")
+		SendPayments()
+		logger.Println("Exiting silent mode and ark-go")
+		os.Exit(1985)
 	}
 
 	//switch to preset network
@@ -328,6 +489,10 @@ func main() {
 			} else {
 				arkclient = arkclient.SetActiveConfiguration(core.MAINNET)
 			}
+		case 4:
+			clearScreen()
+			save(readAccountData())
+			pause()
 		}
 	}
 
