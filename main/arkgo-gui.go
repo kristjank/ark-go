@@ -161,9 +161,12 @@ func SendPayments(silent bool) {
 
 		//transaction parameters
 		txAmount2Send := int64(element.EarnedAmountXX*core.SATOSHI) - core.EnvironmentParams.Fees.Send
-		tx := core.CreateTransaction(element.Address, txAmount2Send, viper.GetString("voters.txdescription"), p1, p2)
 
-		payload.Transactions = append(payload.Transactions, tx)
+		//only payout for earning higher then minamount. - the earned amount remains in the loop for next payment
+		if element.EarnedAmountXX >= viper.GetFloat64("voters.minamount") {
+			tx := core.CreateTransaction(element.Address, txAmount2Send, viper.GetString("voters.txdescription"), p1, p2)
+			payload.Transactions = append(payload.Transactions, tx)
+		}
 	}
 
 	//Cost & reserve fund calculation
