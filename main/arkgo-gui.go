@@ -21,9 +21,8 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/kristjank/ark-go/core"
-
 	"github.com/kristjank/ark-go/arkcoin"
+	"github.com/kristjank/ark-go/core"
 
 	"github.com/fatih/color"
 	"github.com/spf13/viper"
@@ -143,6 +142,7 @@ func SendPayments(silent bool) {
 		isLinked = true
 	} else {
 		p1, p2 = readAccountData()
+		key1 = arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ActiveCoinConfig)
 	}
 
 	params := core.DelegateQueryParams{PublicKey: pubKey}
@@ -161,8 +161,22 @@ func SendPayments(silent bool) {
 		sumShareEarned += element.EarnedAmountXX
 		sumRatio += element.VoteWeightShare
 
+		fAmount2Send := element.EarnedAmountXX
+
+		//FIDELITY
+		if viper.GetBool("voters.fidelity") {
+			if element.VoteDuration < viper.GetInt("voters.fidelityLimit") {
+				fAmount2Send *= float64(element.VoteDuration) / float64(viper.GetInt("voters.fidelityLimit"))
+			}
+		}
+
 		//transaction parameters
-		txAmount2Send := int64(element.EarnedAmountXX*core.SATOSHI) - core.EnvironmentParams.Fees.Send
+		txAmount2Send := int64(fAmount2Send * core.SATOSHI)
+
+		//decuting fees if setup
+		if viper.GetBool("voters.deductTxFees") {
+			txAmount2Send -= core.EnvironmentParams.Fees.Send
+		}
 
 		//only payout for earning higher then minamount. - the earned amount remains in the loop for next payment
 		if element.EarnedAmountXX >= viper.GetFloat64("voters.minamount") {
