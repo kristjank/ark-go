@@ -3,7 +3,7 @@
 ## Why Ark-GO
 GoLang is an open source programming language developed by Google and designed for building fast, simple and reliable software. It is not about theoretical concepts such as monads and virtual inheritance, but more about **hands-on experience**.
 
-Ark-GO is the ARK Ecosystem library client implemented in GOLANG programming language. It implements all most relevant ARK functionalities to help you  **develop efficient, fast and scalable GOLANG applications built upon ARK platform**. It provides also low level access to ARK so you can easily build your application on top of it. 
+Ark-GO is the ARK Ecosystem library client implemented in GOLANG programming language. It implements all most relevant ARK functionalities to help you  **develop efficient, fast and scalable GOLANG applications built upon ARK platform**. It provides also low level access to ARK so you can easily build your application on top of it.
 
 ## A library demo app: ARKGO-GUI
 A demo client app was developed to test the goark library package dependencies. More about the demo cui client: https://github.com/kristjank/ark-go/tree/master/main. It targets delegate and basic account functionalites, plus silent mode - to be able to run automated reward payments.
@@ -15,7 +15,13 @@ https://asciinema.org/a/5yndxl794ncfpmjoqftuaiodm?t=8.
 ```
 $> go get github.com/kristjank/ark-go
 ```
-## How to get started? 
+
+## How to get dependencies?
+```
+$> go get ./...
+```
+
+## How to get started?
 All ark-node services have available reponses have their struct representations. It's best to let the code do the speaking. Every class implementation has it's own test class. **So it's best to start learning by looking at actual test code**.
 
 ## Ark-GO Client Usage
