@@ -218,7 +218,13 @@ func SendPayments(silent bool) {
 	if core.EnvironmentParams.Network.Type == core.DEVNET {
 		reserveAddress = viper.GetString("reserve.Daddress")
 	}
+
 	reserveAmount2Send := int64(reserveAmount*core.SATOSHI) - core.EnvironmentParams.Fees.Send
+
+	//if decuting fees from voters is false - we take them into account here....
+	if !viper.GetBool("voters.deductTxFees") {
+		reserveAmount2Send -= int64(len(votersEarnings)) * core.EnvironmentParams.Fees.Send
+	}
 
 	txReserve := core.CreateTransaction(reserveAddress, reserveAmount2Send, viper.GetString("reserve.txdescription"), p1, p2)
 	payload.Transactions = append(payload.Transactions, txReserve)
