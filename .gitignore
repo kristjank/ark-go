@@ -22,8 +22,10 @@ _testmain.go
 *.exe
 *.test
 *.prof
+*.ark
 main/debug
 main/assembly
 main/assembly.ark
 main/paymentLog.csv
 main/arkgo-gui
+main/main.zip
