@@ -21,9 +21,8 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/kristjank/ark-go/core"
-
 	"github.com/kristjank/ark-go/arkcoin"
+	"github.com/kristjank/ark-go/core"
 
 	"github.com/fatih/color"
 	"github.com/spf13/viper"
@@ -75,13 +74,25 @@ func DisplayCalculatedVoteRatio() {
 	color.Set(color.FgHiGreen)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
 	fmt.Println("Displaying voter information for delegate:")
-	fmt.Println("\tusername:", deleResp.SingleDelegate.Username, "[linked:", isLinked, "]")
+	color.Set(color.FgHiYellow)
+	fmt.Print("\tusername:", deleResp.SingleDelegate.Username)
 	fmt.Println("\taddress:", deleResp.SingleDelegate.Address)
+	fmt.Print("\tfidelity:")
+	color.HiRed("%t", viper.GetBool("voters.fidelity"))
+	fmt.Print("\tfee deduction:")
+	color.HiRed("%t", viper.GetBool("voters.deductTxFees"))
+	fmt.Print("\tlinked:")
+	color.HiRed("%t\n", isLinked)
+	color.Set(color.FgHiGreen)
+
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
-	fmt.Println(fmt.Sprintf("|%-34s|%18s|%8s|%17s|%17s|%6s|", "Voter address", "Balance", "Weight", "Reward-100%", "Reward-"+shareRatioStr, "Hours"))
+	fmt.Println(fmt.Sprintf("|%-34s|%18s|%8s|%17s|%6s|%13s|", "Voter address", "Balance", "Weight", "Reward-"+shareRatioStr, "Hours", "FidelityAmount"))
 	color.Set(color.FgCyan)
 	for _, element := range votersEarnings {
-		s := fmt.Sprintf("|%s|%18.8f|%8.4f|%15.8f A|%15.8f A|%6d|", element.Address, element.VoteWeight, element.VoteWeightShare, element.EarnedAmount100, element.EarnedAmountXX, element.VoteDuration)
+
+		fidelAmount := calcFidelity(element)
+
+		s := fmt.Sprintf("|%s|%18.8f|%8.4f|%15.8f A|%6d|%15.8f|", element.Address, element.VoteWeight, element.VoteWeightShare, element.EarnedAmountXX, element.VoteDuration, fidelAmount)
 
 		fmt.Println(s)
 		logger.Println(s)
@@ -143,6 +154,7 @@ func SendPayments(silent bool) {
 		isLinked = true
 	} else {
 		p1, p2 = readAccountData()
+		key1 = arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ActiveCoinConfig)
 	}
 
 	params := core.DelegateQueryParams{PublicKey: pubKey}
@@ -161,10 +173,19 @@ func SendPayments(silent bool) {
 		sumShareEarned += element.EarnedAmountXX
 		sumRatio += element.VoteWeightShare
 
+		fAmount2Send := calcFidelity(element)
+
 		//transaction parameters
-		txAmount2Send := int64(element.EarnedAmountXX*core.SATOSHI) - core.EnvironmentParams.Fees.Send
+		txAmount2Send := int64(fAmount2Send * core.SATOSHI)
+
+		//decuting fees if setup
+		if viper.GetBool("voters.deductTxFees") {
+			txAmount2Send -= core.EnvironmentParams.Fees.Send
+			logger.Println("Voters Fee deduction enabled")
+		}
 
 		//only payout for earning higher then minamount. - the earned amount remains in the loop for next payment
+		//to diable set it to 0.0
 		if element.EarnedAmountXX >= viper.GetFloat64("voters.minamount") {
 			tx := core.CreateTransaction(element.Address, txAmount2Send, viper.GetString("voters.txdescription"), p1, p2)
 			payload.Transactions = append(payload.Transactions, tx)
@@ -205,8 +226,17 @@ func SendPayments(silent bool) {
 	color.Set(color.FgHiGreen)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
 	fmt.Println("Transactions to be sent from:")
-	fmt.Println("\tDelegate address:", key1.PublicKey.Address(), "[linked:", isLinked, "]")
-	fmt.Println("\tDelegate pubkey:", pubKey)
+	color.Set(color.FgHiYellow)
+	fmt.Println("\tDelegate address:", key1.PublicKey.Address(), "linked:", isLinked)
+	fmt.Print("\tFidelity:")
+	color.HiRed("%t", viper.GetBool("voters.fidelity"))
+	fmt.Print("\tFee deduction:")
+	color.HiRed("%t", viper.GetBool("voters.deductTxFees"))
+	fmt.Print("\tLinked:")
+	color.HiRed("%t\n", isLinked)
+	color.Set(color.FgHiGreen)
+
+	color.Set(color.FgHiGreen)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
 	color.Set(color.FgHiCyan)
 	for _, el := range payload.Transactions {
@@ -250,6 +280,19 @@ func SendPayments(silent bool) {
 			pause()
 		}
 	}
+}
+
+func calcFidelity(element core.DelegateDataProfit) float64 {
+	fAmount2Send := element.EarnedAmountXX
+	//FIDELITY
+	if viper.GetBool("voters.fidelity") {
+		if element.VoteDuration < viper.GetInt("voters.fidelityLimit") {
+			fAmount2Send *= float64(element.VoteDuration) / float64(viper.GetInt("voters.fidelityLimit"))
+			logger.Println("Fidelity enabled for user", element.Address, "ratio: ", float64(element.VoteDuration)/float64(viper.GetInt("voters.fidelityLimit")), "earned: ", element.EarnedAmountXX, "reduced amount: ", fAmount2Send)
+		}
+	}
+
+	return fAmount2Send
 }
 
 func log2csv(payload core.TransactionPayload, txids []string, voterCalcs []core.DelegateDataProfit) {
@@ -512,6 +555,7 @@ func main() {
 		logger.Println("Starting to send payments")
 		SendPayments(true)
 		logger.Println("Exiting silent mode and ark-go")
+		color.Unset()
 		os.Exit(1985)
 	}
 
@@ -549,8 +593,9 @@ func main() {
 			logger.Println("Account succesfully linked")
 			fmt.Println("Account succesfully linked")
 			pause()
+			color.Unset()
 		}
 	}
-
+	color.Unset()
 	defer errorlog.Close()
 }

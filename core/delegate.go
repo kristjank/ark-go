@@ -59,7 +59,7 @@ type DelegateDataProfit struct {
 	VoteWeightShare float64
 	EarnedAmount100 float64 //100 earned amount.
 	EarnedAmountXX  float64 //XX share to be payed
-	VoteDuration    int32   //Duration of vote in Hours
+	VoteDuration    int     //Duration of vote in Hours
 }
 
 //ListDelegates function returns list of delegtes. The top 51 delegates are returned
@@ -169,7 +169,7 @@ func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio
 	return votersProfit
 }
 
-func (s *ArkClient) GetFidelityFactor(address string) int32 {
+func (s *ArkClient) GetFidelityFactor(address string) int {
 
 	transQuery := TransactionQueryParams{SenderID: address}
 

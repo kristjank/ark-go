@@ -14,14 +14,14 @@ func GetTime() int32 {
 }
 
 //Calculates duration between now and provided timestamp
-func GetDurationTime(timestamp int32) int32 {
+func GetDurationTime(timestamp int32) int {
 	var durationSeconds time.Duration = time.Duration(timestamp) * time.Second
 	timeCalculcated := mainNetStart.Add(durationSeconds)
 
 	now := time.Now()
 	diff := now.Sub(timeCalculcated)
 
-	return int32(diff.Hours())
+	return int(diff.Hours())
 }
 
 //GetTransactionTime from timestamp

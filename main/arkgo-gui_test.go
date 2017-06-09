@@ -1,12 +1,13 @@
 package main
 
 import (
-	"ark-go/arkcoin"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"log"
 	"testing"
+
+	"github.com/kristjank/ark-go/arkcoin"
 )
 
 func TestReadAccountData(t *testing.T) {

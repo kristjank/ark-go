@@ -9,8 +9,10 @@ Dpubkey = "02bcfa0951a92e7876db1fb71996a853b57f996972ed059a950d910f7d541706c9"
 [voters]
 shareRatio = 0.70 # 70 percent goes to voters
 txdescription = "chris delegate: payment sharing. Thank you! |tx by ark-go"
-fidelity = false
-minamount = 1.0 # minimum amount limit for payout.
+fidelity = true
+fidelityLimit = 24  #fidelity limit in hours
+minamount = 0.0 # minimum amount limit for payout.
+deductTxFees = false #if true tx fees are deducted from recepients
 
 [costs]
 address = "ANqeL7CP2som7q9NFbRuaUc5WUnwYkSbFY" #project reserve fund
