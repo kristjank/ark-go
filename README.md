@@ -37,7 +37,7 @@ All ark-node services have available reponses have their struct representations.
 ### Init
 [GoDoc documentation available on this link](https://godoc.org/github.com/kristjank/ark-go/core)
 ```go
-import "ark-go/core"
+import "github.com/kristjank/ark-go/core"
 var arkclient = core.NewArkClient(nil)
 ```
 
