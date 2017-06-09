@@ -1,8 +1,6 @@
 package core
 
 import (
-	"ark-go/arkcoin"
-	"ark-go/arkcoin/base58"
 	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
@@ -10,6 +8,9 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/kristjank/ark-go/arkcoin"
+	"github.com/kristjank/ark-go/arkcoin/base58"
 )
 
 type TransactionType byte

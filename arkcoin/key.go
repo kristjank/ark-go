@@ -1,11 +1,12 @@
 package arkcoin
 
 import (
-	"ark-go/arkcoin/base58"
 	"crypto/sha256"
 	"errors"
 	"fmt"
 	"log"
+
+	"github.com/kristjank/ark-go/arkcoin/base58"
 
 	"github.com/btcsuite/btcd/btcec"
 	"golang.org/x/crypto/ripemd160"
