@@ -1,8 +1,6 @@
 package main
 
 import (
-	"ark-go/arkcoin"
-	"ark-go/core"
 	"bufio"
 	"bytes"
 	"crypto/aes"
@@ -22,6 +20,10 @@ import (
 	"regexp"
 	"runtime"
 	"strconv"
+
+	"github.com/kristjank/ark-go/core"
+
+	"github.com/kristjank/ark-go/arkcoin"
 
 	"github.com/fatih/color"
 	"github.com/spf13/viper"

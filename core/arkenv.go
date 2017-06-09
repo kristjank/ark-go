@@ -1,13 +1,14 @@
 package core
 
 import (
-	"ark-go/arkcoin"
 	"encoding/json"
 	"log"
 	"math/rand"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/kristjank/ark-go/arkcoin"
 )
 
 type ArkNetworkType int

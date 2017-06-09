@@ -1,9 +1,10 @@
 package core
 
 import (
-	"ark-go/arkcoin"
 	"log"
 	"testing"
+
+	"github.com/kristjank/ark-go/arkcoin"
 )
 
 func TestCreateSignTransaction(t *testing.T) {
