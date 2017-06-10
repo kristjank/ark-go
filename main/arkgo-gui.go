@@ -517,7 +517,7 @@ func printMenu() {
 	color.Set(color.FgHiYellow)
 	fmt.Println("")
 	fmt.Println("\t1-Display contributors")
-	fmt.Println("\t2-Send payments")
+	fmt.Println("\t2-Send reward payments")
 	fmt.Println("\t3-Switch network")
 	fmt.Println("\t4-Link account")
 	fmt.Println("\t0-Exit")
