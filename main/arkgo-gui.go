@@ -546,6 +546,14 @@ func main() {
 
   if err != nil {
 		logger.Println("No productive config found - loading sample")
+    // try to load sample config
+		viper.SetConfigName("sample.config")
+		viper.AddConfigPath("settings") 
+		err := viper.ReadInConfig()
+
+		if err != nil {                 // Handle errors reading the config file
+	    logger.Println("No configuration file loaded - using defaults")
+		}
 	}
 
   //Load defaults
