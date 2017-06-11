@@ -472,6 +472,49 @@ func readAccountData() (string, string) {
 	return pass1, pass2
 }
 
+func loadConfig() {
+	viper.SetConfigName("config")   // name of config file (without extension)
+	viper.AddConfigPath("settings") // path to look for the config file in
+	viper.AddConfigPath(".")        // optionally look for config in the working directory
+	err := viper.ReadInConfig()     // Find and read the config file
+
+  if err != nil {
+		logger.Println("No productive config found - loading sample")
+    // try to load sample config
+		viper.SetConfigName("sample.config")
+		viper.AddConfigPath("settings")
+		err := viper.ReadInConfig()
+
+		if err != nil {                 // Handle errors reading the config file
+	    logger.Println("No configuration file loaded - using defaults")
+		}
+	}
+
+	viper.SetDefault("delegate.address", "")
+	viper.SetDefault("delegate.pubkey", "")
+	viper.SetDefault("delegate.Daddress", "")
+	viper.SetDefault("delegate.Dpubkey", "")
+
+	viper.SetDefault("voters.shareRatio", 0.0)
+	viper.SetDefault("voters.txdescription", "share tx by ark-go")
+	viper.SetDefault("voters.fidelity", true)
+	viper.SetDefault("voters.fidelityLimit", 24)
+	viper.SetDefault("voters.minamount", 0.0)
+	viper.SetDefault("voters.deductTxFees", true)
+
+	viper.SetDefault("costs.address", "")
+	viper.SetDefault("costs.shareRatio", 0.0)
+	viper.SetDefault("costs.txdescription", "cost tx by ark-go")
+	viper.SetDefault("costs.Daddress", "")
+
+	viper.SetDefault("reserve.address", "")
+	viper.SetDefault("reserve.shareRatio", 0.0)
+	viper.SetDefault("reserve.txdescription", "reserve tx by ark-go")
+	viper.SetDefault("reserve.Daddress", "")
+
+	viper.SetDefault("client.network", "DEVNET")
+}
+
 //////////////////////////////////////////////////////////////////////////////
 //GUI RELATED STUFF
 func pause() {
@@ -539,13 +582,9 @@ type costs struct {
 func main() {
 	logger.Println("Ark-golang client starting")
 
-	viper.SetConfigName("config")   // name of config file (without extension)
-	viper.AddConfigPath("settings") // path to look for the config file in
-	viper.AddConfigPath(".")        // optionally look for config in the working directory
-	err := viper.ReadInConfig()     // Find and read the config file
-	if err != nil {                 // Handle errors reading the config file
-		panic(fmt.Errorf("Fatal error config file: %s \n", err))
-	}
+  // Load configration and defaults
+  loadConfig()
+
 	//switch to preset network
 	if viper.GetString("client.network") == "DEVNET" {
 		arkclient = arkclient.SetActiveConfiguration(core.DEVNET)
