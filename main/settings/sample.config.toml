@@ -13,7 +13,7 @@ txdescription = "delegate: voters share. Thank you! |tx by ark-go"
 fidelity = true
 fidelityLimit = 24  #fidelity limit in hours
 minamount = 0.0 #minimum amount limit for payout.
-deductTxFees = false #if true tx fees are deducted from recepients
+deductTxFees = true #if true tx fees are deducted from recepients
 
 [costs]
 address = "ANqeL7CP2som7q9NFbRuaUc5WUnwYkSbFY" #costs
