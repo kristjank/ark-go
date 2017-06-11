@@ -1,4 +1,4 @@
-# Adapt and copy this file to settings for productive configuration
+# Adapt and copy this file to settings/config.toml for productive configuration
 [delegate]
 address = "ASJBHz4JfWVUGDyN61hMMnW1Y4ZCTBHL1K"
 pubkey = "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"
