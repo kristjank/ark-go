@@ -478,15 +478,15 @@ func loadConfig() {
 	viper.AddConfigPath(".")        // optionally look for config in the working directory
 	err := viper.ReadInConfig()     // Find and read the config file
 
-  if err != nil {
+	if err != nil {
 		logger.Println("No productive config found - loading sample")
-    // try to load sample config
+		// try to load sample config
 		viper.SetConfigName("sample.config")
 		viper.AddConfigPath("settings")
 		err := viper.ReadInConfig()
 
-		if err != nil {                 // Handle errors reading the config file
-	    logger.Println("No configuration file loaded - using defaults")
+		if err != nil { // Handle errors reading the config file
+			logger.Println("No configuration file loaded - using defaults")
 		}
 	}
 
@@ -582,8 +582,8 @@ type costs struct {
 func main() {
 	logger.Println("Ark-golang client starting")
 
-  // Load configration and defaults
-  loadConfig()
+	// Load configration and defaults
+	loadConfig()
 
 	//switch to preset network
 	if viper.GetString("client.network") == "DEVNET" {
