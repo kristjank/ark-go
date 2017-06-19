@@ -28,4 +28,6 @@ main/assembly
 main/assembly.ark
 main/paymentLog.csv
 main/arkgo-gui
+main/arkgo-gui.log
 main/main.zip
+main/settings/config.toml

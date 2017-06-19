@@ -79,20 +79,22 @@ func DisplayCalculatedVoteRatio() {
 	fmt.Println("\taddress:", deleResp.SingleDelegate.Address)
 	fmt.Print("\tfidelity:")
 	color.HiRed("%t", viper.GetBool("voters.fidelity"))
+	color.Set(color.FgHiYellow)
 	fmt.Print("\tfee deduction:")
 	color.HiRed("%t", viper.GetBool("voters.deductTxFees"))
+	color.Set(color.FgHiYellow)
 	fmt.Print("\tlinked:")
 	color.HiRed("%t\n", isLinked)
 	color.Set(color.FgHiGreen)
 
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
-	fmt.Println(fmt.Sprintf("|%-34s|%18s|%8s|%17s|%6s|%13s|", "Voter address", "Balance", "Weight", "Reward-"+shareRatioStr, "Hours", "FidelityAmount"))
+	fmt.Println(fmt.Sprintf("%4s|%-34s|%18s|%8s|%17s|%6s|%15s|", "Ix", "Voter address", "Balance", "Weight", "Reward-"+shareRatioStr, "Hours", "FidelityAmount"))
 	color.Set(color.FgCyan)
-	for _, element := range votersEarnings {
+	for ix, element := range votersEarnings {
 
 		fidelAmount := calcFidelity(element)
 
-		s := fmt.Sprintf("|%s|%18.8f|%8.4f|%15.8f A|%6d|%15.8f|", element.Address, element.VoteWeight, element.VoteWeightShare, element.EarnedAmountXX, element.VoteDuration, fidelAmount)
+		s := fmt.Sprintf("%3d.|%s|%18.8f|%8.4f|%15.8f A|%6d|%15.8f|", ix+1, element.Address, element.VoteWeight, element.VoteWeightShare, element.EarnedAmountXX, element.VoteDuration, fidelAmount)
 
 		fmt.Println(s)
 		logger.Println(s)
@@ -185,8 +187,8 @@ func SendPayments(silent bool) {
 		}
 
 		//only payout for earning higher then minamount. - the earned amount remains in the loop for next payment
-		//to diable set it to 0.0
-		if element.EarnedAmountXX >= viper.GetFloat64("voters.minamount") {
+		//to disable set it to 0.0
+		if element.EarnedAmountXX >= viper.GetFloat64("voters.minamount") && txAmount2Send > 0 {
 			tx := core.CreateTransaction(element.Address, txAmount2Send, viper.GetString("voters.txdescription"), p1, p2)
 			payload.Transactions = append(payload.Transactions, tx)
 		}
@@ -218,7 +220,13 @@ func SendPayments(silent bool) {
 	if core.EnvironmentParams.Network.Type == core.DEVNET {
 		reserveAddress = viper.GetString("reserve.Daddress")
 	}
+
 	reserveAmount2Send := int64(reserveAmount*core.SATOSHI) - core.EnvironmentParams.Fees.Send
+
+	//if decuting fees from voters is false - we take them into account here....
+	if !viper.GetBool("voters.deductTxFees") {
+		reserveAmount2Send -= int64(len(votersEarnings)) * core.EnvironmentParams.Fees.Send
+	}
 
 	txReserve := core.CreateTransaction(reserveAddress, reserveAmount2Send, viper.GetString("reserve.txdescription"), p1, p2)
 	payload.Transactions = append(payload.Transactions, txReserve)
@@ -228,10 +236,13 @@ func SendPayments(silent bool) {
 	fmt.Println("Transactions to be sent from:")
 	color.Set(color.FgHiYellow)
 	fmt.Println("\tDelegate address:", key1.PublicKey.Address(), "linked:", isLinked)
+	color.Set(color.FgHiYellow)
 	fmt.Print("\tFidelity:")
 	color.HiRed("%t", viper.GetBool("voters.fidelity"))
+	color.Set(color.FgHiYellow)
 	fmt.Print("\tFee deduction:")
 	color.HiRed("%t", viper.GetBool("voters.deductTxFees"))
+	color.Set(color.FgHiYellow)
 	fmt.Print("\tLinked:")
 	color.HiRed("%t\n", isLinked)
 	color.Set(color.FgHiGreen)
@@ -239,8 +250,8 @@ func SendPayments(silent bool) {
 	color.Set(color.FgHiGreen)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
 	color.Set(color.FgHiCyan)
-	for _, el := range payload.Transactions {
-		s := fmt.Sprintf("|%s|%15d| %-40s|", el.RecipientID, el.Amount, el.VendorField)
+	for ix, el := range payload.Transactions {
+		s := fmt.Sprintf("%3d.|%s|%15d| %-40s|", ix+1, el.RecipientID, el.Amount, el.VendorField)
 		fmt.Println(s)
 		logger.Println(s)
 	}
@@ -466,6 +477,49 @@ func readAccountData() (string, string) {
 	return pass1, pass2
 }
 
+func loadConfig() {
+	viper.SetConfigName("config")   // name of config file (without extension)
+	viper.AddConfigPath("settings") // path to look for the config file in
+	viper.AddConfigPath(".")        // optionally look for config in the working directory
+	err := viper.ReadInConfig()     // Find and read the config file
+
+	if err != nil {
+		logger.Println("No productive config found - loading sample")
+		// try to load sample config
+		viper.SetConfigName("sample.config")
+		viper.AddConfigPath("settings")
+		err := viper.ReadInConfig()
+
+		if err != nil { // Handle errors reading the config file
+			logger.Println("No configuration file loaded - using defaults")
+		}
+	}
+
+	viper.SetDefault("delegate.address", "")
+	viper.SetDefault("delegate.pubkey", "")
+	viper.SetDefault("delegate.Daddress", "")
+	viper.SetDefault("delegate.Dpubkey", "")
+
+	viper.SetDefault("voters.shareRatio", 0.0)
+	viper.SetDefault("voters.txdescription", "share tx by ark-go")
+	viper.SetDefault("voters.fidelity", true)
+	viper.SetDefault("voters.fidelityLimit", 24)
+	viper.SetDefault("voters.minamount", 0.0)
+	viper.SetDefault("voters.deductTxFees", true)
+
+	viper.SetDefault("costs.address", "")
+	viper.SetDefault("costs.shareRatio", 0.0)
+	viper.SetDefault("costs.txdescription", "cost tx by ark-go")
+	viper.SetDefault("costs.Daddress", "")
+
+	viper.SetDefault("reserve.address", "")
+	viper.SetDefault("reserve.shareRatio", 0.0)
+	viper.SetDefault("reserve.txdescription", "reserve tx by ark-go")
+	viper.SetDefault("reserve.Daddress", "")
+
+	viper.SetDefault("client.network", "DEVNET")
+}
+
 //////////////////////////////////////////////////////////////////////////////
 //GUI RELATED STUFF
 func pause() {
@@ -511,7 +565,7 @@ func printMenu() {
 	color.Set(color.FgHiYellow)
 	fmt.Println("")
 	fmt.Println("\t1-Display contributors")
-	fmt.Println("\t2-Send payments")
+	fmt.Println("\t2-Send reward payments")
 	fmt.Println("\t3-Switch network")
 	fmt.Println("\t4-Link account")
 	fmt.Println("\t0-Exit")
@@ -533,13 +587,9 @@ type costs struct {
 func main() {
 	logger.Println("Ark-golang client starting")
 
-	viper.SetConfigName("config")   // name of config file (without extension)
-	viper.AddConfigPath("settings") // path to look for the config file in
-	viper.AddConfigPath(".")        // optionally look for config in the working directory
-	err := viper.ReadInConfig()     // Find and read the config file
-	if err != nil {                 // Handle errors reading the config file
-		panic(fmt.Errorf("Fatal error config file: %s \n", err))
-	}
+	// Load configration and defaults
+	loadConfig()
+
 	//switch to preset network
 	if viper.GetString("client.network") == "DEVNET" {
 		arkclient = arkclient.SetActiveConfiguration(core.DEVNET)

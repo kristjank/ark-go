@@ -21,13 +21,6 @@ $> go get github.com/kristjank/ark-go
 $> go get ./...
 ```
 
-## How to run ARKGO-GUI?
-```
-$> cd $GOPATH/src/github.com/kristjank/ark-go/main
-$> go run arkgo-gui.go
-```
-
-
 ## How to get started?
 All ark-node services have available reponses have their struct representations. It's best to let the code do the speaking. Every class implementation has it's own test class. **So it's best to start learning by looking at actual test code**.
 
@@ -37,7 +30,7 @@ All ark-node services have available reponses have their struct representations.
 ### Init
 [GoDoc documentation available on this link](https://godoc.org/github.com/kristjank/ark-go/core)
 ```go
-import "ark-go/core"
+import "github.com/kristjank/ark-go/core"
 var arkclient = core.NewArkClient(nil)
 ```
 
