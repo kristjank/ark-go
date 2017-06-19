@@ -185,8 +185,8 @@ func SendPayments(silent bool) {
 		}
 
 		//only payout for earning higher then minamount. - the earned amount remains in the loop for next payment
-		//to diable set it to 0.0
-		if element.EarnedAmountXX >= viper.GetFloat64("voters.minamount") {
+		//to disable set it to 0.0
+		if element.EarnedAmountXX >= viper.GetFloat64("voters.minamount") && txAmount2Send > 0 {
 			tx := core.CreateTransaction(element.Address, txAmount2Send, viper.GetString("voters.txdescription"), p1, p2)
 			payload.Transactions = append(payload.Transactions, tx)
 		}
