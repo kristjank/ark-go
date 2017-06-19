@@ -79,20 +79,22 @@ func DisplayCalculatedVoteRatio() {
 	fmt.Println("\taddress:", deleResp.SingleDelegate.Address)
 	fmt.Print("\tfidelity:")
 	color.HiRed("%t", viper.GetBool("voters.fidelity"))
+	color.Set(color.FgHiYellow)
 	fmt.Print("\tfee deduction:")
 	color.HiRed("%t", viper.GetBool("voters.deductTxFees"))
+	color.Set(color.FgHiYellow)
 	fmt.Print("\tlinked:")
 	color.HiRed("%t\n", isLinked)
 	color.Set(color.FgHiGreen)
 
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
-	fmt.Println(fmt.Sprintf("|%-34s|%18s|%8s|%17s|%6s|%13s|", "Voter address", "Balance", "Weight", "Reward-"+shareRatioStr, "Hours", "FidelityAmount"))
+	fmt.Println(fmt.Sprintf("%4s|%-34s|%18s|%8s|%17s|%6s|%15s|", "Ix", "Voter address", "Balance", "Weight", "Reward-"+shareRatioStr, "Hours", "FidelityAmount"))
 	color.Set(color.FgCyan)
-	for _, element := range votersEarnings {
+	for ix, element := range votersEarnings {
 
 		fidelAmount := calcFidelity(element)
 
-		s := fmt.Sprintf("|%s|%18.8f|%8.4f|%15.8f A|%6d|%15.8f|", element.Address, element.VoteWeight, element.VoteWeightShare, element.EarnedAmountXX, element.VoteDuration, fidelAmount)
+		s := fmt.Sprintf("%3d.|%s|%18.8f|%8.4f|%15.8f A|%6d|%15.8f|", ix+1, element.Address, element.VoteWeight, element.VoteWeightShare, element.EarnedAmountXX, element.VoteDuration, fidelAmount)
 
 		fmt.Println(s)
 		logger.Println(s)
@@ -234,10 +236,13 @@ func SendPayments(silent bool) {
 	fmt.Println("Transactions to be sent from:")
 	color.Set(color.FgHiYellow)
 	fmt.Println("\tDelegate address:", key1.PublicKey.Address(), "linked:", isLinked)
+	color.Set(color.FgHiYellow)
 	fmt.Print("\tFidelity:")
 	color.HiRed("%t", viper.GetBool("voters.fidelity"))
+	color.Set(color.FgHiYellow)
 	fmt.Print("\tFee deduction:")
 	color.HiRed("%t", viper.GetBool("voters.deductTxFees"))
+	color.Set(color.FgHiYellow)
 	fmt.Print("\tLinked:")
 	color.HiRed("%t\n", isLinked)
 	color.Set(color.FgHiGreen)
@@ -245,8 +250,8 @@ func SendPayments(silent bool) {
 	color.Set(color.FgHiGreen)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
 	color.Set(color.FgHiCyan)
-	for _, el := range payload.Transactions {
-		s := fmt.Sprintf("|%s|%15d| %-40s|", el.RecipientID, el.Amount, el.VendorField)
+	for ix, el := range payload.Transactions {
+		s := fmt.Sprintf("%3d.|%s|%15d| %-40s|", ix+1, el.RecipientID, el.Amount, el.VendorField)
 		fmt.Println(s)
 		logger.Println(s)
 	}
