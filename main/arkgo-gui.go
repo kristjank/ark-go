@@ -302,7 +302,7 @@ func SendBonus() {
 	re := regexp.MustCompile("\r?\n")
 	bonusInput = re.ReplaceAllString(bonusInput, "")
 
-	bonus, err := strconv.ParseInt(bonusInput, 10, 64)
+	bonus, err := strconv.ParseFloat(bonusInput, 64)
 	if err != nil {
 		panic(err)
 	}
