@@ -293,6 +293,128 @@ func SendPayments(silent bool) {
 	}
 }
 
+//SendBonus Send fixed amount to all voters
+func SendBonus() {
+
+	fmt.Println("\nEnter amount to send to each voter")
+	fmt.Print("-->")
+	bonusInput, _ := reader.ReadString('\n')
+	re := regexp.MustCompile("\r?\n")
+	bonusInput = re.ReplaceAllString(bonusInput, "")
+
+	bonus, err := strconv.ParseInt(bonusInput, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+
+	isLinked := false
+	pubKey := viper.GetString("delegate.pubkey")
+	if core.EnvironmentParams.Network.Type == core.DEVNET {
+		pubKey = viper.GetString("delegate.Dpubkey")
+	}
+
+	var p1, p2 string
+	var key1 *arkcoin.PrivateKey
+	if _, err := os.Stat("assembly.ark"); err == nil {
+		logger.Println("Linked accound data found. Using saved account information.")
+
+		p1, p2 = read()
+
+		key1 = arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ActiveCoinConfig)
+		pubKey = hex.EncodeToString(key1.PublicKey.Serialize())
+		isLinked = true
+	} else {
+		p1, p2 = readAccountData()
+		key1 = arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ActiveCoinConfig)
+	}
+
+	params := core.DelegateQueryParams{PublicKey: pubKey}
+	var payload core.TransactionPayload
+
+	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"))
+
+	sumEarned := 0.0
+	sumRatio := 0.0
+	sumShareEarned := 0.0
+
+	clearScreen()
+
+	for _, element := range votersEarnings {
+		sumEarned += element.EarnedAmount100
+		sumShareEarned += element.EarnedAmountXX
+		sumRatio += element.VoteWeightShare
+
+		//transaction parameters
+		txAmount2Send := int64(bonus * core.SATOSHI)
+
+		//decuting fees if setup
+		if viper.GetBool("voters.deductTxFees") {
+			txAmount2Send -= core.EnvironmentParams.Fees.Send
+			logger.Println("Voters Fee deduction enabled")
+		}
+
+		//only payout for earning higher then minamount. - the earned amount remains in the loop for next payment
+		//to disable set it to 0.0
+		if element.EarnedAmountXX >= viper.GetFloat64("voters.minamount") && txAmount2Send > 0 {
+			tx := core.CreateTransaction(element.Address, txAmount2Send, viper.GetString("voters.txdescription"), p1, p2)
+			payload.Transactions = append(payload.Transactions, tx)
+		}
+	}
+
+	color.Set(color.FgHiGreen)
+	fmt.Println("--------------------------------------------------------------------------------------------------------------")
+	fmt.Println("Transactions to be sent from:")
+	color.Set(color.FgHiYellow)
+	fmt.Println("\tDelegate address:", key1.PublicKey.Address(), "linked:", isLinked)
+	color.Set(color.FgHiYellow)
+	fmt.Print("\tFidelity:")
+	color.HiRed("%t", viper.GetBool("voters.fidelity"))
+	color.Set(color.FgHiYellow)
+	fmt.Print("\tFee deduction:")
+	color.HiRed("%t", viper.GetBool("voters.deductTxFees"))
+	color.Set(color.FgHiYellow)
+	fmt.Print("\tLinked:")
+	color.HiRed("%t\n", isLinked)
+	color.Set(color.FgHiGreen)
+
+	color.Set(color.FgHiGreen)
+	fmt.Println("--------------------------------------------------------------------------------------------------------------")
+	color.Set(color.FgHiCyan)
+	for ix, el := range payload.Transactions {
+		s := fmt.Sprintf("%3d.|%s|%15d| %-40s|", ix+1, el.RecipientID, el.Amount, el.VendorField)
+		fmt.Println(s)
+		logger.Println(s)
+	}
+
+	color.Set(color.FgHiYellow)
+	fmt.Println("")
+	fmt.Println("--------------------------------------------------------------------------------------------------------------")
+
+	var c byte
+	fmt.Print("Send transactions and complete bonus payments [Y/N]: ")
+	c, _ = reader.ReadByte()
+
+	if c == []byte("Y")[0] || c == []byte("y")[0] {
+		fmt.Println("Sending bonus to voters accounts.............")
+
+		res, httpresponse, err := arkclient.PostTransaction(payload)
+		if res.Success {
+			color.Set(color.FgHiGreen)
+			logger.Println("Transactions sent with Success,", httpresponse.Status, res.TransactionIDs)
+			log.Println("Transactions sent with Success,", httpresponse.Status)
+			log.Println("Audit log of sent transactions is in file paymentLog.csv!")
+			log2csv(payload, res.TransactionIDs, votersEarnings)
+		} else {
+			color.Set(color.FgHiRed)
+			logger.Println(res.Message, res.Error, httpresponse.Status, err.Error())
+			fmt.Println()
+			fmt.Println("Failed", res.Error)
+		}
+		reader.ReadString('\n')
+		pause()
+	}
+}
+
 func calcFidelity(element core.DelegateDataProfit) float64 {
 	fAmount2Send := element.EarnedAmountXX
 	//FIDELITY
@@ -568,6 +690,7 @@ func printMenu() {
 	fmt.Println("\t2-Send reward payments")
 	fmt.Println("\t3-Switch network")
 	fmt.Println("\t4-Link account")
+	fmt.Println("\t5-Send bonus payments")
 	fmt.Println("\t0-Exit")
 	fmt.Println("")
 	fmt.Print("\tSelect option [1-9]:")
@@ -643,6 +766,11 @@ func main() {
 			logger.Println("Account succesfully linked")
 			fmt.Println("Account succesfully linked")
 			pause()
+			color.Unset()
+		case 5:
+			clearScreen()
+			color.Set(color.FgHiGreen)
+			SendBonus()
 			color.Unset()
 		}
 	}
