@@ -307,6 +307,12 @@ func SendBonus() {
 		panic(err)
 	}
 
+	fmt.Println("\nEnter tansaction description")
+	fmt.Print("-->")
+	txDescription, _ := reader.ReadString('\n')
+	res := regexp.MustCompile("\r?\n")
+	txDescription = res.ReplaceAllString(txDescription, "")
+
 	isLinked := false
 	pubKey := viper.GetString("delegate.pubkey")
 	if core.EnvironmentParams.Network.Type == core.DEVNET {
@@ -356,7 +362,7 @@ func SendBonus() {
 		//only payout for earning higher then minamount. - the earned amount remains in the loop for next payment
 		//to disable set it to 0.0
 		if element.EarnedAmountXX >= viper.GetFloat64("voters.minamount") && txAmount2Send > 0 {
-			tx := core.CreateTransaction(element.Address, txAmount2Send, viper.GetString("voters.txdescription"), p1, p2)
+			tx := core.CreateTransaction(element.Address, txAmount2Send, txDescription, p1, p2)
 			payload.Transactions = append(payload.Transactions, tx)
 		}
 	}
