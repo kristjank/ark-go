@@ -296,6 +296,7 @@ func SendPayments(silent bool) {
 //SendBonus Send fixed amount to all voters
 func SendBonus() {
 
+	//Bonus to send
 	fmt.Println("\nEnter amount to send to each voter")
 	fmt.Print("-->")
 	bonusInput, _ := reader.ReadString('\n')
@@ -307,7 +308,8 @@ func SendBonus() {
 		panic(err)
 	}
 
-	fmt.Println("\nEnter tansaction description")
+	//Bonus description
+	fmt.Println("\nEnter transaction description")
 	fmt.Print("-->")
 	txDescription, _ := reader.ReadString('\n')
 	res := regexp.MustCompile("\r?\n")
@@ -350,7 +352,7 @@ func SendBonus() {
 		sumShareEarned += element.EarnedAmountXX
 		sumRatio += element.VoteWeightShare
 
-		//transaction parameters
+		//Bonus amount
 		txAmount2Send := int64(bonus * core.SATOSHI)
 
 		//decuting fees if setup
@@ -359,7 +361,7 @@ func SendBonus() {
 			logger.Println("Voters Fee deduction enabled")
 		}
 
-		//only pay account with more than 0 balance
+		//Bonus - only pay account with more than 0 balance
 		if element.EarnedAmount100 > 0 && txAmount2Send > 0 {
 			tx := core.CreateTransaction(element.Address, txAmount2Send, txDescription, p1, p2)
 			payload.Transactions = append(payload.Transactions, tx)
