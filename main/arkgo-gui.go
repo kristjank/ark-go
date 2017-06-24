@@ -359,9 +359,8 @@ func SendBonus() {
 			logger.Println("Voters Fee deduction enabled")
 		}
 
-		//only payout for earning higher then minamount. - the earned amount remains in the loop for next payment
-		//to disable set it to 0.0
-		if element.EarnedAmountXX >= viper.GetFloat64("voters.minamount") && txAmount2Send > 0 {
+		//only pay account with more than 0 balance
+		if element.EarnedAmount100 > 0 && txAmount2Send > 0 {
 			tx := core.CreateTransaction(element.Address, txAmount2Send, txDescription, p1, p2)
 			payload.Transactions = append(payload.Transactions, tx)
 		}
