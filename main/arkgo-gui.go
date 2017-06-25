@@ -107,12 +107,14 @@ func DisplayCalculatedVoteRatio() {
 	//Cost calculation
 	costAmount := sumEarned * viper.GetFloat64("costs.shareratio")
 	reserveAmount := sumEarned * viper.GetFloat64("reserve.shareratio")
+	personalAmount := sumEarned * viper.GetFloat64("personal.shareratio")
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
 	fmt.Println("")
 	fmt.Println("Available amount:", sumEarned)
 	fmt.Println("Amount to voters:", sumShareEarned, viper.GetFloat64("voters.shareratio"))
 	fmt.Println("Amount to costs:", costAmount, viper.GetFloat64("costs.shareratio"))
 	fmt.Println("Amount to reserve:", reserveAmount, viper.GetFloat64("reserve.shareratio"))
+	fmt.Println("Amount to personal:", personalAmount, viper.GetFloat64("personal.shareratio"))
 
 	fmt.Println("Ratio calc check:", sumRatio, "(should be = 1)")
 	fmt.Println("Ratio share check:", float64(sumShareEarned)/float64(sumEarned), "should be=", viper.GetFloat64("voters.shareratio"))
@@ -120,12 +122,21 @@ func DisplayCalculatedVoteRatio() {
 	pause()
 }
 
+func floatEquals(a, b float64) bool {
+	EPSILON := 0.000000000000001
+	if (a-b) < EPSILON && (b-a) < EPSILON {
+		return true
+	}
+	return false
+}
+
 func checkConfigSharingRatio() bool {
 	a1 := viper.GetFloat64("voters.shareratio")
 	a2 := viper.GetFloat64("costs.shareratio")
 	a3 := viper.GetFloat64("reserve.shareratio")
+	a4 := viper.GetFloat64("personal.shareratio")
 
-	if a1+a2+a3 != 1.0 {
+	if !floatEquals(a1+a2+a3+a4, 1.0) {
 		logger.Println("Wrong config. Check share ration percentages!")
 		return false
 	}
@@ -135,7 +146,14 @@ func checkConfigSharingRatio() bool {
 //SendPayments based on parameters in config.toml
 func SendPayments(silent bool) {
 	if !checkConfigSharingRatio() {
-		logger.Fatal("Unable to calculcate.")
+		clearScreen()
+		color.Set(color.FgHiRed)
+		fmt.Println("--------------------------------------------------------------------------------------------------------------")
+		fmt.Println("")
+		fmt.Println("Unable to calculate. Check share ratio configuration.")
+		pause()
+		logger.Println("Unable to calculcate. Check share ratio configuration.")
+		return
 	}
 
 	isLinked := false
@@ -197,11 +215,12 @@ func SendPayments(silent bool) {
 	//Cost & reserve fund calculation
 	costAmount := sumEarned * viper.GetFloat64("costs.shareratio")
 	reserveAmount := sumEarned * viper.GetFloat64("reserve.shareratio")
+	personalAmount := sumEarned * viper.GetFloat64("personal.shareratio")
 
 	//summary and conversion checks
-	if (costAmount + reserveAmount + sumShareEarned) != sumEarned {
+	if (costAmount + reserveAmount + personalAmount + sumShareEarned) != sumEarned {
 		color.Set(color.FgHiRed)
-		diff := sumEarned - (costAmount + reserveAmount + sumShareEarned)
+		diff := sumEarned - (costAmount + reserveAmount + personalAmount + sumShareEarned)
 		if diff > 0.00000001 {
 			log.Println("Calculation of ratios NOT OK - overall summary failing for diff=", diff)
 			logger.Println("Calculation of ratios NOT OK - overall summary failing diff=", diff)
@@ -216,6 +235,7 @@ func SendPayments(silent bool) {
 	txCosts := core.CreateTransaction(costAddress, costAmount2Send, viper.GetString("costs.txdescription"), p1, p2)
 	payload.Transactions = append(payload.Transactions, txCosts)
 
+	//Reserve
 	reserveAddress := viper.GetString("reserve.address")
 	if core.EnvironmentParams.Network.Type == core.DEVNET {
 		reserveAddress = viper.GetString("reserve.Daddress")
@@ -230,6 +250,22 @@ func SendPayments(silent bool) {
 
 	txReserve := core.CreateTransaction(reserveAddress, reserveAmount2Send, viper.GetString("reserve.txdescription"), p1, p2)
 	payload.Transactions = append(payload.Transactions, txReserve)
+
+	//Personal
+	personalAddress := viper.GetString("personal.address")
+	if core.EnvironmentParams.Network.Type == core.DEVNET {
+		personalAddress = viper.GetString("personal.Daddress")
+	}
+
+	personalAmount2Send := int64(personalAmount*core.SATOSHI) - core.EnvironmentParams.Fees.Send
+
+	//if decuting fees from voters is false - we take them into account here....
+	if !viper.GetBool("voters.deductTxFees") {
+		personalAmount2Send -= int64(len(votersEarnings)) * core.EnvironmentParams.Fees.Send
+	}
+
+	txpersonal := core.CreateTransaction(personalAddress, personalAmount2Send, viper.GetString("personal.txdescription"), p1, p2)
+	payload.Transactions = append(payload.Transactions, txpersonal)
 
 	color.Set(color.FgHiGreen)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
@@ -645,6 +681,11 @@ func loadConfig() {
 	viper.SetDefault("reserve.shareRatio", 0.0)
 	viper.SetDefault("reserve.txdescription", "reserve tx by ark-go")
 	viper.SetDefault("reserve.Daddress", "")
+
+	viper.SetDefault("personal.address", "")
+	viper.SetDefault("personal.shareRatio", 0.0)
+	viper.SetDefault("personal.txdescription", "personal tx by ark-go")
+	viper.SetDefault("personal.Daddress", "")
 
 	viper.SetDefault("client.network", "DEVNET")
 }
