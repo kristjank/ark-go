@@ -259,11 +259,6 @@ func SendPayments(silent bool) {
 
 	personalAmount2Send := int64(personalAmount*core.SATOSHI) - core.EnvironmentParams.Fees.Send
 
-	//if decuting fees from voters is false - we take them into account here....
-	if !viper.GetBool("voters.deductTxFees") {
-		personalAmount2Send -= int64(len(votersEarnings)) * core.EnvironmentParams.Fees.Send
-	}
-
 	txpersonal := core.CreateTransaction(personalAddress, personalAmount2Send, viper.GetString("personal.txdescription"), p1, p2)
 	payload.Transactions = append(payload.Transactions, txpersonal)
 
