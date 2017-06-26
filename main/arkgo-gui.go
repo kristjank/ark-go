@@ -107,12 +107,14 @@ func DisplayCalculatedVoteRatio() {
 	//Cost calculation
 	costAmount := sumEarned * viper.GetFloat64("costs.shareratio")
 	reserveAmount := sumEarned * viper.GetFloat64("reserve.shareratio")
+	personalAmount := sumEarned * viper.GetFloat64("personal.shareratio")
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
 	fmt.Println("")
 	fmt.Println("Available amount:", sumEarned)
 	fmt.Println("Amount to voters:", sumShareEarned, viper.GetFloat64("voters.shareratio"))
 	fmt.Println("Amount to costs:", costAmount, viper.GetFloat64("costs.shareratio"))
 	fmt.Println("Amount to reserve:", reserveAmount, viper.GetFloat64("reserve.shareratio"))
+	fmt.Println("Amount to personal:", personalAmount, viper.GetFloat64("personal.shareratio"))
 
 	fmt.Println("Ratio calc check:", sumRatio, "(should be = 1)")
 	fmt.Println("Ratio share check:", float64(sumShareEarned)/float64(sumEarned), "should be=", viper.GetFloat64("voters.shareratio"))
@@ -120,12 +122,21 @@ func DisplayCalculatedVoteRatio() {
 	pause()
 }
 
+func floatEquals(a, b float64) bool {
+	EPSILON := 0.000000000000001
+	if (a-b) < EPSILON && (b-a) < EPSILON {
+		return true
+	}
+	return false
+}
+
 func checkConfigSharingRatio() bool {
 	a1 := viper.GetFloat64("voters.shareratio")
 	a2 := viper.GetFloat64("costs.shareratio")
 	a3 := viper.GetFloat64("reserve.shareratio")
+	a4 := viper.GetFloat64("personal.shareratio")
 
-	if a1+a2+a3 != 1.0 {
+	if !floatEquals(a1+a2+a3+a4, 1.0) {
 		logger.Println("Wrong config. Check share ration percentages!")
 		return false
 	}
@@ -135,7 +146,14 @@ func checkConfigSharingRatio() bool {
 //SendPayments based on parameters in config.toml
 func SendPayments(silent bool) {
 	if !checkConfigSharingRatio() {
-		logger.Fatal("Unable to calculcate.")
+		clearScreen()
+		color.Set(color.FgHiRed)
+		fmt.Println("--------------------------------------------------------------------------------------------------------------")
+		fmt.Println("")
+		fmt.Println("Unable to calculate. Check share ratio configuration.")
+		pause()
+		logger.Println("Unable to calculcate. Check share ratio configuration.")
+		return
 	}
 
 	isLinked := false
@@ -197,11 +215,12 @@ func SendPayments(silent bool) {
 	//Cost & reserve fund calculation
 	costAmount := sumEarned * viper.GetFloat64("costs.shareratio")
 	reserveAmount := sumEarned * viper.GetFloat64("reserve.shareratio")
+	personalAmount := sumEarned * viper.GetFloat64("personal.shareratio")
 
 	//summary and conversion checks
-	if (costAmount + reserveAmount + sumShareEarned) != sumEarned {
+	if (costAmount + reserveAmount + personalAmount + sumShareEarned) != sumEarned {
 		color.Set(color.FgHiRed)
-		diff := sumEarned - (costAmount + reserveAmount + sumShareEarned)
+		diff := sumEarned - (costAmount + reserveAmount + personalAmount + sumShareEarned)
 		if diff > 0.00000001 {
 			log.Println("Calculation of ratios NOT OK - overall summary failing for diff=", diff)
 			logger.Println("Calculation of ratios NOT OK - overall summary failing diff=", diff)
@@ -216,6 +235,7 @@ func SendPayments(silent bool) {
 	txCosts := core.CreateTransaction(costAddress, costAmount2Send, viper.GetString("costs.txdescription"), p1, p2)
 	payload.Transactions = append(payload.Transactions, txCosts)
 
+	//Reserve
 	reserveAddress := viper.GetString("reserve.address")
 	if core.EnvironmentParams.Network.Type == core.DEVNET {
 		reserveAddress = viper.GetString("reserve.Daddress")
@@ -230,6 +250,17 @@ func SendPayments(silent bool) {
 
 	txReserve := core.CreateTransaction(reserveAddress, reserveAmount2Send, viper.GetString("reserve.txdescription"), p1, p2)
 	payload.Transactions = append(payload.Transactions, txReserve)
+
+	//Personal
+	personalAddress := viper.GetString("personal.address")
+	if core.EnvironmentParams.Network.Type == core.DEVNET {
+		personalAddress = viper.GetString("personal.Daddress")
+	}
+
+	personalAmount2Send := int64(personalAmount*core.SATOSHI) - core.EnvironmentParams.Fees.Send
+
+	txpersonal := core.CreateTransaction(personalAddress, personalAmount2Send, viper.GetString("personal.txdescription"), p1, p2)
+	payload.Transactions = append(payload.Transactions, txpersonal)
 
 	color.Set(color.FgHiGreen)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
@@ -290,6 +321,135 @@ func SendPayments(silent bool) {
 			reader.ReadString('\n')
 			pause()
 		}
+	}
+}
+
+//SendBonus Send fixed amount to all voters
+func SendBonus() {
+
+	//Bonus to send
+	fmt.Println("\nEnter amount to send to each voter")
+	fmt.Print("-->")
+	bonusInput, _ := reader.ReadString('\n')
+	re := regexp.MustCompile("\r?\n")
+	bonusInput = re.ReplaceAllString(bonusInput, "")
+
+	bonus, err := strconv.ParseFloat(bonusInput, 64)
+	if err != nil {
+		panic(err)
+	}
+
+	//Bonus description
+	fmt.Println("\nEnter transaction description")
+	fmt.Print("-->")
+	txDescription, _ := reader.ReadString('\n')
+	res := regexp.MustCompile("\r?\n")
+	txDescription = res.ReplaceAllString(txDescription, "")
+
+	isLinked := false
+	pubKey := viper.GetString("delegate.pubkey")
+	if core.EnvironmentParams.Network.Type == core.DEVNET {
+		pubKey = viper.GetString("delegate.Dpubkey")
+	}
+
+	var p1, p2 string
+	var key1 *arkcoin.PrivateKey
+	if _, err := os.Stat("assembly.ark"); err == nil {
+		logger.Println("Linked accound data found. Using saved account information.")
+
+		p1, p2 = read()
+
+		key1 = arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ActiveCoinConfig)
+		pubKey = hex.EncodeToString(key1.PublicKey.Serialize())
+		isLinked = true
+	} else {
+		p1, p2 = readAccountData()
+		key1 = arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ActiveCoinConfig)
+	}
+
+	params := core.DelegateQueryParams{PublicKey: pubKey}
+	var payload core.TransactionPayload
+
+	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"))
+
+	sumEarned := 0.0
+	sumRatio := 0.0
+	sumShareEarned := 0.0
+
+	clearScreen()
+
+	for _, element := range votersEarnings {
+		sumEarned += element.EarnedAmount100
+		sumShareEarned += element.EarnedAmountXX
+		sumRatio += element.VoteWeightShare
+
+		//Bonus amount
+		txAmount2Send := int64(bonus * core.SATOSHI)
+
+		//decuting fees if setup
+		if viper.GetBool("voters.deductTxFees") {
+			txAmount2Send -= core.EnvironmentParams.Fees.Send
+			logger.Println("Voters Fee deduction enabled")
+		}
+
+		//Bonus - only pay account with more than 0 balance
+		if element.EarnedAmount100 > 0 && txAmount2Send > 0 {
+			tx := core.CreateTransaction(element.Address, txAmount2Send, txDescription, p1, p2)
+			payload.Transactions = append(payload.Transactions, tx)
+		}
+	}
+
+	color.Set(color.FgHiGreen)
+	fmt.Println("--------------------------------------------------------------------------------------------------------------")
+	fmt.Println("Transactions to be sent from:")
+	color.Set(color.FgHiYellow)
+	fmt.Println("\tDelegate address:", key1.PublicKey.Address(), "linked:", isLinked)
+	color.Set(color.FgHiYellow)
+	fmt.Print("\tFidelity:")
+	color.HiRed("%t", viper.GetBool("voters.fidelity"))
+	color.Set(color.FgHiYellow)
+	fmt.Print("\tFee deduction:")
+	color.HiRed("%t", viper.GetBool("voters.deductTxFees"))
+	color.Set(color.FgHiYellow)
+	fmt.Print("\tLinked:")
+	color.HiRed("%t\n", isLinked)
+	color.Set(color.FgHiGreen)
+
+	color.Set(color.FgHiGreen)
+	fmt.Println("--------------------------------------------------------------------------------------------------------------")
+	color.Set(color.FgHiCyan)
+	for ix, el := range payload.Transactions {
+		s := fmt.Sprintf("%3d.|%s|%15d| %-40s|", ix+1, el.RecipientID, el.Amount, el.VendorField)
+		fmt.Println(s)
+		logger.Println(s)
+	}
+
+	color.Set(color.FgHiYellow)
+	fmt.Println("")
+	fmt.Println("--------------------------------------------------------------------------------------------------------------")
+
+	var c byte
+	fmt.Print("Send transactions and complete bonus payments [Y/N]: ")
+	c, _ = reader.ReadByte()
+
+	if c == []byte("Y")[0] || c == []byte("y")[0] {
+		fmt.Println("Sending bonus to voters accounts.............")
+
+		res, httpresponse, err := arkclient.PostTransaction(payload)
+		if res.Success {
+			color.Set(color.FgHiGreen)
+			logger.Println("Transactions sent with Success,", httpresponse.Status, res.TransactionIDs)
+			log.Println("Transactions sent with Success,", httpresponse.Status)
+			log.Println("Audit log of sent transactions is in file paymentLog.csv!")
+			log2csv(payload, res.TransactionIDs, votersEarnings)
+		} else {
+			color.Set(color.FgHiRed)
+			logger.Println(res.Message, res.Error, httpresponse.Status, err.Error())
+			fmt.Println()
+			fmt.Println("Failed", res.Error)
+		}
+		reader.ReadString('\n')
+		pause()
 	}
 }
 
@@ -517,6 +677,11 @@ func loadConfig() {
 	viper.SetDefault("reserve.txdescription", "reserve tx by ark-go")
 	viper.SetDefault("reserve.Daddress", "")
 
+	viper.SetDefault("personal.address", "")
+	viper.SetDefault("personal.shareRatio", 0.0)
+	viper.SetDefault("personal.txdescription", "personal tx by ark-go")
+	viper.SetDefault("personal.Daddress", "")
+
 	viper.SetDefault("client.network", "DEVNET")
 }
 
@@ -568,6 +733,7 @@ func printMenu() {
 	fmt.Println("\t2-Send reward payments")
 	fmt.Println("\t3-Switch network")
 	fmt.Println("\t4-Link account")
+	fmt.Println("\t5-Send bonus payments")
 	fmt.Println("\t0-Exit")
 	fmt.Println("")
 	fmt.Print("\tSelect option [1-9]:")
@@ -643,6 +809,11 @@ func main() {
 			logger.Println("Account succesfully linked")
 			fmt.Println("Account succesfully linked")
 			pause()
+			color.Unset()
+		case 5:
+			clearScreen()
+			color.Set(color.FgHiGreen)
+			SendBonus()
 			color.Unset()
 		}
 	}
