@@ -228,12 +228,19 @@ func SendPayments(silent bool) {
 	}
 
 	costAmount2Send := int64(costAmount*core.SATOSHI) - core.EnvironmentParams.Fees.Send
+	if costAmount2Send < 0.0 {
+		costAmount2Send = 0.0
+	}
+
 	costAddress := viper.GetString("costs.address")
 	if core.EnvironmentParams.Network.Type == core.DEVNET {
 		costAddress = viper.GetString("costs.Daddress")
 	}
-	txCosts := core.CreateTransaction(costAddress, costAmount2Send, viper.GetString("costs.txdescription"), p1, p2)
-	payload.Transactions = append(payload.Transactions, txCosts)
+
+	if costAmount2Send > 0.0 {
+		txCosts := core.CreateTransaction(costAddress, costAmount2Send, viper.GetString("costs.txdescription"), p1, p2)
+		payload.Transactions = append(payload.Transactions, txCosts)
+	}
 
 	//Reserve
 	reserveAddress := viper.GetString("reserve.address")
@@ -242,14 +249,19 @@ func SendPayments(silent bool) {
 	}
 
 	reserveAmount2Send := int64(reserveAmount*core.SATOSHI) - core.EnvironmentParams.Fees.Send
+	if reserveAmount2Send < 0.0 {
+		reserveAmount2Send = 0.0
+	}
 
 	//if decuting fees from voters is false - we take them into account here....
 	if !viper.GetBool("voters.deductTxFees") {
 		reserveAmount2Send -= int64(len(votersEarnings)) * core.EnvironmentParams.Fees.Send
 	}
 
-	txReserve := core.CreateTransaction(reserveAddress, reserveAmount2Send, viper.GetString("reserve.txdescription"), p1, p2)
-	payload.Transactions = append(payload.Transactions, txReserve)
+	if reserveAmount2Send > 0.0 {
+		txReserve := core.CreateTransaction(reserveAddress, reserveAmount2Send, viper.GetString("reserve.txdescription"), p1, p2)
+		payload.Transactions = append(payload.Transactions, txReserve)
+	}
 
 	//Personal
 	personalAddress := viper.GetString("personal.address")
@@ -258,9 +270,14 @@ func SendPayments(silent bool) {
 	}
 
 	personalAmount2Send := int64(personalAmount*core.SATOSHI) - core.EnvironmentParams.Fees.Send
+	if personalAmount2Send < 0.0 {
+		personalAmount2Send = 0.0
+	}
 
-	txpersonal := core.CreateTransaction(personalAddress, personalAmount2Send, viper.GetString("personal.txdescription"), p1, p2)
-	payload.Transactions = append(payload.Transactions, txpersonal)
+	if personalAmount2Send > 0.0 {
+		txpersonal := core.CreateTransaction(personalAddress, personalAmount2Send, viper.GetString("personal.txdescription"), p1, p2)
+		payload.Transactions = append(payload.Transactions, txpersonal)
+	}
 
 	color.Set(color.FgHiGreen)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
