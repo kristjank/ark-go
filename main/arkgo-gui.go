@@ -185,6 +185,7 @@ func SendPayments(silent bool) {
 	sumEarned := 0.0
 	sumRatio := 0.0
 	sumShareEarned := 0.0
+	var feeAmount int64
 
 	clearScreen()
 
@@ -212,6 +213,11 @@ func SendPayments(silent bool) {
 		}
 	}
 
+	//if decuting fees from voters is false - we take them into account here....
+	if !viper.GetBool("voters.deductTxFees") {
+		feeAmount = int64(len(payload.Transactions)) * core.EnvironmentParams.Fees.Send
+	}
+
 	//Cost & reserve fund calculation
 	costAmount := sumEarned * viper.GetFloat64("costs.shareratio")
 	reserveAmount := sumEarned * viper.GetFloat64("reserve.shareratio")
@@ -227,54 +233,36 @@ func SendPayments(silent bool) {
 		}
 	}
 
+	//cost amount calculation
 	costAmount2Send := int64(costAmount*core.SATOSHI) - core.EnvironmentParams.Fees.Send
-	if costAmount2Send < 0.0 {
-		costAmount2Send = 0.0
-	}
+	if costAmount2Send > 0 {
+		costAddress := viper.GetString("costs.address")
+		if core.EnvironmentParams.Network.Type == core.DEVNET {
+			costAddress = viper.GetString("costs.Daddress")
+		}
 
-	costAddress := viper.GetString("costs.address")
-	if core.EnvironmentParams.Network.Type == core.DEVNET {
-		costAddress = viper.GetString("costs.Daddress")
-	}
-
-	if costAmount2Send > 0.0 {
 		txCosts := core.CreateTransaction(costAddress, costAmount2Send, viper.GetString("costs.txdescription"), p1, p2)
 		payload.Transactions = append(payload.Transactions, txCosts)
 	}
 
-	//Reserve
-	reserveAddress := viper.GetString("reserve.address")
-	if core.EnvironmentParams.Network.Type == core.DEVNET {
-		reserveAddress = viper.GetString("reserve.Daddress")
-	}
-
+	//Reserve amount
 	reserveAmount2Send := int64(reserveAmount*core.SATOSHI) - core.EnvironmentParams.Fees.Send
-	if reserveAmount2Send < 0.0 {
-		reserveAmount2Send = 0.0
-	}
-
-	//if decuting fees from voters is false - we take them into account here....
-	if !viper.GetBool("voters.deductTxFees") {
-		reserveAmount2Send -= int64(len(votersEarnings)) * core.EnvironmentParams.Fees.Send
-	}
-
-	if reserveAmount2Send > 0.0 {
+	if reserveAmount2Send > 0 {
+		reserveAddress := viper.GetString("reserve.address")
+		if core.EnvironmentParams.Network.Type == core.DEVNET {
+			reserveAddress = viper.GetString("reserve.Daddress")
+		}
 		txReserve := core.CreateTransaction(reserveAddress, reserveAmount2Send, viper.GetString("reserve.txdescription"), p1, p2)
 		payload.Transactions = append(payload.Transactions, txReserve)
 	}
 
 	//Personal
-	personalAddress := viper.GetString("personal.address")
-	if core.EnvironmentParams.Network.Type == core.DEVNET {
-		personalAddress = viper.GetString("personal.Daddress")
-	}
-
 	personalAmount2Send := int64(personalAmount*core.SATOSHI) - core.EnvironmentParams.Fees.Send
-	if personalAmount2Send < 0.0 {
-		personalAmount2Send = 0.0
-	}
-
-	if personalAmount2Send > 0.0 {
+	if personalAmount2Send > 0 {
+		personalAddress := viper.GetString("personal.address")
+		if core.EnvironmentParams.Network.Type == core.DEVNET {
+			personalAddress = viper.GetString("personal.Daddress")
+		}
 		txpersonal := core.CreateTransaction(personalAddress, personalAmount2Send, viper.GetString("personal.txdescription"), p1, p2)
 		payload.Transactions = append(payload.Transactions, txpersonal)
 	}
