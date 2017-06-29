@@ -1,4 +1,4 @@
-package main
+package arkgopool
 
 import (
 	"bufio"
@@ -185,7 +185,7 @@ func SendPayments(silent bool) {
 	sumEarned := 0.0
 	sumRatio := 0.0
 	sumShareEarned := 0.0
-	var feeAmount int64
+	feeAmount := 0
 
 	clearScreen()
 
@@ -214,8 +214,10 @@ func SendPayments(silent bool) {
 	}
 
 	//if decuting fees from voters is false - we take them into account here....
+	//must be at this spot - as it counts the number of voters to get the rewards - befor other
+	//transactions are added...
 	if !viper.GetBool("voters.deductTxFees") {
-		feeAmount = int64(len(payload.Transactions)) * core.EnvironmentParams.Fees.Send
+		feeAmount = int(len(payload.Transactions)) * int(core.EnvironmentParams.Fees.Send)
 	}
 
 	//Cost & reserve fund calculation
@@ -277,7 +279,7 @@ func SendPayments(silent bool) {
 	color.HiRed("%t", viper.GetBool("voters.fidelity"))
 	color.Set(color.FgHiYellow)
 	fmt.Print("\tFee deduction:")
-	color.HiRed("%t", viper.GetBool("voters.deductTxFees"))
+	color.HiRed("%t", viper.GetBool("voters.deductTxFees"), "Fee Amount:", feeAmount)
 	color.Set(color.FgHiYellow)
 	fmt.Print("\tLinked:")
 	color.HiRed("%t\n", isLinked)

@@ -1,0 +1,49 @@
+# Adapt and copy this file to settings/config.toml for productive configuration
+[delegate]
+address = "ASJBHz4JfWVUGDyN61hMMnW1Y4ZCTBHL1K"
+pubkey = "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"
+
+#DEVNET address settings (for testing on devnetwork)
+Daddress = "DQUjMT6fhJWbwhaYL5pPdX9v5qPiRcAzRb "
+Dpubkey = "02bcfa0951a92e7876db1fb71996a853b57f996972ed059a950d910f7d541706c9"
+
+[voters]
+shareRatio = 0.70 #percent goes to voters
+txdescription = "delegate: voters share. Thank you! |tx by ark-go"
+fidelity = true
+fidelityLimit = 24  #fidelity limit in hours
+minamount = 0.0 #minimum amount limit for payout.
+deductTxFees = true #if true tx fees are deducted from recepients
+
+[costs]
+address = "ANqeL7CP2som7q9NFbRuaUc5WUnwYkSbFY" #costs
+shareRatio = 0.15
+txdescription = "delegate costs. |tx by ark-go"
+
+#DEVNET address settings (for testing on devnetwork)
+Daddress = "DMEvkeU7pNnH5eVDz63GVK6A4CThCmdcpk" #costs
+
+[reserve]
+address = "AKB7z6QLpCctVsj62nA7pBHk9zF6ocxZdJ" #reserve
+shareRatio = 0.15
+txdescription = "delegate reserve. |tx by ark-go"
+
+#DEVNET address settings (for testing on devnetwork)
+Daddress = "DQPr5WHkhau3Ka2RKb7egm7isr5wbNHbF1"
+
+[personal]
+address = "AKB7z6QLpCctVsj62nA7pBHk9zF6ocxZdJ" #reserve
+shareRatio = 0.0
+txdescription = "delegate personal. |tx by ark-go"
+
+#DEVNET address settings (for testing on devnetwork)
+Daddress = "DQPr5WHkhau3Ka2RKb7egm7isr5wbNHbF1"
+
+[client]
+network = "DEVNET" #which network is active when application starts
+
+#ARK-POOL SERVER SETTINGS
+[server]
+port = 54000
+address = "0.0.0.0"
+version = "0.1.0"

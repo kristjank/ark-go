@@ -1,4 +1,4 @@
-package main
+package arkgopool
 
 import (
 	"crypto/rand"
