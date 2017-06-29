@@ -64,7 +64,7 @@ func DisplayCalculatedVoteRatio() {
 
 	params := core.DelegateQueryParams{PublicKey: pubKey}
 	deleResp, _, _ := arkclient.GetDelegate(params)
-	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"))
+	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"))
 	shareRatioStr := strconv.FormatFloat(viper.GetFloat64("voters.shareratio")*100, 'f', -1, 64) + "%"
 
 	sumEarned := 0.0
@@ -180,7 +180,7 @@ func SendPayments(silent bool) {
 	params := core.DelegateQueryParams{PublicKey: pubKey}
 	var payload core.TransactionPayload
 
-	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"))
+	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"))
 
 	sumEarned := 0.0
 	sumRatio := 0.0
@@ -377,7 +377,7 @@ func SendBonus() {
 	params := core.DelegateQueryParams{PublicKey: pubKey}
 	var payload core.TransactionPayload
 
-	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"))
+	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"))
 
 	sumEarned := 0.0
 	sumRatio := 0.0
@@ -762,6 +762,10 @@ func main() {
 
 	// Load configration and defaults
 	loadConfig()
+
+	b := viper.GetString("voters.blocklist")
+
+	logger.Println(b)
 
 	//switch to preset network
 	if viper.GetString("client.network") == "DEVNET" {
