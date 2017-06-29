@@ -37,5 +37,5 @@ network = "DEVNET" #which network is active when application starts
 #ARK-POOL SERVER SETTINGS
 [server]
 port = 54000
-address = "0.0.0.0"
+address = "0.0.0.0" #put 127.0.0.1 to listen only on localhost...
 version = "0.1.0"

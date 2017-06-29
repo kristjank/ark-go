@@ -1,4 +1,4 @@
-package arkgopool
+package main
 
 import (
 	"bufio"

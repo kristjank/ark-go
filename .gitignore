@@ -31,3 +31,4 @@ main/arkgo-gui
 main/arkgo-gui.log
 main/main.zip
 main/settings/config.toml
+cmd/arkgopool/debug
