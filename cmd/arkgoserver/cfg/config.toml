@@ -14,6 +14,7 @@ fidelity = true
 fidelityLimit = 24  #fidelity limit in hours
 minamount = 0.0 #minimum amount limit for payout.
 deductTxFees = true #if true tx fees are deducted from recepients
+blocklist = "" #comma separated address list of addresses of voters to block
 
 [costs]
 address = "ANqeL7CP2som7q9NFbRuaUc5WUnwYkSbFY" #costs
@@ -37,5 +38,5 @@ network = "DEVNET" #which network is active when application starts
 #ARK-POOL SERVER SETTINGS
 [server]
 port = 54000
-address = "0.0.0.0"
+address = "0.0.0.0" #put 127.0.0.1 to listen only on localhost...
 version = "0.1.0"

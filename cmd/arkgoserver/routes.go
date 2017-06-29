@@ -1,4 +1,4 @@
-package arkgoserver
+package main
 
 func initializeRoutes() {
 	logger.Println("Initializing routes")
@@ -6,8 +6,12 @@ func initializeRoutes() {
 	// Group peer related routes together
 	peerRoutes := router.Group("/voters")
 	{
-		// Handle the GET requests at /peer/list
-		peerRoutes.GET("/list/", GetVoters)
+		peerRoutes.GET("/rewards/", GetVoters)
+		peerRoutes.GET("/blocked/", GetBlocked)
 	}
-
+	deleRoutes := router.Group("/delegate")
+	{
+		deleRoutes.GET("/", GetDelegate)
+		deleRoutes.GET("/config", GetDelegateSharingConfig)
+	}
 }
