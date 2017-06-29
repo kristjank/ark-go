@@ -3,6 +3,7 @@ package core
 import (
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 //DelegateResponse data - received from api-call.
@@ -134,7 +135,15 @@ func (s *ArkClient) GetDelegateVoteWeight(params DelegateQueryParams) (int, *htt
 	return balance, resp, err
 }
 
-func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio float64) []DelegateDataProfit {
+func isBlockedAddress(list string, address string) bool {
+	//blocklist checling and excluding
+	if len(list) > 0 {
+		return strings.Contains(strings.ToLower(list), strings.ToLower(address))
+	}
+	return false
+}
+
+func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio float64, blocklist string) []DelegateDataProfit {
 	delegateRes, _, _ := s.GetDelegate(params)
 	voters, _, _ := s.GetDelegateVoters(params)
 	accountRes, _, _ := s.GetAccount(AccountQueryParams{Address: delegateRes.SingleDelegate.Address})
@@ -148,12 +157,21 @@ func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio
 
 	//computing summ of all votes
 	for _, element := range voters.Accounts {
+		//skipping blocked ones
+		if isBlockedAddress(blocklist, element.Address) {
+			continue
+		}
 		intBalance, _ := strconv.Atoi(element.Balance)
 		delelgateVoteWeight += intBalance
 	}
 
 	//calculating
 	for _, element := range voters.Accounts {
+		//skipping blocked ones
+		if isBlockedAddress(blocklist, element.Address) {
+			continue
+		}
+
 		deleProfit := DelegateDataProfit{
 			Address: element.Address,
 		}
