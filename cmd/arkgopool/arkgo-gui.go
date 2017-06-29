@@ -1,4 +1,4 @@
-package main
+package arkgopool
 
 import (
 	"bufio"
@@ -185,6 +185,7 @@ func SendPayments(silent bool) {
 	sumEarned := 0.0
 	sumRatio := 0.0
 	sumShareEarned := 0.0
+	feeAmount := 0
 
 	clearScreen()
 
@@ -212,6 +213,13 @@ func SendPayments(silent bool) {
 		}
 	}
 
+	//if decuting fees from voters is false - we take them into account here....
+	//must be at this spot - as it counts the number of voters to get the rewards - befor other
+	//transactions are added...
+	if !viper.GetBool("voters.deductTxFees") {
+		feeAmount = int(len(payload.Transactions)) * int(core.EnvironmentParams.Fees.Send)
+	}
+
 	//Cost & reserve fund calculation
 	costAmount := sumEarned * viper.GetFloat64("costs.shareratio")
 	reserveAmount := sumEarned * viper.GetFloat64("reserve.shareratio")
@@ -227,40 +235,39 @@ func SendPayments(silent bool) {
 		}
 	}
 
+	//cost amount calculation
 	costAmount2Send := int64(costAmount*core.SATOSHI) - core.EnvironmentParams.Fees.Send
-	costAddress := viper.GetString("costs.address")
-	if core.EnvironmentParams.Network.Type == core.DEVNET {
-		costAddress = viper.GetString("costs.Daddress")
-	}
-	txCosts := core.CreateTransaction(costAddress, costAmount2Send, viper.GetString("costs.txdescription"), p1, p2)
-	payload.Transactions = append(payload.Transactions, txCosts)
+	if costAmount2Send > 0 {
+		costAddress := viper.GetString("costs.address")
+		if core.EnvironmentParams.Network.Type == core.DEVNET {
+			costAddress = viper.GetString("costs.Daddress")
+		}
 
-	//Reserve
-	reserveAddress := viper.GetString("reserve.address")
-	if core.EnvironmentParams.Network.Type == core.DEVNET {
-		reserveAddress = viper.GetString("reserve.Daddress")
+		txCosts := core.CreateTransaction(costAddress, costAmount2Send, viper.GetString("costs.txdescription"), p1, p2)
+		payload.Transactions = append(payload.Transactions, txCosts)
 	}
 
+	//Reserve amount
 	reserveAmount2Send := int64(reserveAmount*core.SATOSHI) - core.EnvironmentParams.Fees.Send
-
-	//if decuting fees from voters is false - we take them into account here....
-	if !viper.GetBool("voters.deductTxFees") {
-		reserveAmount2Send -= int64(len(votersEarnings)) * core.EnvironmentParams.Fees.Send
+	if reserveAmount2Send > 0 {
+		reserveAddress := viper.GetString("reserve.address")
+		if core.EnvironmentParams.Network.Type == core.DEVNET {
+			reserveAddress = viper.GetString("reserve.Daddress")
+		}
+		txReserve := core.CreateTransaction(reserveAddress, reserveAmount2Send, viper.GetString("reserve.txdescription"), p1, p2)
+		payload.Transactions = append(payload.Transactions, txReserve)
 	}
-
-	txReserve := core.CreateTransaction(reserveAddress, reserveAmount2Send, viper.GetString("reserve.txdescription"), p1, p2)
-	payload.Transactions = append(payload.Transactions, txReserve)
 
 	//Personal
-	personalAddress := viper.GetString("personal.address")
-	if core.EnvironmentParams.Network.Type == core.DEVNET {
-		personalAddress = viper.GetString("personal.Daddress")
-	}
-
 	personalAmount2Send := int64(personalAmount*core.SATOSHI) - core.EnvironmentParams.Fees.Send
-
-	txpersonal := core.CreateTransaction(personalAddress, personalAmount2Send, viper.GetString("personal.txdescription"), p1, p2)
-	payload.Transactions = append(payload.Transactions, txpersonal)
+	if personalAmount2Send > 0 {
+		personalAddress := viper.GetString("personal.address")
+		if core.EnvironmentParams.Network.Type == core.DEVNET {
+			personalAddress = viper.GetString("personal.Daddress")
+		}
+		txpersonal := core.CreateTransaction(personalAddress, personalAmount2Send, viper.GetString("personal.txdescription"), p1, p2)
+		payload.Transactions = append(payload.Transactions, txpersonal)
+	}
 
 	color.Set(color.FgHiGreen)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
@@ -272,7 +279,7 @@ func SendPayments(silent bool) {
 	color.HiRed("%t", viper.GetBool("voters.fidelity"))
 	color.Set(color.FgHiYellow)
 	fmt.Print("\tFee deduction:")
-	color.HiRed("%t", viper.GetBool("voters.deductTxFees"))
+	color.HiRed("%t", viper.GetBool("voters.deductTxFees"), "Fee Amount:", feeAmount)
 	color.Set(color.FgHiYellow)
 	fmt.Print("\tLinked:")
 	color.HiRed("%t\n", isLinked)
