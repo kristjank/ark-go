@@ -6,7 +6,7 @@ GoLang is an open source programming language developed by Google and designed f
 Ark-GO is the ARK Ecosystem library client implemented in GOLANG programming language. It implements all most relevant ARK functionalities to help you  **develop efficient, fast and scalable GOLANG applications built upon ARK platform**. It provides also low level access to ARK so you can easily build your application on top of it.
 
 ## A library demo app: ARKGO-GUI
-A demo client app was developed to test the goark library package dependencies. More about the demo cui client: https://github.com/kristjank/ark-go/tree/master/main. It targets delegate and basic account functionalites, plus silent mode - to be able to run automated reward payments.
+A demo client app was developed to test the goark library package dependencies. More about the demo cui client: https://github.com/kristjank/ark-go/tree/master/cmd/arkgopool. It targets delegate and basic account functionalites, plus silent mode - to be able to run automated reward payments.
 
 See the demo console app shell recording here:
 https://asciinema.org/a/5yndxl794ncfpmjoqftuaiodm?t=8.
