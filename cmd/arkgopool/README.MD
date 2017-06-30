@@ -31,10 +31,25 @@ $> cd $GOPATH/src/github.com/kristjank/ark-go/cmd/arkgopool
 $> go build
 ```
 
-## How to run it?
+## How to run it in windows?
 ```
 $> cd $GOPATH/src/github.com/kristjank/ark-go/cmd/arkgopool
 $> ./arkgo-gui.exe
+```
+
+## How to run it in linux?
+```
+$> cd $GOPATH/src/github.com/kristjank/ark-go/cmd/arkgopool
+$> ./arkgopool
+```
+
+## How to run it silent (it will automatically share according to config wihtout asking)?
+
+Do not run it like that before you tested properly!
+
+```
+$> cd $GOPATH/src/github.com/kristjank/ark-go/cmd/arkgopool
+$> ./arkgopool -silent=true
 ```
 
 Thank you for checking in.
