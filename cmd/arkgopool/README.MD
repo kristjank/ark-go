@@ -19,10 +19,22 @@ ArkGo-Gui functionalities include:
 
 Application was developed to help testing of the core library and to provide a tool for delegates to process automated payments/ or just manual payments.
 
-## How to run ARKGO-GUI?
+## How to run ARKGO-GUI from source?
 ```
-$> cd $GOPATH/src/github.com/kristjank/ark-go/main
+$> cd $GOPATH/src/github.com/kristjank/ark-go/cmd/arkgopool
 $> go run arkgo-gui.go
+```
+
+## How to build it?
+```
+$> cd $GOPATH/src/github.com/kristjank/ark-go/cmd/arkgopool
+$> go build
+```
+
+## How to run it?
+```
+$> cd $GOPATH/src/github.com/kristjank/ark-go/cmd/arkgopool
+$> ./arkgo-gui.exe
 ```
 
 Thank you for checking in.
