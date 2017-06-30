@@ -75,7 +75,7 @@ Please, use github issues for questions or feedback. For confidential requests o
 Chris (kristjan.kosic@gmail.com), with a lot of help from FX Thoorens fx@ark.io and ARK Community
 
 ## Support this project
-![alt text](/ark-go/raw/master/ark-logo-60x60.png)
+![Ark Logo](/raw/ark-logo-60x60.png)
 Ark address:``AUgTuukcKeE4XFdzaK6rEHMD5FLmVBSmHk``
 
 
