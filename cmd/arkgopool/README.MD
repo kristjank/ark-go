@@ -54,6 +54,6 @@ $> ./arkgopool -silent=true
 
 Thank you for checking in.
 
-For more information about ark-go see the core package. That is where it all happens: [/ark-go/tree/master/core](/ark-go/tree/master/core)
+For more information about ark-go see the core package. That is where it all happens: https://github.com/kristjank/ark-go/tree/master/core
 
 --chris
