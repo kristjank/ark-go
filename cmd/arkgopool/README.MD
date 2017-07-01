@@ -128,6 +128,7 @@ Create and edit config.toml to define your settings.
 $> cd arkgopool/settings
 $> cp sample.config.toml config.toml
 $> nano config.toml
+```
 
 Save and now your payments will done automatic every day. Enjoy!
 
