@@ -35,3 +35,5 @@ cmd/arkgopool/arkgo-gui
 cmd/arkgopool/arkgo-gui.log
 cmd/arkgopool/settings/config.toml
 cmd/arkgoserver/cfg/config.toml
+cmd/arkgopool/paymentLog.csv
+cmd/arkgoserver/log/goark-node.log
