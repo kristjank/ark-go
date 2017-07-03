@@ -43,14 +43,95 @@ $> cd $GOPATH/src/github.com/kristjank/ark-go/cmd/arkgopool
 $> ./arkgopool
 ```
 
-## How to run it silent (it will automatically share according to config wihtout asking)?
+## Complete Ubuntu installation guide
 
-Do not run it like that before you tested properly!
+You will have to slightly adapt it to use the latest version. (Golang Download: https://golang.org/dl/)
 
 ```
-$> cd $GOPATH/src/github.com/kristjank/ark-go/cmd/arkgopool
-$> ./arkgopool -silent=true
+$> curl -O https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz
+$> tar xvf go1.8.3.linux-amd64.tar.gz
+$> sudo chown -R root:root ./go
+$> sudo mv go /usr/local
+$> sudo nano ~/.profile
 ```
+Add at the end of the files:
+```
+export GOPATH=$HOME/work
+export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+```
+Save the files.
+```
+$> source ~/.profile
+$> mkdir work
+$> go get github.com/kristjank/ark-go
+$> cd ~/work/src/github.com/kristjank/ark-go
+$> go get ./...
+$> cd ~/work/src/github.com/kristjank/ark-go/cmd/arkgopool
+$> go build
+$> cd
+$> ln -s ~/work/src/github.com/kristjank/ark-go/cmd/arkgopool arkgopool
+```
+Now you can run with:
+```
+$> cd arkgopool
+$> ./arkgopool
+```
+
+## How to automate payment run
+
+First, make sure that you did link your account. (Option 4)
+
+Create a folder paymentlog in arkgopool:
+
+```
+$> cd arkgopool
+$> mkdir paymentlog
+```
+
+Create such a file go-payment.sh in home:
+
+```
+#!/bin/bash
+cd ~/work/src/github.com/kristjank/ark-go/main
+./arkgopool -silent=true
+mv paymentLog.csv paymentlog/$(date -d "today" +"%Y%m%d-%H.%M.%S")payments.log
+
+```
+
+Make it executable:
+
+```
+$> chmod +x go-payment.sh
+```
+
+Open crontab:
+
+```
+$> crontab -e
+```
+
+Add a line at the top (replace ~ with your absolute root path):
+
+```
+GOPATH=~/work
+```
+
+Add a line at the end and an empty line behind:
+
+```
+30 17 * * * ~/go-payment.sh
+```
+
+Create and edit config.toml to define your settings.
+
+```
+$> cd arkgopool/settings
+$> cp sample.config.toml config.toml
+$> nano config.toml
+```
+
+Save and now your payments will done automatic every day. Enjoy!
+
 
 Thank you for checking in.
 
