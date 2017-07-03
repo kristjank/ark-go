@@ -34,7 +34,7 @@ func initializeRoutes() {
 	}
 	deleRoutes := router.Group("/delegate")
 	{
-		deleRoutes.GET("", GetDelegate)
+		deleRoutes.GET("/", GetDelegate)
 		deleRoutes.GET("/config/", GetDelegateSharingConfig)
 	}
 }
