@@ -77,6 +77,14 @@ $> cd arkgopool
 $> ./arkgopool
 ```
 
+Create and edit config.toml to define your own settings.
+
+```
+$> cd arkgopool/settings
+$> cp sample.config.toml config.toml
+$> nano config.toml
+```
+
 ## How to automate payment run
 
 First, make sure that you did link your account. (Option 4)
@@ -120,14 +128,6 @@ Add a line at the end and an empty line behind:
 
 ```
 30 17 * * * ~/go-payment.sh
-```
-
-Create and edit config.toml to define your settings.
-
-```
-$> cd arkgopool/settings
-$> cp sample.config.toml config.toml
-$> nano config.toml
 ```
 
 Save and now your payments will done automatic every day. Enjoy!
