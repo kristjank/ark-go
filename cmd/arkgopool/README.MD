@@ -19,31 +19,41 @@ ArkGo-Gui functionalities include:
 
 Application was developed to help testing of the core library and to provide a tool for delegates to process automated payments/ or just manual payments.
 
-## How to run ARKGO-GUI from source?
+## Short guide
+
+### Run from source
 ```
 $> cd $GOPATH/src/github.com/kristjank/ark-go/cmd/arkgopool
 $> go run arkgo-gui.go
 ```
 
-## How to build it?
+### Build
 ```
 $> cd $GOPATH/src/github.com/kristjank/ark-go/cmd/arkgopool
 $> go build
 ```
 
-## How to run it in windows?
+### Run in Windows
 ```
 $> cd $GOPATH/src/github.com/kristjank/ark-go/cmd/arkgopool
 $> ./arkgo-gui.exe
 ```
 
-## How to run it in linux?
+### Run in Linux
 ```
 $> cd $GOPATH/src/github.com/kristjank/ark-go/cmd/arkgopool
 $> ./arkgopool
 ```
 
-## Complete Ubuntu installation guide
+### Configuration
+
+```
+$> cd arkgopool/settings
+$> cp sample.config.toml config.toml
+$> nano config.toml
+```
+
+## Complete installation guide (ubuntu)
 
 You will have to slightly adapt it to use the latest version. (Golang Download: https://golang.org/dl/)
 
@@ -135,6 +145,6 @@ Save and now your payments will done automatic every day. Enjoy!
 
 Thank you for checking in.
 
-For more information about ark-go see the core package. That is where it all happens: https://github.com/kristjank/ark-go/tree/master/core
+For more information about ark-go see the core package. That is where it all happens: [/core](/core)
 
 --chris
