@@ -8,7 +8,7 @@ https://asciinema.org/a/5yndxl794ncfpmjoqftuaiodm?t=8.
 To see all the calls and usage of ARK-GO client library check the name_test.go classes in the core package!
 
 ArkGo-Gui functionalities include:
-- Sample config: [settings/sample.config.toml](https://github.com/kristjank/ark-go/blob/master/main/settings/config.toml). Copy file to config.toml for productive config. (cp sample.config.toml config.toml)
+- Sample config: [settings/sample.config.toml](https://github.com/kristjank/ark-go/blob/master/cmd/arkgopool/settings/sample.config.toml). Copy file to config.toml for productive config. (cp sample.config.toml config.toml)
 - Setting up delegate preferences in settings/config.toml. User can set his delegate address, sharing rations for voters and reward fund.
 - Checking vote weight by voters, displaying fidelity in hoours and see the precalculated rewards before Sending.
 - Manually sending the reward to users.
