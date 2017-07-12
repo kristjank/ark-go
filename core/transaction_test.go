@@ -217,6 +217,7 @@ func TestFromBytes(t *testing.T) {
 	tx := CreateVote("+", "034151a3ec46b5670a682b0a63394f863587d1bc97483b1b6c70eb58e7f0aed192", "this is a top secret passphrase", "")
 
 	tx1 := fromBytes(tx.toBytes(false, true))
-	log.Println(tx1.Type)
+	log.Println(tx1.Type, tx.Type)
+	log.Println(tx1.Timestamp, tx.Timestamp)
 
 }

@@ -51,16 +51,13 @@ func fromBytes(txbytes []byte) Transaction {
 
 	tx := Transaction{}
 
-	//Get Vote
-	txType, err := txReader.ReadByte()
-	if err != nil {
-		log.Fatal("Error decoding tx.Type")
-	}
-	tx.Type = txType
+	//Get Transaction Type
+	binary.Read(txReader, binary.LittleEndian, &tx.Type)
 
 	//GetTimeStamp from 	binary.Write(txBuf, binary.LittleEndian, uint32(tx.Timestamp))
-	//txReader.Read
-
+	binary.Read(txReader, binary.LittleEndian, &tx.Timestamp)
+	//	tx.Timestamp = timestamp
+	//txReader.
 	return tx
 }
 
