@@ -8,7 +8,7 @@ https://asciinema.org/a/5yndxl794ncfpmjoqftuaiodm?t=8.
 To see all the calls and usage of ARK-GO client library check the name_test.go classes in the core package!
 
 ArkGo-Gui functionalities include:
-- Sample config: [settings/sample.config.toml](https://github.com/kristjank/ark-go/blob/master/main/settings/config.toml). Copy file to config.toml for productive config. (cp sample.config.toml config.toml)
+- Sample config: [settings/sample.config.toml](https://github.com/kristjank/ark-go/blob/master/cmd/arkgopool/settings/sample.config.toml). Copy file to config.toml for productive config. (cp sample.config.toml config.toml)
 - Setting up delegate preferences in settings/config.toml. User can set his delegate address, sharing rations for voters and reward fund.
 - Checking vote weight by voters, displaying fidelity in hoours and see the precalculated rewards before Sending.
 - Manually sending the reward to users.
@@ -19,31 +19,41 @@ ArkGo-Gui functionalities include:
 
 Application was developed to help testing of the core library and to provide a tool for delegates to process automated payments/ or just manual payments.
 
-## How to run ARKGO-GUI from source?
+## Short guide
+
+### Run from source
 ```
 $> cd $GOPATH/src/github.com/kristjank/ark-go/cmd/arkgopool
 $> go run arkgo-gui.go
 ```
 
-## How to build it?
+### Build
 ```
 $> cd $GOPATH/src/github.com/kristjank/ark-go/cmd/arkgopool
 $> go build
 ```
 
-## How to run it in windows?
+### Run in Windows
 ```
 $> cd $GOPATH/src/github.com/kristjank/ark-go/cmd/arkgopool
 $> ./arkgo-gui.exe
 ```
 
-## How to run it in linux?
+### Run in Linux
 ```
 $> cd $GOPATH/src/github.com/kristjank/ark-go/cmd/arkgopool
 $> ./arkgopool
 ```
 
-## Complete Ubuntu installation guide
+### Configuration
+
+```
+$> cd arkgopool/settings
+$> cp sample.config.toml config.toml
+$> nano config.toml
+```
+
+## Complete installation guide (ubuntu)
 
 You will have to slightly adapt it to use the latest version. (Golang Download: https://golang.org/dl/)
 
@@ -75,6 +85,14 @@ Now you can run with:
 ```
 $> cd arkgopool
 $> ./arkgopool
+```
+
+Create and edit config.toml to define your own settings.
+
+```
+$> cd arkgopool/settings
+$> cp sample.config.toml config.toml
+$> nano config.toml
 ```
 
 ## How to automate payment run
@@ -122,19 +140,11 @@ Add a line at the end and an empty line behind:
 30 17 * * * ~/go-payment.sh
 ```
 
-Create and edit config.toml to define your settings.
-
-```
-$> cd arkgopool/settings
-$> cp sample.config.toml config.toml
-$> nano config.toml
-```
-
 Save and now your payments will done automatic every day. Enjoy!
 
 
 Thank you for checking in.
 
-For more information about ark-go see the core package. That is where it all happens: https://github.com/kristjank/ark-go/tree/master/core
+For more information about ark-go see the core package. That is where it all happens: [/core](/core)
 
 --chris
