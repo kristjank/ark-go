@@ -33,7 +33,7 @@ type Transaction struct {
 	Amount                int64             `json:"amount,omitempty"`
 	Asset                 map[string]string `json:"asset,omitempty"`
 	Fee                   int64             `json:"fee,omitempty"`
-	Type                  TransactionType   `json:"type"`
+	Type                  byte              `json:"type"`
 	VendorField           string            `json:"vendorField,omitempty"`
 	Signature             string            `json:"signature,omitempty"`
 	SignSignature         string            `json:"signSignature,omitempty"`
@@ -44,6 +44,24 @@ type Transaction struct {
 	Height                int               `json:"height,omitempty"`
 	SenderID              string            `json:"senderId,omitempty"`
 	Confirmations         int               `json:"confirmations,omitempty"`
+}
+
+func fromBytes(txbytes []byte) Transaction {
+	txReader := bytes.NewReader(txbytes)
+
+	tx := Transaction{}
+
+	//Get Vote
+	txType, err := txReader.ReadByte()
+	if err != nil {
+		log.Fatal("Error decoding tx.Type")
+	}
+	tx.Type = txType
+
+	//GetTimeStamp from 	binary.Write(txBuf, binary.LittleEndian, uint32(tx.Timestamp))
+	//txReader.Read
+
+	return tx
 }
 
 //ToBytes returns bytearray of the Transaction object to be signed and send to blockchain
@@ -279,6 +297,7 @@ type PostTransactionResponse struct {
 	TransactionIDs []string `json:"transactionIds"`
 }
 
+//TransactionPayload - list of tx to send to network
 type TransactionPayload struct {
 	Transactions []*Transaction `json:"transactions"`
 }
