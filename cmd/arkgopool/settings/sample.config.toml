@@ -42,3 +42,4 @@ Daddress = "DQPr5WHkhau3Ka2RKb7egm7isr5wbNHbF1"
 
 [client]
 network = "DEVNET" #which network is active when application starts
+dbFilename = "db/payment.db"

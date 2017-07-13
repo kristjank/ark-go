@@ -33,6 +33,7 @@ var reader = bufio.NewReader(os.Stdin)
 
 var errorlog *os.File
 var logger *log.Logger
+var DBClient IBoltClient
 
 func init() {
 	errorlog, err := os.OpenFile("arkgo-gui.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
@@ -42,6 +43,12 @@ func init() {
 	}
 
 	logger = log.New(errorlog, "ark-go: ", log.Lshortfile|log.LstdFlags)
+}
+
+func initializeBoltClient() {
+	DBClient = &BoltClient{}
+	DBClient.OpenBoltDb()
+	DBClient.InitializeBucket()
 }
 
 //DisplayCalculatedVoteRatio based on parameters in config.toml
