@@ -3,6 +3,7 @@ package core
 import (
 	"log"
 	"testing"
+	"time"
 
 	"github.com/kristjank/ark-go/arkcoin"
 )
@@ -292,7 +293,49 @@ func TestPostToLocalNodeTransaction(t *testing.T) {
 }
 
 func TestPostToLocalLoopNodeTransaction(t *testing.T) {
-	for i := 1; i <= 50; i++ {
-		TestPostToLocalNodeTransaction(t)
+
+	arkapi := TestMethodNewArkClient(nil)
+
+	recepient := "AUgTuukcKeE4XFdzaK6rEHMD5FLmVBSmHk"
+	passphrase := "ski rose knock live elder parade dose device fetch betray loan holiday"
+
+	recepient = "DFTzLwEHKKn3VGce6vZSueEmoPWpEZswhB"
+	passphrase = "outer behind tray slice trash cave table divert wild buddy snap news"
+	t0 := time.Now()
+
+	for i := 0; i < 1000; i++ {
+		tx := CreateTransaction(recepient,
+			1,
+			"1ARK-GOLang is saying whoop whooop",
+			passphrase, "")
+
+		tx1 := CreateTransaction(recepient,
+			2,
+			"2ARK-GOLang is saying whoop whooop",
+			passphrase, "")
+
+		tx2 := CreateTransaction(recepient,
+			3,
+			"3ARK-GOLang is saying whoop whooop",
+			passphrase, "")
+
+		var payload TransactionPayload
+		payload.Transactions = append(payload.Transactions, tx)
+		payload.Transactions = append(payload.Transactions, tx1)
+		payload.Transactions = append(payload.Transactions, tx2)
+
+		res, httpresponse, err := arkapi.PostTransaction(payload)
+		if res.Success {
+			log.Println(t.Name(), "Success,", httpresponse.Status, res.TransactionIDs)
+
+		} else {
+			if httpresponse != nil {
+				log.Println(res.Message, res.Error, httpresponse.Status)
+			}
+			t.Error(err.Error(), res.Error)
+		}
 	}
+
+	t1 := time.Now()
+	log.Printf("The call took %v to run.\n", t1.Sub(t0))
 }
