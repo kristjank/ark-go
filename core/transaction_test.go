@@ -290,3 +290,9 @@ func TestPostToLocalNodeTransaction(t *testing.T) {
 	}
 
 }
+
+func TestPostToLocalLoopNodeTransaction(t *testing.T) {
+	for i := 1; i <= 50; i++ {
+		TestPostToLocalNodeTransaction(t)
+	}
+}
