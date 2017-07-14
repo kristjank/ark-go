@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/kristjank/ark-go/arkcoin"
+	"github.com/kristjank/ark-go/cmd/model"
 	"github.com/kristjank/ark-go/core"
 
 	"github.com/fatih/color"
@@ -39,39 +40,8 @@ var logger *log.Logger
 
 var arkpooldb *storm.DB
 
-//PaymentLogRecord structure
-type PaymentLogRecord struct {
-	Pk              int    `storm:"id,increment"` // primary key with auto increment
-	Address         string `storm:"index"`
-	VoteWeight      float64
-	VoteWeightShare float64
-	EarnedAmount100 float64
-	EarnedAmountXX  float64
-	VoteDuration    int
-	Transaction     core.Transaction
-	PaymentRecordID int       `storm:"index"`
-	CreatedAt       time.Time `storm:"index"`
-}
-
-type PaymentRecord struct {
-	Pk               int `storm:"id,increment"`
-	Delegate         string
-	ShareRatio       float64
-	CostsRatio       float64
-	ReserveRatio     float64
-	PersonalRatio    float64
-	Fidelity         bool
-	FidelityLimit    int
-	MinAmount        float64
-	FeeDeduction     bool
-	FeeAmount        int
-	NrOfTransactions int
-	VoteWeight       int
-	CreatedAt        time.Time `storm:"index"`
-}
-
 func save2db(ve core.DelegateDataProfit, tx *core.Transaction, relID int) {
-	dbData := PaymentLogRecord{}
+	dbData := model.PaymentLogRecord{}
 
 	dbData.Address = ve.Address
 	dbData.VoteWeight = ve.VoteWeight
@@ -81,6 +51,7 @@ func save2db(ve core.DelegateDataProfit, tx *core.Transaction, relID int) {
 	dbData.VoteDuration = ve.VoteDuration
 	dbData.Transaction = *tx
 	dbData.PaymentRecordID = relID
+	dbData.CreatedAt = time.Now()
 
 	err := arkpooldb.Save(&dbData)
 	if err != nil {
@@ -89,7 +60,7 @@ func save2db(ve core.DelegateDataProfit, tx *core.Transaction, relID int) {
 }
 
 func listPaymentsDetailsFromDB() {
-	var results []PaymentLogRecord
+	var results []model.PaymentLogRecord
 	err := arkpooldb.All(&results)
 
 	if err != nil {
@@ -103,7 +74,7 @@ func listPaymentsDetailsFromDB() {
 }
 
 func listPaymentsDB() {
-	var results []PaymentRecord
+	var results []model.PaymentRecord
 	err := arkpooldb.All(&results)
 
 	if err != nil {
@@ -239,8 +210,8 @@ func checkConfigSharingRatio() bool {
 	return true
 }
 
-func createPaymentRecord() PaymentRecord {
-	payRec := PaymentRecord{
+func createPaymentRecord() model.PaymentRecord {
+	payRec := model.PaymentRecord{
 		ShareRatio:    viper.GetFloat64("voters.shareratio"),
 		CostsRatio:    viper.GetFloat64("costs.shareratio"),
 		PersonalRatio: viper.GetFloat64("personal.shareratio"),
@@ -391,7 +362,11 @@ func SendPayments(silent bool) {
 		payload.Transactions = append(payload.Transactions, txpersonal)
 	}
 
+	payrec.NrOfTransactions = len(payload.Transactions)
+	payrec.FeeAmount = len(payload.Transactions) * int(core.EnvironmentParams.Fees.Send)
+
 	arkpooldb.Update(&payrec)
+
 	color.Set(color.FgHiGreen)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
 	fmt.Println("Transactions to be sent from:")
