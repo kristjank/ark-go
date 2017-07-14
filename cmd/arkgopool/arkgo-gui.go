@@ -26,6 +26,8 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/viper"
+
+	"github.com/asdine/storm"
 )
 
 var arkclient = core.NewArkClient(nil)
@@ -33,10 +35,57 @@ var reader = bufio.NewReader(os.Stdin)
 
 var errorlog *os.File
 var logger *log.Logger
-var DBClient IBoltClient
 
+var arkpooldb *storm.DB
+
+//PaymentLogRecord structure
+type PaymentLogRecord struct {
+	Pk              int    `storm:"id,increment"` // primary key with auto increment
+	Address         string `storm:"index"`
+	VoteWeight      float64
+	VoteWeightShare float64
+	EarnedAmount100 float64
+	EarnedAmountXX  float64
+	VoteDuration    int
+	Transaction     core.Transaction
+}
+
+func save2db(ve core.DelegateDataProfit, tx *core.Transaction) {
+	dbData := PaymentLogRecord{}
+
+	dbData.Address = ve.Address
+	dbData.VoteWeight = ve.VoteWeight
+	dbData.VoteWeightShare = ve.VoteWeightShare
+	dbData.EarnedAmount100 = ve.EarnedAmount100
+	dbData.EarnedAmountXX = ve.EarnedAmountXX
+	dbData.VoteDuration = ve.VoteDuration
+	dbData.Transaction = *tx
+
+	err := arkpooldb.Save(&dbData)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	pause()
+}
+
+func listPaymentsFromDB() {
+	var results []PaymentLogRecord
+	err := arkpooldb.All(&results)
+
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+
+	for _, element := range results {
+		log.Println(element.Transaction.RecipientID)
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
 func init() {
-	errorlog, err := os.OpenFile("arkgo-gui.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	var err error
+	errorlog, err = os.OpenFile("arkgo-gui.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		fmt.Printf("error opening file: %v", err)
 		os.Exit(1)
@@ -46,9 +95,15 @@ func init() {
 }
 
 func initializeBoltClient() {
-	DBClient = &BoltClient{}
-	DBClient.OpenBoltDb()
-	DBClient.InitializeBucket()
+	var err error
+	arkpooldb, err = storm.Open(viper.GetString("client.dbfilename"))
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	log.Println("DB Opened at:", arkpooldb.Path)
+	//defer arkpooldb.Close()
 }
 
 //DisplayCalculatedVoteRatio based on parameters in config.toml
@@ -197,6 +252,8 @@ func SendPayments(silent bool) {
 	clearScreen()
 
 	for _, element := range votersEarnings {
+		//Logging history to DB
+
 		sumEarned += element.EarnedAmount100
 		sumShareEarned += element.EarnedAmountXX
 		sumRatio += element.VoteWeightShare
@@ -217,6 +274,9 @@ func SendPayments(silent bool) {
 		if element.EarnedAmountXX >= viper.GetFloat64("voters.minamount") && txAmount2Send > 0 {
 			tx := core.CreateTransaction(element.Address, txAmount2Send, viper.GetString("voters.txdescription"), p1, p2)
 			payload.Transactions = append(payload.Transactions, tx)
+
+			//Logging history to DB
+			save2db(element, tx)
 		}
 	}
 
@@ -699,6 +759,7 @@ func loadConfig() {
 	viper.SetDefault("personal.Daddress", "")
 
 	viper.SetDefault("client.network", "DEVNET")
+	viper.SetDefault("client.dbFilename", "payment.db")
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -750,6 +811,7 @@ func printMenu() {
 	fmt.Println("\t3-Switch network")
 	fmt.Println("\t4-Link account")
 	fmt.Println("\t5-Send bonus payments")
+	fmt.Println("\t6-List history payments")
 	fmt.Println("\t0-Exit")
 	fmt.Println("")
 	fmt.Print("\tSelect option [1-9]:")
@@ -772,9 +834,7 @@ func main() {
 	// Load configration and defaults
 	loadConfig()
 
-	b := viper.GetString("voters.blocklist")
-
-	logger.Println(b)
+	initializeBoltClient()
 
 	//switch to preset network
 	if viper.GetString("client.network") == "DEVNET" {
@@ -834,6 +894,12 @@ func main() {
 			clearScreen()
 			color.Set(color.FgHiGreen)
 			SendBonus()
+			color.Unset()
+		case 6:
+			clearScreen()
+			color.Set(color.FgHiGreen)
+			listPaymentsFromDB()
+			pause()
 			color.Unset()
 		}
 	}
