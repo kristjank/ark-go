@@ -1,0 +1,4 @@
+# ignoring
+*.db
+*.exe
+*.lock
