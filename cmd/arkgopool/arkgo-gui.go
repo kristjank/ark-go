@@ -20,6 +20,7 @@ import (
 	"regexp"
 	"runtime"
 	"strconv"
+	"time"
 
 	"github.com/kristjank/ark-go/arkcoin"
 	"github.com/kristjank/ark-go/core"
@@ -48,9 +49,28 @@ type PaymentLogRecord struct {
 	EarnedAmountXX  float64
 	VoteDuration    int
 	Transaction     core.Transaction
+	PaymentRecordID int       `storm:"index"`
+	CreatedAt       time.Time `storm:"index"`
 }
 
-func save2db(ve core.DelegateDataProfit, tx *core.Transaction) {
+type PaymentRecord struct {
+	Pk               int `storm:"id,increment"`
+	Delegate         string
+	ShareRatio       float64
+	CostsRatio       float64
+	ReserveRatio     float64
+	PersonalRatio    float64
+	Fidelity         bool
+	FidelityLimit    int
+	MinAmount        float64
+	FeeDeduction     bool
+	FeeAmount        int
+	NrOfTransactions int
+	VoteWeight       int
+	CreatedAt        time.Time `storm:"index"`
+}
+
+func save2db(ve core.DelegateDataProfit, tx *core.Transaction, relID int) {
 	dbData := PaymentLogRecord{}
 
 	dbData.Address = ve.Address
@@ -60,15 +80,15 @@ func save2db(ve core.DelegateDataProfit, tx *core.Transaction) {
 	dbData.EarnedAmountXX = ve.EarnedAmountXX
 	dbData.VoteDuration = ve.VoteDuration
 	dbData.Transaction = *tx
+	dbData.PaymentRecordID = relID
 
 	err := arkpooldb.Save(&dbData)
 	if err != nil {
 		log.Println(err.Error())
 	}
-	pause()
 }
 
-func listPaymentsFromDB() {
+func listPaymentsDetailsFromDB() {
 	var results []PaymentLogRecord
 	err := arkpooldb.All(&results)
 
@@ -78,7 +98,21 @@ func listPaymentsFromDB() {
 	}
 
 	for _, element := range results {
-		log.Println(element.Transaction.RecipientID)
+		log.Println(element)
+	}
+}
+
+func listPaymentsDB() {
+	var results []PaymentRecord
+	err := arkpooldb.All(&results)
+
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+
+	for _, element := range results {
+		log.Println(element)
 	}
 }
 
@@ -205,8 +239,27 @@ func checkConfigSharingRatio() bool {
 	return true
 }
 
+func createPaymentRecord() PaymentRecord {
+	payRec := PaymentRecord{
+		ShareRatio:    viper.GetFloat64("voters.shareratio"),
+		CostsRatio:    viper.GetFloat64("costs.shareratio"),
+		PersonalRatio: viper.GetFloat64("personal.shareratio"),
+		ReserveRatio:  viper.GetFloat64("reserve.shareratio"),
+		CreatedAt:     time.Now(),
+		FeeDeduction:  viper.GetBool("voters.deductTxFees"),
+		Fidelity:      viper.GetBool("voters.fidelity"),
+		FidelityLimit: viper.GetInt("voters.fidelityLimit"),
+		MinAmount:     viper.GetFloat64("voters.minamount"),
+		Delegate:      viper.GetString("delegate.address"),
+	}
+	return payRec
+}
+
 //SendPayments based on parameters in config.toml
 func SendPayments(silent bool) {
+	payrec := createPaymentRecord()
+	arkpooldb.Save(&payrec)
+
 	if !checkConfigSharingRatio() {
 		clearScreen()
 		color.Set(color.FgHiRed)
@@ -243,6 +296,7 @@ func SendPayments(silent bool) {
 	var payload core.TransactionPayload
 
 	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"))
+	payrec.VoteWeight, _, _ = arkclient.GetDelegateVoteWeight(params)
 
 	sumEarned := 0.0
 	sumRatio := 0.0
@@ -276,7 +330,7 @@ func SendPayments(silent bool) {
 			payload.Transactions = append(payload.Transactions, tx)
 
 			//Logging history to DB
-			save2db(element, tx)
+			save2db(element, tx, payrec.Pk)
 		}
 	}
 
@@ -285,6 +339,7 @@ func SendPayments(silent bool) {
 	//transactions are added...
 	if !viper.GetBool("voters.deductTxFees") {
 		feeAmount = int(len(payload.Transactions)) * int(core.EnvironmentParams.Fees.Send)
+		payrec.FeeAmount = feeAmount
 	}
 
 	//Cost & reserve fund calculation
@@ -336,6 +391,7 @@ func SendPayments(silent bool) {
 		payload.Transactions = append(payload.Transactions, txpersonal)
 	}
 
+	arkpooldb.Update(&payrec)
 	color.Set(color.FgHiGreen)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
 	fmt.Println("Transactions to be sent from:")
@@ -898,7 +954,9 @@ func main() {
 		case 6:
 			clearScreen()
 			color.Set(color.FgHiGreen)
-			listPaymentsFromDB()
+			listPaymentsDB()
+			pause()
+			listPaymentsDetailsFromDB()
 			pause()
 			color.Unset()
 		}
