@@ -64,18 +64,20 @@ func GetDelegateSharingConfig(c *gin.Context) {
 }
 
 //GetDelegatePaymentRecord Returns a list of peers to client call. Response is in JSON
+//URL samples:
+//Get All Payment Runs: http://localhost:54000/delegate/paymentruns
 func GetDelegatePaymentRecord(c *gin.Context) {
 	var results []model.PaymentRecord
+	var query storm.Query
+	query = arkpooldb.Select().Reverse()
 
-	err := arkpooldb.All(&results)
+	err := query.Find(&results)
 
 	if err == nil {
-		c.JSON(200, results)
+		c.JSON(200, gin.H{"success": true, "data": results, "count": len(results)})
 	} else {
 		c.JSON(200, gin.H{"success": false, "error": err.Error()})
 	}
-	c.JSON(200, gin.H{"success": true})
-
 }
 
 //GetDelegatePaymentRecordDetails Returns a list of peers to client call. Response is in JSON
@@ -99,13 +101,13 @@ func GetDelegatePaymentRecordDetails(c *gin.Context) {
 	} else if id == -1 && address != "" {
 		query = arkpooldb.Select(q.Eq("Address", address)).Reverse()
 	} else {
-		query = arkpooldb.Select()
+		query = arkpooldb.Select().Reverse()
 	}
 
 	err = query.Find(&results)
 
 	if err == nil {
-		c.JSON(200, results)
+		c.JSON(200, gin.H{"success": true, "data": results, "count": len(results)})
 	} else {
 		c.JSON(200, gin.H{"success": false, "error": err.Error()})
 	}
