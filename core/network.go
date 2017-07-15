@@ -42,3 +42,16 @@ func NewArkClient(httpClient *http.Client) *ArkClient {
 			Add("Content-Type", "application/json"),
 	}
 }
+
+//TestMethodNewArkClient creations with supported network
+//A test method for local node testing when implementid
+//Not for production use
+func TestMethodNewArkClient(httpClient *http.Client) *ArkClient {
+	return &ArkClient{
+		sling: sling.New().Client(httpClient).Base("http://127.0.0.1:4001").
+			Add("nethash", EnvironmentParams.Network.Nethash).
+			Add("version", EnvironmentParams.Network.ActivePeer.Version).
+			Add("port", strconv.Itoa(EnvironmentParams.Network.ActivePeer.Port)).
+			Add("Content-Type", "application/json"),
+	}
+}

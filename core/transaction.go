@@ -46,20 +46,22 @@ type Transaction struct {
 	Confirmations         int               `json:"confirmations,omitempty"`
 }
 
+//FromBytes implementation - deserialization of recveived tx
 func fromBytes(txbytes []byte) Transaction {
 	txReader := bytes.NewReader(txbytes)
 
 	tx := Transaction{}
 
-	//Get Vote
-	txType, err := txReader.ReadByte()
-	if err != nil {
-		log.Fatal("Error decoding tx.Type")
-	}
-	tx.Type = txType
+	//Get Transaction Type
+	binary.Read(txReader, binary.LittleEndian, &tx.Type)
 
 	//GetTimeStamp from 	binary.Write(txBuf, binary.LittleEndian, uint32(tx.Timestamp))
-	//txReader.Read
+	binary.Read(txReader, binary.LittleEndian, &tx.Timestamp)
+
+	//Get SenderPublicKey
+	byteKey := make([]byte, 33)
+	binary.Read(txReader, binary.LittleEndian, byteKey)
+	tx.SenderPublicKey = hex.EncodeToString(byteKey)
 
 	return tx
 }

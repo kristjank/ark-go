@@ -43,8 +43,10 @@ Daddress = "DQPr5WHkhau3Ka2RKb7egm7isr5wbNHbF1"
 [client]
 network = "DEVNET" #which network is active when application starts
 
+
 #ARK-POOL SERVER SETTINGS
 [server]
 port = 54000
 address = "0.0.0.0"
 version = "0.1.0"
+dbfilename = "C:\_WORK\ARK\ark-go\src\github.com\kristjank\ark-go\cmd\arkgopool\payment.db"
