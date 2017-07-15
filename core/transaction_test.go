@@ -196,7 +196,6 @@ func TestCreateSecondSignature(t *testing.T) {
 	log.Println(t.Name(), "Success")
 
 }
-
 func TestAddress(t *testing.T) {
 	key := arkcoin.NewPrivateKeyFromPassword("this is a top secret passphrase", arkcoin.ActiveCoinConfig)
 
@@ -210,4 +209,14 @@ func TestAddress(t *testing.T) {
 			t.Error("Address generation failed. Generated Address: ", key.PublicKey.Address())
 		}
 	}
+}
+
+func TestFromBytes(t *testing.T) {
+	//tx := CreateTransaction("D61mfSggzbvQgTUe6JhYKH2doHaqJ3Dyib",	1, "ARK-GOLang is saying whoop whooop", "passphrase", "")
+
+	tx := CreateVote("+", "034151a3ec46b5670a682b0a63394f863587d1bc97483b1b6c70eb58e7f0aed192", "this is a top secret passphrase", "")
+
+	tx1 := fromBytes(tx.toBytes(false, true))
+	log.Println(tx1.Type)
+
 }
