@@ -20,12 +20,16 @@ import (
 	"regexp"
 	"runtime"
 	"strconv"
+	"time"
 
 	"github.com/kristjank/ark-go/arkcoin"
+	"github.com/kristjank/ark-go/cmd/model"
 	"github.com/kristjank/ark-go/core"
 
 	"github.com/fatih/color"
 	"github.com/spf13/viper"
+
+	"github.com/asdine/storm"
 )
 
 var arkclient = core.NewArkClient(nil)
@@ -34,14 +38,77 @@ var reader = bufio.NewReader(os.Stdin)
 var errorlog *os.File
 var logger *log.Logger
 
+var arkpooldb *storm.DB
+
+func save2db(ve core.DelegateDataProfit, tx *core.Transaction, relID int) {
+	dbData := model.PaymentLogRecord{}
+
+	dbData.Address = ve.Address
+	dbData.VoteWeight = ve.VoteWeight
+	dbData.VoteWeightShare = ve.VoteWeightShare
+	dbData.EarnedAmount100 = ve.EarnedAmount100
+	dbData.EarnedAmountXX = ve.EarnedAmountXX
+	dbData.VoteDuration = ve.VoteDuration
+	dbData.Transaction = *tx
+	dbData.PaymentRecordID = relID
+	dbData.CreatedAt = time.Now()
+
+	err := arkpooldb.Save(&dbData)
+	if err != nil {
+		log.Println(err.Error())
+	}
+}
+
+func listPaymentsDetailsFromDB() {
+	var results []model.PaymentLogRecord
+	err := arkpooldb.All(&results)
+
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+
+	for _, element := range results {
+		log.Println(element)
+	}
+}
+
+func listPaymentsDB() {
+	var results []model.PaymentRecord
+	err := arkpooldb.All(&results)
+
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+
+	for _, element := range results {
+		log.Println(element)
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
 func init() {
-	errorlog, err := os.OpenFile("arkgo-gui.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	var err error
+	errorlog, err = os.OpenFile("arkgo-gui.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		fmt.Printf("error opening file: %v", err)
 		os.Exit(1)
 	}
 
 	logger = log.New(errorlog, "ark-go: ", log.Lshortfile|log.LstdFlags)
+}
+
+func initializeBoltClient() {
+	var err error
+	arkpooldb, err = storm.Open(viper.GetString("client.dbfilename"))
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	log.Println("DB Opened at:", arkpooldb.Path)
+	//defer arkpooldb.Close()
 }
 
 //DisplayCalculatedVoteRatio based on parameters in config.toml
@@ -143,8 +210,33 @@ func checkConfigSharingRatio() bool {
 	return true
 }
 
+func createPaymentRecord() model.PaymentRecord {
+
+	delegateAddress := viper.GetString("delegate.address")
+	if viper.GetString("client.network") == "DEVNET" {
+		delegateAddress = viper.GetString("delegate.Daddress")
+	}
+
+	payRec := model.PaymentRecord{
+		ShareRatio:    viper.GetFloat64("voters.shareratio"),
+		CostsRatio:    viper.GetFloat64("costs.shareratio"),
+		PersonalRatio: viper.GetFloat64("personal.shareratio"),
+		ReserveRatio:  viper.GetFloat64("reserve.shareratio"),
+		CreatedAt:     time.Now(),
+		FeeDeduction:  viper.GetBool("voters.deductTxFees"),
+		Fidelity:      viper.GetBool("voters.fidelity"),
+		FidelityLimit: viper.GetInt("voters.fidelityLimit"),
+		MinAmount:     viper.GetFloat64("voters.minamount"),
+		Delegate:      delegateAddress,
+	}
+	return payRec
+}
+
 //SendPayments based on parameters in config.toml
 func SendPayments(silent bool) {
+	payrec := createPaymentRecord()
+	arkpooldb.Save(&payrec)
+
 	if !checkConfigSharingRatio() {
 		clearScreen()
 		color.Set(color.FgHiRed)
@@ -181,6 +273,7 @@ func SendPayments(silent bool) {
 	var payload core.TransactionPayload
 
 	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"))
+	payrec.VoteWeight, _, _ = arkclient.GetDelegateVoteWeight(params)
 
 	sumEarned := 0.0
 	sumRatio := 0.0
@@ -190,6 +283,8 @@ func SendPayments(silent bool) {
 	clearScreen()
 
 	for _, element := range votersEarnings {
+		//Logging history to DB
+
 		sumEarned += element.EarnedAmount100
 		sumShareEarned += element.EarnedAmountXX
 		sumRatio += element.VoteWeightShare
@@ -210,6 +305,9 @@ func SendPayments(silent bool) {
 		if element.EarnedAmountXX >= viper.GetFloat64("voters.minamount") && txAmount2Send > 0 {
 			tx := core.CreateTransaction(element.Address, txAmount2Send, viper.GetString("voters.txdescription"), p1, p2)
 			payload.Transactions = append(payload.Transactions, tx)
+
+			//Logging history to DB
+			save2db(element, tx, payrec.Pk)
 		}
 	}
 
@@ -218,6 +316,7 @@ func SendPayments(silent bool) {
 	//transactions are added...
 	if !viper.GetBool("voters.deductTxFees") {
 		feeAmount = int(len(payload.Transactions)) * int(core.EnvironmentParams.Fees.Send)
+		payrec.FeeAmount = feeAmount
 	}
 
 	//Cost & reserve fund calculation
@@ -269,17 +368,24 @@ func SendPayments(silent bool) {
 		payload.Transactions = append(payload.Transactions, txpersonal)
 	}
 
+	payrec.NrOfTransactions = len(payload.Transactions)
+	payrec.FeeAmount = len(payload.Transactions) * int(core.EnvironmentParams.Fees.Send)
+
+	arkpooldb.Update(&payrec)
+
 	color.Set(color.FgHiGreen)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
 	fmt.Println("Transactions to be sent from:")
 	color.Set(color.FgHiYellow)
-	fmt.Println("\tDelegate address:", key1.PublicKey.Address(), "linked:", isLinked)
+	fmt.Println("\tDelegate address:", key1.PublicKey.Address())
 	color.Set(color.FgHiYellow)
 	fmt.Print("\tFidelity:")
 	color.HiRed("%t", viper.GetBool("voters.fidelity"))
 	color.Set(color.FgHiYellow)
 	fmt.Print("\tFee deduction:")
-	color.HiRed("%t", viper.GetBool("voters.deductTxFees"), "Fee Amount:", feeAmount)
+	color.HiRed("%t", viper.GetBool("voters.deductTxFees"))
+	color.Set(color.FgHiYellow)
+	fmt.Println("\tFee Amount:", feeAmount)
 	color.Set(color.FgHiYellow)
 	fmt.Print("\tLinked:")
 	color.HiRed("%t\n", isLinked)
@@ -690,6 +796,7 @@ func loadConfig() {
 	viper.SetDefault("personal.Daddress", "")
 
 	viper.SetDefault("client.network", "DEVNET")
+	viper.SetDefault("client.dbFilename", "payment.db")
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -697,7 +804,7 @@ func loadConfig() {
 func pause() {
 	color.Set(color.FgHiYellow)
 	fmt.Println("")
-	fmt.Print("Press 'ENTER' key to return to the menu... ")
+	fmt.Print("Press 'ENTER' key to continue... ")
 	//bufio.NewReader(os.Stdin).ReadBytes('\n')
 	reader.ReadString('\n')
 }
@@ -741,6 +848,7 @@ func printMenu() {
 	fmt.Println("\t3-Switch network")
 	fmt.Println("\t4-Link account")
 	fmt.Println("\t5-Send bonus payments")
+	fmt.Println("\t6-List history payments")
 	fmt.Println("\t0-Exit")
 	fmt.Println("")
 	fmt.Print("\tSelect option [1-9]:")
@@ -763,9 +871,7 @@ func main() {
 	// Load configration and defaults
 	loadConfig()
 
-	b := viper.GetString("voters.blocklist")
-
-	logger.Println(b)
+	initializeBoltClient()
 
 	//switch to preset network
 	if viper.GetString("client.network") == "DEVNET" {
@@ -825,6 +931,14 @@ func main() {
 			clearScreen()
 			color.Set(color.FgHiGreen)
 			SendBonus()
+			color.Unset()
+		case 6:
+			clearScreen()
+			color.Set(color.FgHiGreen)
+			listPaymentsDB()
+			pause()
+			listPaymentsDetailsFromDB()
+			pause()
 			color.Unset()
 		}
 	}

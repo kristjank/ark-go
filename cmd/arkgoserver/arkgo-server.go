@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/asdine/storm"
 	"github.com/fatih/color"
 	"github.com/spf13/viper"
 	"gopkg.in/gin-gonic/gin.v1"
@@ -14,10 +15,20 @@ import (
 var errorlog *os.File
 var logger *log.Logger
 var router *gin.Engine
+var arkpooldb *storm.DB
 
 func init() {
 	initLogger()
 	loadConfig()
+
+	var err error
+	arkpooldb, err = storm.Open(viper.GetString("server.dbfilename"))
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	log.Println("DB Opened at:", arkpooldb.Path)
 }
 
 func initLogger() {
@@ -31,8 +42,9 @@ func initLogger() {
 }
 
 func loadConfig() {
-	viper.SetConfigName("config") // name of config file (without extension)
-	viper.AddConfigPath("cfg")    // path to look for the config file in
+	viper.SetConfigName("config")   // name of config file (without extension)
+	viper.AddConfigPath("cfg")      // path to look for the config file in
+	viper.AddConfigPath("settings") // path to look for the config file in
 
 	err := viper.ReadInConfig() // Find and read the config file
 
