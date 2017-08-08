@@ -211,6 +211,12 @@ func checkConfigSharingRatio() bool {
 }
 
 func createPaymentRecord() model.PaymentRecord {
+
+	delegateAddress := viper.GetString("delegate.address")
+	if viper.GetString("client.network") == "DEVNET" {
+		delegateAddress = viper.GetString("delegate.Daddress")
+	}
+
 	payRec := model.PaymentRecord{
 		ShareRatio:    viper.GetFloat64("voters.shareratio"),
 		CostsRatio:    viper.GetFloat64("costs.shareratio"),
@@ -221,7 +227,7 @@ func createPaymentRecord() model.PaymentRecord {
 		Fidelity:      viper.GetBool("voters.fidelity"),
 		FidelityLimit: viper.GetInt("voters.fidelityLimit"),
 		MinAmount:     viper.GetFloat64("voters.minamount"),
-		Delegate:      viper.GetString("delegate.address"),
+		Delegate:      delegateAddress,
 	}
 	return payRec
 }
@@ -798,7 +804,7 @@ func loadConfig() {
 func pause() {
 	color.Set(color.FgHiYellow)
 	fmt.Println("")
-	fmt.Print("Press 'ENTER' key to return to the menu... ")
+	fmt.Print("Press 'ENTER' key to continue... ")
 	//bufio.NewReader(os.Stdin).ReadBytes('\n')
 	reader.ReadString('\n')
 }
