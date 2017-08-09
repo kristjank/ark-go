@@ -8,6 +8,7 @@ import (
 	"github.com/dghubble/sling"
 )
 
+//BaseURL holds the IP,PORT of the connected peer used for the communication
 var BaseURL = ""
 
 //ArkApiResponseError struct to hold error response from api node

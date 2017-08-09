@@ -13,6 +13,7 @@ import (
 	"github.com/kristjank/ark-go/arkcoin/base58"
 )
 
+//TransactionType to make it more readable - enum
 type TransactionType byte
 
 const (
