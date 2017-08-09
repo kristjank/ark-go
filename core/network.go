@@ -20,7 +20,7 @@ type ArkApiResponseError struct {
 
 //Error interface function
 func (e ArkApiResponseError) Error() string {
-	return fmt.Sprintf("ArkServiceApi: %v %v", e.Success, e.ErrorMessage, e.Data, e.Message)
+	return fmt.Sprintf("ArkServiceApi: %v %v %v %v", e.Success, e.ErrorMessage, e.Data, e.Message)
 }
 
 //ArkClient sling rest pointer
