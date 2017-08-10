@@ -11,18 +11,23 @@ import (
 	"github.com/kristjank/ark-go/arkcoin"
 )
 
+//ArkNetworkType for network switching
 type ArkNetworkType int
 
 const (
+	//MAINNET connection
 	MAINNET = iota
+	//DEVNET connection
 	DEVNET
 )
 
+//TO HELP DIVIDE
+//TODO rename
 const (
 	SATOSHI = 100000000
 )
 
-//Global ARK EnvironmentParams read from acitve peers
+//EnvironmentParams - Global ARK EnvironmentParams read from acitve peers
 var EnvironmentParams = new(ArkEnvParams)
 
 //ArkEnvParams structure to hold parameters from autoconfigure
@@ -66,12 +71,12 @@ func LoadActiveConfiguration(arknetwork ArkNetworkType) string {
 	switch arknetwork {
 	case MAINNET:
 		log.Println("Active network is MAINNET")
-		selectedPeer = SeedList[r1.Intn(len(SeedList))]
+		selectedPeer = seedList[r1.Intn(len(seedList))]
 		log.Println("Random peer selected: ", selectedPeer)
 
 	case DEVNET:
 		log.Println("Active network is DEVNET")
-		selectedPeer = TestSeedList[r1.Intn(len(SeedList))]
+		selectedPeer = testSeedList[r1.Intn(len(testSeedList))]
 		log.Println("Random peer selected: ", selectedPeer)
 	}
 
@@ -142,7 +147,7 @@ func (s *ArkClient) SetActiveConfiguration(arkNetwork ArkNetworkType) *ArkClient
 	return NewArkClient(nil)
 }
 
-var SeedList = [...]string{
+var seedList = [...]string{
 	"5.39.9.240:4001",
 	"5.39.9.241:4001",
 	"5.39.9.242:4001",
@@ -190,7 +195,7 @@ var SeedList = [...]string{
 	"193.70.72.89:4001",
 	"193.70.72.90:4001"}
 
-var TestSeedList = [...]string{
+var testSeedList = [...]string{
 	"164.8.251.179:4002",
 	"164.8.251.172:4002",
 	"164.8.251.91:4002",
