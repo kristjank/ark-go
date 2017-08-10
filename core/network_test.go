@@ -21,7 +21,7 @@ func TestSwitchPeer(t *testing.T) {
 		t.Error("Error creating client")
 	}
 
-	arkapi.SwitchPeer()
+	arkapi = arkapi.SwitchPeer()
 	log.Println(arkapi.GetActivePeer())
 	log.Println(t.Name(), "Success")
 }
