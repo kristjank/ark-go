@@ -7,7 +7,7 @@ import (
 	"github.com/kristjank/goark-node/api/model"
 )
 
-//GetFullBlocksFromPeer function returns a full list of blocks. A radnom number of blocks is returned,
+//GetFullBlocksFromPeer function returns a full list of blocks from current last block on. A random number of blocks is returned,
 //due to ddos measures
 func (s *ArkClient) GetFullBlocksFromPeer(lastBlockHeight int) (model.BlockResponse, *http.Response, error) {
 	respData := new(model.BlockResponse)
@@ -15,7 +15,7 @@ func (s *ArkClient) GetFullBlocksFromPeer(lastBlockHeight int) (model.BlockRespo
 
 	qstr := "lastBlockHeight=" + strconv.Itoa(lastBlockHeight)
 
-	resp, err := s.sling.New().Get("api/blocks/?"+qstr).Receive(respData, respError)
+	resp, err := s.sling.New().Get("peer/blocks?"+qstr).Receive(respData, respError)
 	if err == nil {
 		err = respError
 	}
