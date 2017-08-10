@@ -13,6 +13,7 @@ func TestNewArkClient(t *testing.T) {
 	}
 	log.Println(t.Name(), "Success")
 }
+
 func TestSwitchPeer(t *testing.T) {
 	arkapi := NewArkClient(nil)
 
@@ -21,6 +22,6 @@ func TestSwitchPeer(t *testing.T) {
 	}
 
 	arkapi.SwitchPeer()
-
+	log.Println(arkapi.GetActivePeer())
 	log.Println(t.Name(), "Success")
 }

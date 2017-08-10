@@ -2,8 +2,11 @@ package core
 
 import (
 	"fmt"
+	"log"
+	"math/rand"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/dghubble/sling"
 )
@@ -55,4 +58,31 @@ func TestMethodNewArkClient(httpClient *http.Client) *ArkClient {
 			Add("port", strconv.Itoa(EnvironmentParams.Network.ActivePeer.Port)).
 			Add("Content-Type", "application/json"),
 	}
+}
+
+//SwitchPeer switches client connection to another node
+//usage: must reassing pointer: arkapi = arkapi.SwitchPeer()
+func (s *ArkClient) SwitchPeer() *ArkClient {
+	s1 := rand.NewSource(time.Now().UnixNano())
+	r1 := rand.New(s1)
+
+	//IF internal PeerList is empty - we do a full switch network - init from start
+	if len(EnvironmentParams.Network.PeerList) == 0 {
+		log.Println("SwitchPeer - doing full network init from start")
+		switchNetwork(EnvironmentParams.Network.Type)
+		return NewArkClient(nil)
+	}
+
+	//if we have active memory peer list - we select a new random peer from already inited memlist
+	//list is filled in LoadActiveConfiguration-where client init is made
+	EnvironmentParams.Network.ActivePeer = EnvironmentParams.Network.PeerList[r1.Intn(len(EnvironmentParams.Network.PeerList))]
+	BaseURL = "http://" + EnvironmentParams.Network.ActivePeer.IP + ":" + strconv.Itoa(EnvironmentParams.Network.ActivePeer.Port)
+
+	log.Println("ArkApiClient switched peer connection to ", BaseURL)
+	return NewArkClient(nil)
+}
+
+//GetActivePeer returns active peer connected
+func (s *ArkClient) GetActivePeer() Peer {
+	return EnvironmentParams.Network.ActivePeer
 }

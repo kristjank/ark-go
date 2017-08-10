@@ -5,7 +5,6 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -110,7 +109,14 @@ func LoadActiveConfiguration(arknetwork ArkNetworkType) string {
 	json.NewDecoder(res.Body).Decode(peerRes)
 	EnvironmentParams.Network.PeerList = peerRes.Peers
 
-	//TODO clean the peer list (filters not working as they shoud)
+	//Clean the peer list (filters not working as they shoud) - so checking again here
+	for i := len(EnvironmentParams.Network.PeerList) - 1; i >= 0; i-- {
+		peer := EnvironmentParams.Network.PeerList[i]
+		// Condition to decide if current element has to be deleted:
+		if peer.Status != "OK" {
+			EnvironmentParams.Network.PeerList = append(EnvironmentParams.Network.PeerList[:i], EnvironmentParams.Network.PeerList[i+1:]...)
+		}
+	}
 	return "http://" + selectedPeer
 }
 
@@ -129,28 +135,8 @@ func switchNetwork(arkNetwork ArkNetworkType) {
 	arkcoin.SetActiveCoinConfiguration(&coinParams)
 }
 
-//SwitchPeer switches client connection to another node
-func (s *ArkClient) SwitchPeer() *ArkClient {
-	s1 := rand.NewSource(time.Now().UnixNano())
-	r1 := rand.New(s1)
-
-	//IF internal PeerList is empty - we do a full switch network - init from start
-	if len(EnvironmentParams.Network.PeerList) == 0 {
-		log.Println("SwitchPeer - doing full network init from start")
-		switchNetwork(EnvironmentParams.Network.Type)
-		return NewArkClient(nil)
-	}
-
-	//if we have active memory peer list - we select a new random peer from already inited memlist
-	//list is filled in LoadActiveConfiguration-where client init is made
-	newPeer := EnvironmentParams.Network.PeerList[r1.Intn(len(EnvironmentParams.Network.PeerList))]
-	BaseURL = "http://" + newPeer.IP + ":" + strconv.Itoa(newPeer.Port)
-
-	log.Println("ArkApiClient switched peer connection to ", BaseURL)
-	return NewArkClient(nil)
-}
-
 //SetActiveConfiguration sets a new client connection, switches network and reads network settings from peer
+//usage - must reassing new pointer value: arkapi = arkapi.SetActiveConfiguration(MAINNET)
 func (s *ArkClient) SetActiveConfiguration(arkNetwork ArkNetworkType) *ArkClient {
 	switchNetwork(arkNetwork)
 	return NewArkClient(nil)
