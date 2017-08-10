@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -114,9 +115,20 @@ func switchNetwork(arkNetwork ArkNetworkType) {
 		DumpedPrivateKeyHeader: wifHeader,
 	}
 	arkcoin.SetActiveCoinConfiguration(&coinParams)
-
 }
 
+//SwitchPeer switches client connection to another node
+func (s *ArkClient) SwitchPeer(peerList []Peer) *ArkClient {
+	s1 := rand.NewSource(time.Now().UnixNano())
+	r1 := rand.New(s1)
+
+	newPeer := peerList[r1.Intn(len(peerList))]
+
+	BaseURL = "http://" + newPeer.IP + ":" + strconv.Itoa(newPeer.Port)
+	return NewArkClient(nil)
+}
+
+//SetActiveConfiguration sets a new client connection, switches network and reads network settings from peer
 func (s *ArkClient) SetActiveConfiguration(arkNetwork ArkNetworkType) *ArkClient {
 	switchNetwork(arkNetwork)
 	return NewArkClient(nil)
