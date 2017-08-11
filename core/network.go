@@ -78,6 +78,11 @@ func (s *ArkClient) SwitchPeer() *ArkClient {
 	EnvironmentParams.Network.ActivePeer = EnvironmentParams.Network.PeerList[r1.Intn(len(EnvironmentParams.Network.PeerList))]
 	BaseURL = "http://" + EnvironmentParams.Network.ActivePeer.IP + ":" + strconv.Itoa(EnvironmentParams.Network.ActivePeer.Port)
 
+	//updating with latest peer data - setting height level
+	resPeer, _, err := s.GetConnectedPeerStatus()
+	if err == nil && resPeer.Success {
+		EnvironmentParams.Network.ActivePeer.Height = resPeer.Header.Height
+	}
 	log.Println("ArkApiClient switched peer connection to ", BaseURL)
 	return NewArkClient(nil)
 }
