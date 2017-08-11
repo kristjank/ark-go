@@ -20,11 +20,12 @@ type ArkApiResponseError struct {
 	Message      string `json:"message,omitempty"`
 	ErrorMessage string `json:"error,omitempty"`
 	Data         string `json:"data,omitempty"`
+	ErrorObj     error  `json:"ignore"`
 }
 
 //Error interface function
 func (e ArkApiResponseError) Error() string {
-	return fmt.Sprintf("ArkServiceApi: %v %v %v %v", e.Success, e.ErrorMessage, e.Data, e.Message)
+	return fmt.Sprintf("ArkServiceApi: %v %v %v %v %v", e.ErrorObj.Error(), e.Success, e.ErrorMessage, e.Data, e.Message)
 }
 
 //ArkClient sling rest pointer

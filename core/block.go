@@ -16,6 +16,7 @@ func (s *ArkClient) GetFullBlocksFromPeer(lastBlockHeight int) (model.BlockRespo
 	resp, err := s.sling.New().Get("peer/blocks?lastBlockHeight="+strconv.Itoa(lastBlockHeight)).Receive(respData, respError)
 	if err != nil {
 		respError.ErrorMessage = err.Error()
+		respError.ErrorObj = err
 	}
 
 	return *respData, *respError, resp
