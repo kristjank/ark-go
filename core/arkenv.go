@@ -11,18 +11,23 @@ import (
 	"github.com/kristjank/ark-go/arkcoin"
 )
 
+//ArkNetworkType for network switching
 type ArkNetworkType int
 
 const (
+	//MAINNET connection
 	MAINNET = iota
+	//DEVNET connection
 	DEVNET
 )
 
+//TO HELP DIVIDE
+//TODO rename
 const (
 	SATOSHI = 100000000
 )
 
-//Global ARK EnvironmentParams read from acitve peers
+//EnvironmentParams - Global ARK EnvironmentParams read from acitve peers
 var EnvironmentParams = new(ArkEnvParams)
 
 //ArkEnvParams structure to hold parameters from autoconfigure
@@ -51,9 +56,10 @@ type Network struct {
 	AddressVersion byte           `json:"version"` //this is address generator version!!!
 	Type           ArkNetworkType //holding ark networktype
 	ActivePeer     Peer
+	PeerList       []Peer
 }
 
-//SetActiveConfiguration reads arknetwork parameters from the Network
+//LoadActiveConfiguration reads arknetwork parameters from the Network
 //and fills the EnvironmentParams structure
 //selected and connected peer address is returned
 func LoadActiveConfiguration(arknetwork ArkNetworkType) string {
@@ -65,12 +71,12 @@ func LoadActiveConfiguration(arknetwork ArkNetworkType) string {
 	switch arknetwork {
 	case MAINNET:
 		log.Println("Active network is MAINNET")
-		selectedPeer = SeedList[r1.Intn(len(SeedList))]
+		selectedPeer = seedList[r1.Intn(len(seedList))]
 		log.Println("Random peer selected: ", selectedPeer)
 
 	case DEVNET:
 		log.Println("Active network is DEVNET")
-		selectedPeer = TestSeedList[r1.Intn(len(SeedList))]
+		selectedPeer = testSeedList[r1.Intn(len(testSeedList))]
 		log.Println("Random peer selected: ", selectedPeer)
 	}
 
@@ -96,8 +102,28 @@ func LoadActiveConfiguration(arknetwork ArkNetworkType) string {
 		log.Fatal("Error receiving peer status from: ", selectedPeer, err.Error(), res.StatusCode)
 	}
 	json.NewDecoder(res.Body).Decode(peerRes)
+	//saving peer parameters to globals
 	EnvironmentParams.Network.ActivePeer = peerRes.SinglePeer
 
+	//Getting a list of peers with same version as first one and status ok
+	//TODO - if version is too low ? separate settings for core package? think about it...
+	res, err = http.Get("http://" + selectedPeer + "/api/peers/?version=" + peerRes.SinglePeer.Version + "&status=OK&port=" + peerParams[1])
+	if err != nil {
+		log.Fatal("Error receiving peer list status from: ", selectedPeer, err.Error(), res.StatusCode)
+	}
+	json.NewDecoder(res.Body).Decode(peerRes)
+	EnvironmentParams.Network.PeerList = peerRes.Peers
+
+	//Clean the peer list (filters not working as they shoud) - so checking again here
+	for i := len(EnvironmentParams.Network.PeerList) - 1; i >= 0; i-- {
+		peer := EnvironmentParams.Network.PeerList[i]
+		// Condition to decide if current element has to be deleted:
+		// Also skipping nodes that are more then 50 blocks off current chain height
+		if peer.Status != "OK" || (peer.Height+40) <= EnvironmentParams.Network.ActivePeer.Height {
+			EnvironmentParams.Network.PeerList = append(EnvironmentParams.Network.PeerList[:i], EnvironmentParams.Network.PeerList[i+1:]...)
+			log.Println("Removing peer", peer.IP, peer.Status, peer.Height)
+		}
+	}
 	return "http://" + selectedPeer
 }
 
@@ -114,15 +140,16 @@ func switchNetwork(arkNetwork ArkNetworkType) {
 		DumpedPrivateKeyHeader: wifHeader,
 	}
 	arkcoin.SetActiveCoinConfiguration(&coinParams)
-
 }
 
+//SetActiveConfiguration sets a new client connection, switches network and reads network settings from peer
+//usage - must reassing new pointer value: arkapi = arkapi.SetActiveConfiguration(MAINNET)
 func (s *ArkClient) SetActiveConfiguration(arkNetwork ArkNetworkType) *ArkClient {
 	switchNetwork(arkNetwork)
 	return NewArkClient(nil)
 }
 
-var SeedList = [...]string{
+var seedList = [...]string{
 	"5.39.9.240:4001",
 	"5.39.9.241:4001",
 	"5.39.9.242:4001",
@@ -170,7 +197,7 @@ var SeedList = [...]string{
 	"193.70.72.89:4001",
 	"193.70.72.90:4001"}
 
-var TestSeedList = [...]string{
+var testSeedList = [...]string{
 	"164.8.251.179:4002",
 	"164.8.251.172:4002",
 	"164.8.251.91:4002",

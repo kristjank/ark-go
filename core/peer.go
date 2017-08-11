@@ -1,6 +1,10 @@
 package core
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/kristjank/goark-node/api/model"
+)
 
 //PeerResponse structure for call /peer/list
 type PeerResponse struct {
@@ -55,4 +59,16 @@ func (s *ArkClient) GetPeer(params PeerQueryParams) (PeerResponse, *http.Respons
 	}
 
 	return *peerResponse, resp, err
+}
+
+//GetConnectedPeerStatus function returns connected peer status
+func (s *ArkClient) GetConnectedPeerStatus() (model.PeerStatus, *http.Response, error) {
+	peerStatus := new(model.PeerStatus)
+	peerResponseError := new(ArkApiResponseError)
+	resp, err := s.sling.New().Get("peer/status").Receive(peerStatus, peerResponseError)
+	if err == nil {
+		err = peerResponseError
+	}
+
+	return *peerStatus, resp, err
 }

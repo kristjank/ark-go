@@ -13,3 +13,15 @@ func TestNewArkClient(t *testing.T) {
 	}
 	log.Println(t.Name(), "Success")
 }
+
+func TestSwitchPeer(t *testing.T) {
+	arkapi := NewArkClient(nil)
+
+	if arkapi == nil {
+		t.Error("Error creating client")
+	}
+
+	arkapi = arkapi.SwitchPeer()
+	log.Println(arkapi.GetActivePeer())
+	log.Println(t.Name(), "Success")
+}

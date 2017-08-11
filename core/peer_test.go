@@ -18,6 +18,18 @@ func TestListPeers(t *testing.T) {
 	}
 }
 
+func TestPeerStatus(t *testing.T) {
+	arkapi := NewArkClient(nil)
+
+	peerStatus, _, err := arkapi.GetConnectedPeerStatus()
+	if peerStatus.Success {
+		log.Println(t.Name(), "Success, returned ", peerStatus)
+
+	} else {
+		t.Error(err.Error())
+	}
+}
+
 func TestGetPeer(t *testing.T) {
 	arkapi := NewArkClient(nil)
 	ipAddress := "137.74.90.194"

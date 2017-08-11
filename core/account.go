@@ -2,11 +2,13 @@ package core
 
 import "net/http"
 
+//AccountResponse structure
 type AccountResponse struct {
 	Success bool        `json:"success"`
 	Account AccountData `json:"account"`
 }
 
+//AccountData structure
 type AccountData struct {
 	Address              string        `json:"address"`
 	UnconfirmedBalance   string        `json:"unconfirmedBalance"`
@@ -19,6 +21,7 @@ type AccountData struct {
 	UMultisignatures     []interface{} `json:"u_multisignatures"`
 }
 
+//AccountQueryParams structure
 type AccountQueryParams struct {
 	Address string `url:"address,omitempty"`
 }
