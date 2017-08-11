@@ -88,6 +88,8 @@ func (s *ArkClient) SwitchPeer() *ArkClient {
 }
 
 //GetActivePeer returns active peer connected
+//doesn't call rest to update it
+//updates when calling SwitchPeer or Network is Changed
 func (s *ArkClient) GetActivePeer() Peer {
 	return EnvironmentParams.Network.ActivePeer
 }

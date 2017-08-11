@@ -14,7 +14,7 @@ func init() {
 func TestGetBlocks(t *testing.T) {
 	arkapi := NewArkClient(nil)
 
-	blockResponse, _, err := arkapi.GetFullBlocksFromPeer(1512066)
+	blockResponse, err, _ := arkapi.GetFullBlocksFromPeer(1512066)
 	if blockResponse.Success {
 		log.Println(t.Name(), "Success, returned ", len(blockResponse.Blocks), " blocks")
 	} else {
@@ -25,7 +25,7 @@ func TestGetBlocks(t *testing.T) {
 func TestGetPeerHeight(t *testing.T) {
 	arkapi := NewArkClient(nil)
 
-	blockResponse, _, err := arkapi.GetPeerHeight()
+	blockResponse, err, _ := arkapi.GetPeerHeight()
 	if blockResponse.Success {
 		log.Println(t.Name(), "Success, returned block height", strconv.Itoa(blockResponse.Height), "ID", blockResponse.ID)
 	} else {

@@ -9,29 +9,27 @@ import (
 
 //GetFullBlocksFromPeer function returns a full list of blocks from current last block on. A random number of blocks is returned,
 //due to ddos measures
-func (s *ArkClient) GetFullBlocksFromPeer(lastBlockHeight int) (model.BlockResponse, *http.Response, error) {
+func (s *ArkClient) GetFullBlocksFromPeer(lastBlockHeight int) (model.BlockResponse, ArkApiResponseError, *http.Response) {
 	respData := new(model.BlockResponse)
 	respError := new(ArkApiResponseError)
 
-	qstr := "lastBlockHeight=" + strconv.Itoa(lastBlockHeight)
-
-	resp, err := s.sling.New().Get("peer/blocks?"+qstr).Receive(respData, respError)
-	if err == nil {
-		err = respError
+	resp, err := s.sling.New().Get("peer/blocks?lastBlockHeight="+strconv.Itoa(lastBlockHeight)).Receive(respData, respError)
+	if err != nil {
+		respError.ErrorMessage = err.Error()
 	}
 
-	return *respData, resp, err
+	return *respData, *respError, resp
 }
 
 //GetPeerHeight function returns node peer height.
-func (s *ArkClient) GetPeerHeight() (model.BlockHeightResponse, *http.Response, error) {
+func (s *ArkClient) GetPeerHeight() (model.BlockHeightResponse, ArkApiResponseError, *http.Response) {
 	respError := new(ArkApiResponseError)
 	respData := new(model.BlockHeightResponse)
 
 	resp, err := s.sling.New().Get("api/blocks/getHeight").Receive(respData, respError)
-	if err == nil {
-		err = respError
+	if err != nil {
+		respError.ErrorMessage = err.Error()
 	}
 
-	return *respData, resp, err
+	return *respData, *respError, resp
 }
