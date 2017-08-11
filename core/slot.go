@@ -13,7 +13,7 @@ func GetTime() int32 {
 	return int32(diff.Seconds())
 }
 
-//Calculates duration between now and provided timestamp
+//GetDurationTime Calculates duration between now and provided timestamp
 func GetDurationTime(timestamp int32) int {
 	var durationSeconds time.Duration = time.Duration(timestamp) * time.Second
 	timeCalculcated := mainNetStart.Add(durationSeconds)

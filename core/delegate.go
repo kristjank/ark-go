@@ -38,6 +38,7 @@ type DelegateData struct {
 	Productivity   float64 `json:"productivity"`
 }
 
+//ForgedDetails structureto hold delegate details
 type ForgedDetails struct {
 	Success bool   `json:"success"`
 	Fees    string `json:"fees"`
@@ -54,6 +55,7 @@ type DelegateQueryParams struct {
 	Limit     int    `url:"limit,omitempty"`
 }
 
+//DelegateDataProfit structure - returns calculated profits based on input parameters
 type DelegateDataProfit struct {
 	Address         string
 	VoteWeight      float64
@@ -75,7 +77,7 @@ func (s *ArkClient) ListDelegates(params DelegateQueryParams) (DelegateResponse,
 	return *respData, resp, err
 }
 
-//GetDelegateForging details
+//GetForgedData details
 func (s *ArkClient) GetForgedData(params DelegateQueryParams) (ForgedDetails, *http.Response, error) {
 	respData := new(ForgedDetails)
 	respError := new(ArkApiResponseError)
@@ -143,6 +145,7 @@ func isBlockedAddress(list string, address string) bool {
 	return false
 }
 
+//CalculateVotersProfit returns voter calculation details - based on settings
 func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio float64, blocklist string) []DelegateDataProfit {
 	delegateRes, _, _ := s.GetDelegate(params)
 	voters, _, _ := s.GetDelegateVoters(params)
@@ -187,6 +190,8 @@ func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio
 	return votersProfit
 }
 
+//GetFidelityFactor returns vote duration in HOURS
+//TODO rename
 func (s *ArkClient) GetFidelityFactor(address string) int {
 
 	transQuery := TransactionQueryParams{SenderID: address}

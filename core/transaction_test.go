@@ -66,14 +66,15 @@ func TestSecondVerifyTransaction(t *testing.T) {
 
 func TestPostTransaction(t *testing.T) {
 	arkapi := NewArkClient(nil)
+
 	arkapi = arkapi.SetActiveConfiguration(DEVNET)
-	recepient := "AUgTuukcKeE4XFdzaK6rEHMD5FLmVBSmHk"
-	passphrase := "ski rose knock live elder parade dose device fetch betray loan holiday"
+	//recepient := "AUgTuukcKeE4XFdzaK6rEHMD5FLmVBSmHk"
+	//passphrase := "ski rose knock live elder parade dose device fetch betray loan holiday"
 
 	//only posting on DEVNET
 	if EnvironmentParams.Network.Type == DEVNET {
-		recepient = "DFTzLwEHKKn3VGce6vZSueEmoPWpEZswhB"
-		passphrase = "outer behind tray slice trash cave table divert wild buddy snap news"
+		recepient := "DFTzLwEHKKn3VGce6vZSueEmoPWpEZswhB"
+		passphrase := "outer behind tray slice trash cave table divert wild buddy snap news"
 
 		tx := CreateTransaction(recepient,
 			1,
@@ -256,8 +257,10 @@ func TestPostToLocalNodeTransaction(t *testing.T) {
 	recepient := "AUgTuukcKeE4XFdzaK6rEHMD5FLmVBSmHk"
 	passphrase := "ski rose knock live elder parade dose device fetch betray loan holiday"
 
-	recepient = "DFTzLwEHKKn3VGce6vZSueEmoPWpEZswhB"
-	passphrase = "outer behind tray slice trash cave table divert wild buddy snap news"
+	if EnvironmentParams.Network.Type == DEVNET {
+		recepient = "DFTzLwEHKKn3VGce6vZSueEmoPWpEZswhB"
+		passphrase = "outer behind tray slice trash cave table divert wild buddy snap news"
+	}
 
 	tx := CreateTransaction(recepient,
 		1,
@@ -299,8 +302,10 @@ func TestPostToLocalLoopNodeTransaction(t *testing.T) {
 	recepient := "AUgTuukcKeE4XFdzaK6rEHMD5FLmVBSmHk"
 	passphrase := "ski rose knock live elder parade dose device fetch betray loan holiday"
 
-	recepient = "DFTzLwEHKKn3VGce6vZSueEmoPWpEZswhB"
-	passphrase = "outer behind tray slice trash cave table divert wild buddy snap news"
+	if EnvironmentParams.Network.Type == DEVNET {
+		recepient = "DFTzLwEHKKn3VGce6vZSueEmoPWpEZswhB"
+		passphrase = "outer behind tray slice trash cave table divert wild buddy snap news"
+	}
 	t0 := time.Now()
 
 	for i := 0; i < 1000; i++ {
