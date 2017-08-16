@@ -3,7 +3,7 @@ package core
 import (
 	"net/http"
 
-	"github.com/kristjank/goark-node/api/model"
+	"github.com/kristjank/goark-node/base/model"
 )
 
 //PeerResponse structure for call /peer/list
