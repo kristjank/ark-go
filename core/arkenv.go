@@ -91,7 +91,7 @@ func LoadActiveConfiguration(arknetwork ArkNetworkType) string {
 		//reading basic network params
 		res, err := http.Get("http://" + selectedPeer + "/api/loader/autoconfigure")
 		if err != nil {
-			log.Fatal("Error receiving autoloader params rest from: ", selectedPeer, " Error: ", err.Error())
+			log.Println("Error receiving autoloader params rest from: ", selectedPeer, " Error: ", err.Error())
 			selectedPeer = ""
 		}
 		json.NewDecoder(res.Body).Decode(&EnvironmentParams)
@@ -145,7 +145,7 @@ func optimizePeerList(selectedPeer string) string {
 		peer := EnvironmentParams.Network.PeerList[i]
 
 		// Condition to decide if current element has to be deleted:
-		if peer.Status != "OK" && peer.Port != EnvironmentParams.Network.ActivePeer.Port {
+		if peer.Status != "OK" || peer.Port != EnvironmentParams.Network.ActivePeer.Port {
 			EnvironmentParams.Network.PeerList = append(EnvironmentParams.Network.PeerList[:i], EnvironmentParams.Network.PeerList[i+1:]...)
 			log.Println("Removing peer", peer.IP, peer.Status, peer.Height)
 			continue
