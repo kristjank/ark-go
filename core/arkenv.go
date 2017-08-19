@@ -2,12 +2,15 @@ package core
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/dghubble/sling"
 	"github.com/kristjank/ark-go/arkcoin"
 )
 
@@ -68,33 +71,37 @@ func LoadActiveConfiguration(arknetwork ArkNetworkType) string {
 
 	selectedPeer := ""
 	EnvironmentParams.Network.Type = arknetwork
-	switch arknetwork {
-	case MAINNET:
-		log.Println("Active network is MAINNET")
-		selectedPeer = seedList[r1.Intn(len(seedList))]
-		log.Println("Random peer selected: ", selectedPeer)
+	//looping peers comunication until we get autoconfigure response
+	for selectedPeer == "" {
+		switch arknetwork {
+		case MAINNET:
+			log.Println("Active network is MAINNET")
+			selectedPeer = seedList[r1.Intn(len(seedList))]
+			log.Println("Random peer selected: ", selectedPeer)
 
-	case DEVNET:
-		log.Println("Active network is DEVNET")
-		selectedPeer = testSeedList[r1.Intn(len(testSeedList))]
-		log.Println("Random peer selected: ", selectedPeer)
-	}
+		case DEVNET:
+			log.Println("Active network is DEVNET")
+			selectedPeer = testSeedList[r1.Intn(len(testSeedList))]
+			log.Println("Random peer selected: ", selectedPeer)
+		}
 
-	//reading basic network params
-	res, err := http.Get("http://" + selectedPeer + "/api/loader/autoconfigure")
-	if err != nil {
-		log.Fatal("Error receiving autoloader params rest from: ", selectedPeer)
+		//reading basic network params
+		res, err := http.Get("http://" + selectedPeer + "/api/loader/autoconfigure")
+		if err != nil {
+			log.Fatal("Error receiving autoloader params rest from: ", selectedPeer, err.Error())
+			selectedPeer = ""
+		}
+		json.NewDecoder(res.Body).Decode(&EnvironmentParams)
 	}
-	json.NewDecoder(res.Body).Decode(&EnvironmentParams)
 
 	//reading fees
-	res, err = http.Get("http://" + selectedPeer + "/api/blocks/getfees")
+	res, err := http.Get("http://" + selectedPeer + "/api/blocks/getfees")
 	if err != nil {
 		log.Fatal("Error receiving fees params rest from: ", selectedPeer)
 	}
 	json.NewDecoder(res.Body).Decode(&EnvironmentParams)
 
-	//getting connected peer params
+	//getting connected peer params from peer
 	peerParams := strings.Split(selectedPeer, ":")
 	peerRes := new(PeerResponse)
 	res, err = http.Get("http://" + selectedPeer + "/api/peers/get/?ip=" + peerParams[0] + "&port=" + peerParams[1])
@@ -105,26 +112,46 @@ func LoadActiveConfiguration(arknetwork ArkNetworkType) string {
 	//saving peer parameters to globals
 	EnvironmentParams.Network.ActivePeer = peerRes.SinglePeer
 
-	//Getting a list of peers with same version as first one and status ok
-	//TODO - if version is too low ? separate settings for core package? think about it...
-	res, err = http.Get("http://" + selectedPeer + "/api/peers/?version=" + peerRes.SinglePeer.Version + "&status=OK&port=" + peerParams[1])
-	if err != nil {
-		log.Fatal("Error receiving peer list status from: ", selectedPeer, err.Error(), res.StatusCode)
+	return "http://" + optimizePeerList(selectedPeer)
+}
+
+func optimizePeerList(selectedPeer string) string {
+	tmpClient := &ArkClient{
+		sling: sling.New().Client(nil).Base("http://"+selectedPeer).
+			Add("nethash", EnvironmentParams.Network.Nethash).
+			Add("version", EnvironmentParams.Network.ActivePeer.Version).
+			Add("port", strconv.Itoa(EnvironmentParams.Network.ActivePeer.Port)).
+			Add("Content-Type", "application/json"),
 	}
-	json.NewDecoder(res.Body).Decode(peerRes)
-	EnvironmentParams.Network.PeerList = peerRes.Peers
+
+	peerResp, err, _ := tmpClient.GetAllPeers()
+	if err.ErrorObj != nil {
+		log.Println("Error getting peer list")
+		return selectedPeer
+	}
+
+	EnvironmentParams.Network.PeerList = peerResp.Peers
 
 	//Clean the peer list (filters not working as they shoud) - so checking again here
+	maxHeight := EnvironmentParams.Network.ActivePeer.Height
 	for i := len(EnvironmentParams.Network.PeerList) - 1; i >= 0; i-- {
 		peer := EnvironmentParams.Network.PeerList[i]
+
 		// Condition to decide if current element has to be deleted:
-		// Also skipping nodes that are more then 15 blocks off current chain height
-		if peer.Status != "OK" || (peer.Height+15) <= EnvironmentParams.Network.ActivePeer.Height || peer.Port != EnvironmentParams.Network.ActivePeer.Port {
+		if peer.Status != "OK" && peer.Port != EnvironmentParams.Network.ActivePeer.Port {
 			EnvironmentParams.Network.PeerList = append(EnvironmentParams.Network.PeerList[:i], EnvironmentParams.Network.PeerList[i+1:]...)
 			log.Println("Removing peer", peer.IP, peer.Status, peer.Height)
+			continue
+		}
+		//if all is ok and height is higher - we preffer peers with higher hight
+		if peer.Height > maxHeight {
+			log.Println("Setting new active peer, found OK peer with bigger block height", peer.Height, maxHeight)
+			EnvironmentParams.Network.ActivePeer = peer
+			selectedPeer = fmt.Sprintf("%s:%d", peer.IP, peer.Port)
+			maxHeight = peer.Height
 		}
 	}
-	return "http://" + selectedPeer
+	return selectedPeer
 }
 
 func switchNetwork(arkNetwork ArkNetworkType) {
