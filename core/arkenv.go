@@ -118,8 +118,8 @@ func LoadActiveConfiguration(arknetwork ArkNetworkType) string {
 	for i := len(EnvironmentParams.Network.PeerList) - 1; i >= 0; i-- {
 		peer := EnvironmentParams.Network.PeerList[i]
 		// Condition to decide if current element has to be deleted:
-		// Also skipping nodes that are more then 50 blocks off current chain height
-		if peer.Status != "OK" || (peer.Height+40) <= EnvironmentParams.Network.ActivePeer.Height || peer.Port != EnvironmentParams.Network.ActivePeer.Port {
+		// Also skipping nodes that are more then 15 blocks off current chain height
+		if peer.Status != "OK" || (peer.Height+15) <= EnvironmentParams.Network.ActivePeer.Height || peer.Port != EnvironmentParams.Network.ActivePeer.Port {
 			EnvironmentParams.Network.PeerList = append(EnvironmentParams.Network.PeerList[:i], EnvironmentParams.Network.PeerList[i+1:]...)
 			log.Println("Removing peer", peer.IP, peer.Status, peer.Height)
 		}
