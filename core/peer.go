@@ -3,7 +3,7 @@ package core
 import (
 	"net/http"
 
-	"github.com/kristjank/goark-node/api/model"
+	"github.com/kristjank/goark-node/base/model"
 )
 
 //PeerResponse structure for call /peer/list
@@ -41,12 +41,26 @@ type PeerQueryParams struct {
 func (s *ArkClient) ListPeers(params PeerQueryParams) (PeerResponse, *http.Response, error) {
 	peerResponse := new(PeerResponse)
 	peerResponseError := new(ArkApiResponseError)
-	resp, err := s.sling.New().Get("api/peers/").QueryStruct(&params).Receive(peerResponse, peerResponseError)
+	resp, err := s.sling.New().Get("peer/list").QueryStruct(&params).Receive(peerResponse, peerResponseError)
 	if err == nil {
 		err = peerResponseError
 	}
 
 	return *peerResponse, resp, err
+}
+
+//GetAllPeers function returns list of peers from ArkNode
+func (s *ArkClient) GetAllPeers() (PeerResponse, ArkApiResponseError, *http.Response) {
+	peerResponse := new(PeerResponse)
+	peerResponseError := new(ArkApiResponseError)
+	resp, err := s.sling.New().Get("peer/list").Receive(peerResponse, peerResponseError)
+
+	if err != nil {
+		peerResponseError.ErrorMessage = err.Error()
+		peerResponseError.ErrorObj = err
+	}
+
+	return *peerResponse, *peerResponseError, resp
 }
 
 //GetPeer function returns one peer with params
