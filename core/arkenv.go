@@ -72,7 +72,10 @@ func LoadActiveConfiguration(arknetwork ArkNetworkType) string {
 	selectedPeer := ""
 	EnvironmentParams.Network.Type = arknetwork
 	//looping peers comunication until we get autoconfigure response
-	for selectedPeer == "" {
+	i := 0
+	for selectedPeer == "" && i < 10 {
+
+		i++
 		switch arknetwork {
 		case MAINNET:
 			log.Println("Active network is MAINNET")
@@ -84,14 +87,18 @@ func LoadActiveConfiguration(arknetwork ArkNetworkType) string {
 			selectedPeer = testSeedList[r1.Intn(len(testSeedList))]
 			log.Println("Random peer selected: ", selectedPeer)
 		}
-
+		log.Println("Connecting to random peer", selectedPeer, r1.Intn(len(seedList)))
 		//reading basic network params
 		res, err := http.Get("http://" + selectedPeer + "/api/loader/autoconfigure")
 		if err != nil {
-			log.Fatal("Error receiving autoloader params rest from: ", selectedPeer, err.Error())
+			log.Fatal("Error receiving autoloader params rest from: ", selectedPeer, " Error: ", err.Error())
 			selectedPeer = ""
 		}
 		json.NewDecoder(res.Body).Decode(&EnvironmentParams)
+	}
+
+	if selectedPeer == "" {
+		log.Fatal("Unable to coonnect to blockchain, exiting")
 	}
 
 	//reading fees
