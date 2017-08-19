@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -69,7 +68,6 @@ func (s *ArkClient) SwitchPeer() *ArkClient {
 
 	//IF internal PeerList is empty - we do a full switch network - init from start
 	if len(EnvironmentParams.Network.PeerList) == 0 {
-		log.Println("SwitchPeer - doing full network init from start")
 		switchNetwork(EnvironmentParams.Network.Type)
 		return NewArkClient(nil)
 	}
@@ -84,7 +82,6 @@ func (s *ArkClient) SwitchPeer() *ArkClient {
 	if err == nil && resPeer.Success {
 		EnvironmentParams.Network.ActivePeer.Height = resPeer.Header.Height
 	}
-	log.Println("ArkApiClient switched peer connection to ", BaseURL)
 	return NewArkClient(nil)
 }
 

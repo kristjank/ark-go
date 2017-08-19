@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/kristjank/goark-node/api/model"
+	"github.com/kristjank/goark-node/base/model"
 )
 
 //GetFullBlocksFromPeer function returns a full list of blocks from current last block on. A random number of blocks is returned,
