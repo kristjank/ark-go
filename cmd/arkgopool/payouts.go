@@ -123,10 +123,7 @@ func SendPayments(silent bool) {
 		key1 = arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ActiveCoinConfig)
 		pubKey = hex.EncodeToString(key1.PublicKey.Serialize())
 
-		//tmptesting REMOVE BEFORE BUILD
 		key1 = arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ActiveCoinConfig)
-		pubKey = "02c7455bebeadde04728441e0f57f82f972155c088252bf7c1365eb0dc84fbf5de"
-		//pubKey = "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"
 
 		isLinked = true
 	} else {
