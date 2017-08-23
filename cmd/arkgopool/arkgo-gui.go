@@ -269,8 +269,8 @@ func main() {
 			color.Set(color.FgHiGreen)
 			listPaymentsDB()
 			pause()
-			listPaymentsDetailsFromDB()
-			pause()
+			//listPaymentsDetailsFromDB()
+			//pause()
 			color.Unset()
 		}
 	}

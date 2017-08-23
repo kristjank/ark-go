@@ -330,15 +330,14 @@ func deliverPayload(payload core.TransactionPayload, votersEarnings []core.Deleg
 		if res.Success {
 			color.Set(color.FgHiGreen)
 			log.Info("Transactions sent with Success,", httpresponse.Status, res.TransactionIDs)
-			log.Println("Transactions sent with Success,", httpresponse.Status)
-			log.Println("Audit log of sent transactions is in file paymentLog.csv!")
+			fmt.Println("Transactions sent with Success,", httpresponse.Status)
 			log2csv(tmpPayload, res.TransactionIDs, votersEarnings, filecsv, "OK")
 		} else {
 			color.Set(color.FgHiRed)
 			log.Error("Failed sending transactions", res.Message, res.Error, httpresponse.Status)
 			log2csv(tmpPayload, nil, votersEarnings, filecsv, res.Error)
 			fmt.Println()
-			fmt.Println("Failed", res.Error)
+			fmt.Println("Failed sending transactions", res.Error)
 		}
 		arkclient = arkclient.SwitchPeer()
 
