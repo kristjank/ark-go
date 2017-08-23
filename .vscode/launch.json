@@ -1,0 +1,32 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "!!!RUN SILET",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${workspaceRoot}/cmd/arkgopool/arkgo-gui.go",
+            "env": {},
+            "args": ["-silent=true"],
+            "showLog": true
+        },
+
+        {
+            "name": "RUN MENU",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${workspaceRoot}/cmd/arkgopool/arkgo-gui.go",
+            "env": {},
+            "args": [],
+            "showLog": true
+        }
+    ]
+}

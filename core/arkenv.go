@@ -138,6 +138,7 @@ func optimizePeerList(selectedPeer string) string {
 	}
 
 	EnvironmentParams.Network.PeerList = peerResp.Peers
+	log.Println("Start to optimize peer list, currently ", len(EnvironmentParams.Network.PeerList), " peers.")
 
 	//Clean the peer list (filters not working as they shoud) - so checking again here
 	maxHeight := EnvironmentParams.Network.ActivePeer.Height
@@ -147,7 +148,7 @@ func optimizePeerList(selectedPeer string) string {
 		// Condition to decide if current element has to be deleted:
 		if peer.Status != "OK" || peer.Port != EnvironmentParams.Network.ActivePeer.Port {
 			EnvironmentParams.Network.PeerList = append(EnvironmentParams.Network.PeerList[:i], EnvironmentParams.Network.PeerList[i+1:]...)
-			log.Println("Removing peer", peer.IP, peer.Status, peer.Height)
+			//log.Println("Removing peer", peer.IP, peer.Status, peer.Height)
 			continue
 		}
 		//if all is ok and height is higher - we preffer peers with higher hight
@@ -158,6 +159,18 @@ func optimizePeerList(selectedPeer string) string {
 			maxHeight = peer.Height
 		}
 	}
+
+	//removing peers with difference more then 10 blocks, that is 10x8s behing mainheight
+	for i := len(EnvironmentParams.Network.PeerList) - 1; i >= 0; i-- {
+		peer := EnvironmentParams.Network.PeerList[i]
+
+		if maxHeight-peer.Height > 10 {
+			EnvironmentParams.Network.PeerList = append(EnvironmentParams.Network.PeerList[:i], EnvironmentParams.Network.PeerList[i+1:]...)
+			//log.Println("Removing peer, based on maxheight difference condition", peer.IP, peer.Status, peer.Height)
+			continue
+		}
+	}
+	log.Println("End of peer optimization, remaining ", len(EnvironmentParams.Network.PeerList), " peers.")
 	return selectedPeer
 }
 

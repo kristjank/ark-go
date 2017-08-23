@@ -193,7 +193,6 @@ func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio
 //GetFidelityFactor returns vote duration in HOURS
 //TODO rename
 func (s *ArkClient) GetFidelityFactor(address string) int {
-
 	transQuery := TransactionQueryParams{SenderID: address}
 
 	transResp, _, _ := s.ListTransaction(transQuery)
