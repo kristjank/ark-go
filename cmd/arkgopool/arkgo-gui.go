@@ -40,6 +40,18 @@ func initLogger() {
 
 }
 
+func initializeBoltClient() {
+	var err error
+	arkpooldb, err = storm.Open(viper.GetString("client.dbfilename"))
+
+	if err != nil {
+		log.Panic(err.Error())
+	}
+
+	log.Println("DB Opened at:", arkpooldb.Path)
+	//defer arkpooldb.Close()
+}
+
 func readAccountData() (string, string) {
 	fmt.Println("\nEnter account passphrase")
 	fmt.Print("-->")

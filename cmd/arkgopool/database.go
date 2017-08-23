@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/asdine/storm"
 	"github.com/kristjank/ark-go/cmd/model"
 	"github.com/kristjank/ark-go/core"
 	log "github.com/sirupsen/logrus"
@@ -56,18 +55,6 @@ func listPaymentsDB() {
 	for _, element := range results {
 		fmt.Println(element)
 	}
-}
-
-func initializeBoltClient() {
-	var err error
-	arkpooldb, err = storm.Open(viper.GetString("client.dbfilename"))
-
-	if err != nil {
-		log.Panic(err.Error())
-	}
-
-	log.Println("DB Opened at:", arkpooldb.Path)
-	//defer arkpooldb.Close()
 }
 
 func createPaymentRecord() model.PaymentRecord {
