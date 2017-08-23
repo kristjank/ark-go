@@ -295,6 +295,10 @@ func deliverPayload(payload core.TransactionPayload, votersEarnings []core.Deleg
 	//calculating number of chunks (based on 20tx in one chunk to send to one peer)
 	var divided [][]*core.Transaction
 	numPeers := len(payload.Transactions) / 20
+	if numPeers == 0 {
+		numPeers = 1
+	}
+
 	chunkSize := (len(payload.Transactions) + numPeers - 1) / numPeers
 	if chunkSize == 0 {
 		chunkSize = 1
