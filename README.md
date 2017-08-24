@@ -96,4 +96,4 @@ Ark address:``AUgTuukcKeE4XFdzaK6rEHMD5FLmVBSmHk``
 # License
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Copyright (c) 2017 ARK
+Copyright (c) 2017 ARK, chris
