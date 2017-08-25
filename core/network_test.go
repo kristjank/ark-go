@@ -53,11 +53,14 @@ func TestNewPeerArkApiClient(t *testing.T) {
 
 func TestGetRandomXPeers(t *testing.T) {
 	arkapi := NewArkClient(nil)
-	arkapi = arkapi.SetActiveConfiguration(DEVNET)
+	for i := 0; i < 20; i++ {
+		arkapi = arkapi.SetActiveConfiguration(DEVNET)
 
-	peers := arkapi.GetRandomXPeers(5)
+		peers := arkapi.GetRandomXPeers(5)
 
-	for _, el := range peers {
-		log.Println(el)
+		for _, el := range peers {
+			log.Println(el)
+		}
+		arkapi = arkapi.SetActiveConfiguration(DEVNET)
 	}
 }
