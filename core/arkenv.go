@@ -98,7 +98,7 @@ func LoadActiveConfiguration(arknetwork ArkNetworkType) string {
 	}
 
 	if selectedPeer == "" {
-		log.Fatal("Unable to coonnect to blockchain, exiting")
+		log.Fatal("Unable to connect to blockchain, exiting")
 	}
 
 	//reading fees
@@ -146,7 +146,7 @@ func optimizePeerList(selectedPeer string) string {
 		peer := EnvironmentParams.Network.PeerList[i]
 
 		// Condition to decide if current element has to be deleted:
-		if peer.Status != "OK" || peer.Port != EnvironmentParams.Network.ActivePeer.Port {
+		if peer.Status != "OK" || peer.Port != EnvironmentParams.Network.ActivePeer.Port || peer.Version != "1.0.1" {
 			EnvironmentParams.Network.PeerList = append(EnvironmentParams.Network.PeerList[:i], EnvironmentParams.Network.PeerList[i+1:]...)
 			//log.Println("Removing peer", peer.IP, peer.Status, peer.Height)
 			continue

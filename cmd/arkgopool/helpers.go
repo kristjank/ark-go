@@ -8,10 +8,12 @@ import (
 	"crypto/sha256"
 	"encoding/csv"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/kristjank/ark-go/core"
 	log "github.com/sirupsen/logrus"
@@ -39,9 +41,9 @@ func checkConfigSharingRatio() bool {
 	return true
 }
 
-func log2csv(payload core.TransactionPayload, txids []string, voterCalcs []core.DelegateDataProfit, filecsv *os.File, status string) {
+func log2csv(payload core.TransactionPayload, txids []string, filecsv *os.File, status string) {
 	records := [][]string{
-		{"ADDRESS", "SENT AMOUNT", "WALLET BALANCE", "Fidelity(h)", "TimeStamp", "TxId", "ApiResponse"},
+		{"ADDRESS", "SENT AMOUNT", "TimeStamp", "TxId", "ApiResponse"},
 	}
 
 	for ix, el := range payload.Transactions {
@@ -49,18 +51,11 @@ func log2csv(payload core.TransactionPayload, txids []string, voterCalcs []core.
 		timeTx := core.GetTransactionTime(el.Timestamp)
 		localTime := timeTx.Local()
 
-		wBalance := "N/A"
-		wDuration := "N/A"
-		if ix < len(voterCalcs) {
-			wBalance = strconv.FormatFloat(voterCalcs[ix].VoteWeight, 'f', -1, 64)
-			wDuration = strconv.FormatInt(int64(voterCalcs[ix].VoteDuration), 10)
-		}
-
 		var line []string
 		if txids != nil {
-			line = []string{el.RecipientID, strconv.FormatFloat(float64(el.Amount)/float64(core.SATOSHI), 'f', -1, 64), wBalance, wDuration, localTime.Format("2006-01-02 15:04:05"), txids[ix], status}
+			line = []string{el.RecipientID, strconv.FormatFloat(float64(el.Amount)/float64(core.SATOSHI), 'f', -1, 64), localTime.Format("2006-01-02 15:04:05"), txids[ix], status}
 		} else {
-			line = []string{el.RecipientID, strconv.FormatFloat(float64(el.Amount)/float64(core.SATOSHI), 'f', -1, 64), wBalance, wDuration, localTime.Format("2006-01-02 15:04:05"), "N/A", status}
+			line = []string{el.RecipientID, strconv.FormatFloat(float64(el.Amount)/float64(core.SATOSHI), 'f', -1, 64), localTime.Format("2006-01-02 15:04:05"), "N/A", status}
 		}
 
 		records = append(records, line)
@@ -184,4 +179,20 @@ func getRandHash() []byte {
 	trHashBytes.Write([]byte(a))
 
 	return trHashBytes.Sum(nil)
+}
+
+func createLogFolder() string {
+	tt := time.Now()
+
+	folderName := fmt.Sprintf("%d-%02d-%02dT%02d-%02d-%02d",
+		tt.Year(), tt.Month(), tt.Day(),
+		tt.Hour(), tt.Minute(), tt.Second())
+	log.Println("log/" + folderName)
+
+	err := os.MkdirAll("log/"+folderName, os.ModePerm)
+	if err != nil {
+		log.Error(err.Error())
+	}
+
+	return folderName
 }
