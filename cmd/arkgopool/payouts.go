@@ -123,7 +123,7 @@ func SendPayments(silent bool) {
 		key1 = arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ActiveCoinConfig)
 		pubKey = hex.EncodeToString(key1.PublicKey.Serialize())
 
-		key1 = arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ActiveCoinConfig)
+		//pubKey = "02c7455bebeadde04728441e0f57f82f972155c088252bf7c1365eb0dc84fbf5de"
 
 		isLinked = true
 	} else {
@@ -279,9 +279,12 @@ func SendPayments(silent bool) {
 	if c == []byte("Y")[0] || c == []byte("y")[0] {
 
 		fmt.Println("Sending rewards to voters and sharing accounts.............")
-		log.Info("Starting automated payment...")
+		log.Info("Starting automated payment... ")
 
-		deliverPayload(payload, votersEarnings)
+		splitAndDeliverPayload(payload)
+
+		fmt.Println("Automated Payment complete. Please check the logs folder... ")
+		log.Info("Automated Payment complete. Please check the logs folder... ")
 
 		if !silent {
 			reader.ReadString('\n')
@@ -291,14 +294,14 @@ func SendPayments(silent bool) {
 	}
 }
 
-func deliverPayload(payload core.TransactionPayload, votersEarnings []core.DelegateDataProfit) {
+func splitAndDeliverPayload(payload core.TransactionPayload) {
 	//calculating number of chunks (based on 20tx in one chunk to send to one peer)
+	payoutsFolderName := createLogFolder()
 	var divided [][]*core.Transaction
 	numPeers := len(payload.Transactions) / 20
 	if numPeers == 0 {
 		numPeers = 1
 	}
-
 	chunkSize := (len(payload.Transactions) + numPeers - 1) / numPeers
 	if chunkSize == 0 {
 		chunkSize = 1
@@ -314,62 +317,46 @@ func deliverPayload(payload core.TransactionPayload, votersEarnings []core.Deleg
 	}
 	//end of spliting transactions
 
-	//starting to send splits out
-	filecsv, _ := os.Create("paymentLog.csv")
-
 	var tmpPayload core.TransactionPayload
 	splitcout := 0
 	for chunkIx, h := range divided {
 		tmpPayload.Transactions = h
 		splitcout += len(h)
 
-		res, httpresponse, _ := arkclient.PostTransaction(tmpPayload)
-
-		log.Info("Sending ", len(h), " transactions to peer ", arkclient.GetActivePeer().IP, " batch ", chunkIx+1)
-
-		if res.Success {
-			color.Set(color.FgHiGreen)
-			log.Info("Transactions sent with Success,", httpresponse.Status, res.TransactionIDs)
-			fmt.Println("Transactions sent with Success,", httpresponse.Status)
-			log2csv(tmpPayload, res.TransactionIDs, votersEarnings, filecsv, "OK")
-		} else {
-			color.Set(color.FgHiRed)
-			log.Error("Failed sending transactions", res.Message, res.Error, httpresponse.Status)
-			log2csv(tmpPayload, nil, votersEarnings, filecsv, res.Error)
-			fmt.Println()
-			fmt.Println("Failed sending transactions", res.Error)
-		}
-		arkclient = arkclient.SwitchPeer()
+		deliverPayloadThreaded(tmpPayload, chunkIx, payoutsFolderName)
 
 	}
 	if splitcout != len(payload.Transactions) {
 		log.Info("TX spliting not OK")
 	}
-	filecsv.Close()
 }
 
-func deliverPayloadThreaded(tmpPayload core.TransactionPayload, chunkIx int, ) {
-	
-	
-	
-	filecsv, _ := os.Create("paymentLog.csv")
-	res, httpresponse, _ := arkclient.PostTransaction(tmpPayload)
+func deliverPayloadThreaded(tmpPayload core.TransactionPayload, chunkIx int, logFolder string) {
+	numberOfPeers2MultiBroadCastTo := 5
+	log.Info("Starting multibroadcast/multithreaded payout")
+	peers := arkclient.GetRandomXPeers(numberOfPeers2MultiBroadCastTo)
+	for i := 0; i < numberOfPeers2MultiBroadCastTo; i++ {
+		wg.Add(1)
 
-	log.Info("Sending ", len(h), " transactions to peer ", arkclient.GetActivePeer().IP, " batch ", chunkIx+1)
+		//treaded function
+		go func(tmpPayload core.TransactionPayload, peer core.Peer, chunkIx int, logFolder string) {
+			filename := fmt.Sprintf("Batch_%2d_Peer%s.csv", chunkIx, peer.IP)
+			filecsv, _ := os.Create("log/" + logFolder + "/" + filename)
 
-	if res.Success {
-		color.Set(color.FgHiGreen)
-		log.Info("Transactions sent with Success,", httpresponse.Status, res.TransactionIDs)
-		fmt.Println("Transactions sent with Success,", httpresponse.Status)
-		log2csv(tmpPayload, res.TransactionIDs, votersEarnings, filecsv, "OK")
-	} else {
-		color.Set(color.FgHiRed)
-		log.Error("Failed sending transactions", res.Message, res.Error, httpresponse.Status)
-		log2csv(tmpPayload, nil, votersEarnings, filecsv, res.Error)
-		fmt.Println()
-		fmt.Println("Failed sending transactions", res.Error)
+			arkTmpClient := core.NewArkClientFromPeer(peer)
+			res, _, _ := arkTmpClient.PostTransaction(tmpPayload)
+			if res.Success {
+				color.Set(color.FgHiGreen)
+				log2csv(tmpPayload, res.TransactionIDs, filecsv, "OK")
+			} else {
+				color.Set(color.FgHiRed)
+				log2csv(tmpPayload, nil, filecsv, res.Error)
+			}
+			filecsv.Close()
+			defer wg.Done()
+
+		}(tmpPayload, peers[i], chunkIx, logFolder)
 	}
-	filecsv.Close()
 }
 
 func calcFidelity(element core.DelegateDataProfit) float64 {

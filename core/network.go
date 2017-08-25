@@ -48,7 +48,7 @@ func NewArkClient(httpClient *http.Client) *ArkClient {
 }
 
 //NewArkClient creations with supported network
-func NewArkClientForPeer(peer Peer) *ArkClient {
+func NewArkClientFromPeer(peer Peer) *ArkClient {
 	BaseURL = "http://" + peer.IP + ":" + strconv.Itoa(peer.Port)
 	EnvironmentParams.Network.ActivePeer = peer
 	return &ArkClient{
