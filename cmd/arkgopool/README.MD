@@ -147,4 +147,20 @@ Thank you for checking in.
 
 For more information about ark-go see the core package. That is where it all happens: [/core](/core)
 
+## Authors
+Chris (kristjan.kosic@gmail.com), with a lot of help from FX Thoorens fx@ark.io and ARK Community
+
+## Contributors
+Jarunik (jens@hviid.ch), with a lot of help from Chris
+
+## Support this project
+![Ark Logo](/raw/ark-logo-60x60.png)
+Ark address:``AUgTuukcKeE4XFdzaK6rEHMD5FLmVBSmHk``
+
+
+# License
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+Copyright (c) 2017 ARK, chris
+
 --chris
