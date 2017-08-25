@@ -348,6 +348,30 @@ func deliverPayload(payload core.TransactionPayload, votersEarnings []core.Deleg
 	filecsv.Close()
 }
 
+func deliverPayloadThreaded(tmpPayload core.TransactionPayload, chunkIx int, ) {
+	
+	
+	
+	filecsv, _ := os.Create("paymentLog.csv")
+	res, httpresponse, _ := arkclient.PostTransaction(tmpPayload)
+
+	log.Info("Sending ", len(h), " transactions to peer ", arkclient.GetActivePeer().IP, " batch ", chunkIx+1)
+
+	if res.Success {
+		color.Set(color.FgHiGreen)
+		log.Info("Transactions sent with Success,", httpresponse.Status, res.TransactionIDs)
+		fmt.Println("Transactions sent with Success,", httpresponse.Status)
+		log2csv(tmpPayload, res.TransactionIDs, votersEarnings, filecsv, "OK")
+	} else {
+		color.Set(color.FgHiRed)
+		log.Error("Failed sending transactions", res.Message, res.Error, httpresponse.Status)
+		log2csv(tmpPayload, nil, votersEarnings, filecsv, res.Error)
+		fmt.Println()
+		fmt.Println("Failed sending transactions", res.Error)
+	}
+	filecsv.Close()
+}
+
 func calcFidelity(element core.DelegateDataProfit) float64 {
 	fAmount2Send := element.EarnedAmountXX
 	//FIDELITY
