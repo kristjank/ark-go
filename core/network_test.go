@@ -44,7 +44,7 @@ func TestNewPeerArkApiClient(t *testing.T) {
 
 	log.Println(arkapi.GetActivePeer())
 	peer := EnvironmentParams.Network.PeerList[3]
-	arkapi1 := NewArkClientForPeer(peer)
+	arkapi1 := NewArkClientFromPeer(peer)
 	log.Println("New arkapi for peer", arkapi1.GetActivePeer())
 
 	log.Println(arkapi1.GetActivePeer())
