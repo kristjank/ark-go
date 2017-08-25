@@ -53,6 +53,7 @@ func TestNewPeerArkApiClient(t *testing.T) {
 
 func TestGetRandomXPeers(t *testing.T) {
 	arkapi := NewArkClient(nil)
+	arkapi = arkapi.SetActiveConfiguration(DEVNET)
 
 	peers := arkapi.GetRandomXPeers(5)
 
