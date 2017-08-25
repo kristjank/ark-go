@@ -56,7 +56,7 @@ func TestGetRandomXPeers(t *testing.T) {
 	for i := 0; i < 20; i++ {
 		arkapi = arkapi.SetActiveConfiguration(DEVNET)
 
-		peers := arkapi.GetRandomXPeers(5)
+		peers := arkapi.GetRandomXPeers(20)
 
 		for _, el := range peers {
 			log.Println(el)
