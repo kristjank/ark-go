@@ -38,3 +38,25 @@ func TestSwitchNetwork(t *testing.T) {
 	log.Println(arkapi.GetActivePeer())
 	log.Println(t.Name(), "Success")
 }
+
+func TestNewPeerArkApiClient(t *testing.T) {
+	arkapi := NewArkClient(nil)
+
+	log.Println(arkapi.GetActivePeer())
+	peer := EnvironmentParams.Network.PeerList[3]
+	arkapi1 := NewArkClientForPeer(peer)
+	log.Println("New arkapi for peer", arkapi1.GetActivePeer())
+
+	log.Println(arkapi1.GetActivePeer())
+	log.Println(t.Name(), "Success")
+}
+
+func TestGetRandomXPeers(t *testing.T) {
+	arkapi := NewArkClient(nil)
+
+	peers := arkapi.GetRandomXPeers(5)
+
+	for _, el := range peers {
+		log.Println(el)
+	}
+}

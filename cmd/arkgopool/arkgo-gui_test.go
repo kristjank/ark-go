@@ -4,8 +4,11 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"log"
+	"os"
 	"testing"
+	"time"
 
 	"github.com/kristjank/ark-go/arkcoin"
 )
@@ -73,4 +76,18 @@ func TestSave1(t *testing.T) {
 	if p2 != pass {
 		t.Error("Keys2 don't match")
 	}*/
+}
+
+func TestCreateLogFolder(t *testing.T) {
+	tt := time.Now()
+
+	folderName := fmt.Sprintf("%d-%02d-%02dT%02d-%02d-%02d",
+		tt.Year(), tt.Month(), tt.Day(),
+		tt.Hour(), tt.Minute(), tt.Second())
+	log.Println("log/" + folderName)
+
+	err := os.MkdirAll("log/"+folderName, os.ModePerm)
+	if err != nil {
+		t.Error(err.Error())
+	}
 }

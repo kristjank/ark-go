@@ -47,6 +47,19 @@ func NewArkClient(httpClient *http.Client) *ArkClient {
 	}
 }
 
+//NewArkClient creations with supported network
+func NewArkClientFromPeer(peer Peer) *ArkClient {
+	BaseURL = "http://" + peer.IP + ":" + strconv.Itoa(peer.Port)
+	EnvironmentParams.Network.ActivePeer = peer
+	return &ArkClient{
+		sling: sling.New().Base(BaseURL).
+			Add("nethash", EnvironmentParams.Network.Nethash).
+			Add("version", EnvironmentParams.Network.ActivePeer.Version).
+			Add("port", strconv.Itoa(EnvironmentParams.Network.ActivePeer.Port)).
+			Add("Content-Type", "application/json"),
+	}
+}
+
 //TestMethodNewArkClient creations with supported network
 //A test method for local node testing when implementid
 //Not for production use
@@ -90,4 +103,18 @@ func (s *ArkClient) SwitchPeer() *ArkClient {
 //updates when calling SwitchPeer or Network is Changed
 func (s *ArkClient) GetActivePeer() Peer {
 	return EnvironmentParams.Network.ActivePeer
+}
+
+//GetRandomXPeers returns requested number of randomly selected peers from healthy peer list
+//used in multiplethreadbroadcast
+func (s *ArkClient) GetRandomXPeers(numberOfPeers int) []Peer {
+	s1 := rand.NewSource(time.Now().UnixNano())
+	r1 := rand.New(s1)
+
+	nrAllPeers := len(EnvironmentParams.Network.PeerList)
+	var retPeers []Peer
+	for i := 0; i < numberOfPeers; i++ {
+		retPeers = append(retPeers, EnvironmentParams.Network.PeerList[r1.Intn(nrAllPeers)])
+	}
+	return retPeers
 }

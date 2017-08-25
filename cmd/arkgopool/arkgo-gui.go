@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"regexp"
 	"runtime"
+	"sync"
 
 	log "github.com/sirupsen/logrus"
 
@@ -25,6 +26,7 @@ import (
 var arkclient = core.NewArkClient(nil)
 var reader = bufio.NewReader(os.Stdin)
 var arkpooldb *storm.DB
+var wg sync.WaitGroup
 
 func initLogger() {
 	// Log as JSON instead of the default ASCII formatter.
@@ -219,8 +221,10 @@ func main() {
 		log.Info("Silent Mode active")
 		log.Info("Starting to send payments")
 		SendPayments(true)
-		log.Info("Exiting silent mode and ark-go")
+		log.Info("Waiting for threads to complete")
 		color.Unset()
+		wg.Wait()
+		log.Info("Exiting silent mode and arkgopool")
 		os.Exit(1985)
 	}
 
@@ -243,8 +247,8 @@ func main() {
 			clearScreen()
 			color.Set(color.FgHiGreen)
 			SendPayments(false)
+			wg.Wait()
 			color.Unset()
-
 		case 3:
 			if core.EnvironmentParams.Network.Type == core.MAINNET {
 				arkclient = arkclient.SetActiveConfiguration(core.DEVNET)
