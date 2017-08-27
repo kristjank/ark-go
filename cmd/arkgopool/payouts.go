@@ -332,7 +332,7 @@ func splitAndDeliverPayload(payload core.TransactionPayload) {
 }
 
 func deliverPayloadThreaded(tmpPayload core.TransactionPayload, chunkIx int, logFolder string) {
-	numberOfPeers2MultiBroadCastTo := 5
+	numberOfPeers2MultiBroadCastTo := 12
 	log.Info("Starting multibroadcast/multithreaded payout")
 	peers := arkclient.GetRandomXPeers(numberOfPeers2MultiBroadCastTo)
 	for i := 0; i < numberOfPeers2MultiBroadCastTo; i++ {

@@ -140,13 +140,19 @@ func optimizePeerList(selectedPeer string) string {
 	EnvironmentParams.Network.PeerList = peerResp.Peers
 	log.Println("Start to optimize peer list, currently ", len(EnvironmentParams.Network.PeerList), " peers.")
 
+	//setting the version condition
+	versionString := "1.0.1"
+	if EnvironmentParams.Network.Type == DEVNET {
+		versionString = "1.1.0"
+	}
+
 	//Clean the peer list (filters not working as they shoud) - so checking again here
 	maxHeight := EnvironmentParams.Network.ActivePeer.Height
 	for i := len(EnvironmentParams.Network.PeerList) - 1; i >= 0; i-- {
 		peer := EnvironmentParams.Network.PeerList[i]
 
 		// Condition to decide if current element has to be deleted:
-		if peer.Status != "OK" || peer.Port != EnvironmentParams.Network.ActivePeer.Port || peer.Version != "1.0.1" {
+		if peer.Status != "OK" || peer.Port != EnvironmentParams.Network.ActivePeer.Port || peer.Version != versionString {
 			EnvironmentParams.Network.PeerList = append(EnvironmentParams.Network.PeerList[:i], EnvironmentParams.Network.PeerList[i+1:]...)
 			//log.Println("Removing peer", peer.IP, peer.Status, peer.Height)
 			continue
@@ -245,9 +251,6 @@ var seedList = [...]string{
 	"193.70.72.90:4001"}
 
 var testSeedList = [...]string{
-	"164.8.251.179:4002",
-	"164.8.251.172:4002",
-	"164.8.251.91:4002",
 	"167.114.43.48:4002",
 	"167.114.29.49:4002",
 	"167.114.43.43:4002",
