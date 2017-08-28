@@ -31,6 +31,9 @@ func DisplayCalculatedVoteRatio() {
 		isLinked = true
 	}
 
+	//TODO REMOVE BEFORE build
+	pubKey = "02c7455bebeadde04728441e0f57f82f972155c088252bf7c1365eb0dc84fbf5de"
+
 	params := core.DelegateQueryParams{PublicKey: pubKey}
 	deleResp, _, _ := arkclient.GetDelegate(params)
 	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"))
@@ -39,6 +42,7 @@ func DisplayCalculatedVoteRatio() {
 	sumEarned := 0.0
 	sumRatio := 0.0
 	sumShareEarned := 0.0
+	feeAmount := 0.0
 
 	color.Set(color.FgHiGreen)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
@@ -77,16 +81,30 @@ func DisplayCalculatedVoteRatio() {
 	costAmount := sumEarned * viper.GetFloat64("costs.shareratio")
 	reserveAmount := sumEarned * viper.GetFloat64("reserve.shareratio")
 	personalAmount := sumEarned * viper.GetFloat64("personal.shareratio")
+
+	//if decuting fees from voters is false - we take them into account here....
+	//must be at this spot - as it counts the number of voters to get the rewards - befor other
+	//transactions are added...
+	if !viper.GetBool("voters.deductTxFees") {
+		feeAmount = float64(int(len(votersEarnings))*int(core.EnvironmentParams.Fees.Send)) / float64(core.SATOSHI)
+		log.Info("Calculated fee amount: ", feeAmount)
+
+		//deducting feeAmount from reserve address
+		if feeAmount > reserveAmount {
+			log.Fatal("Not enough reserve money to pay the fees from reserve fund. Payment script stopped !!!")
+		}
+		reserveAmount -= float64(feeAmount)
+	}
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
 	fmt.Println("")
 	fmt.Println("Available amount:", sumEarned)
 	fmt.Println("Amount to voters:", sumShareEarned, viper.GetFloat64("voters.shareratio"))
 	fmt.Println("Amount to costs:", costAmount, viper.GetFloat64("costs.shareratio"))
 	fmt.Println("Amount to reserve:", reserveAmount, viper.GetFloat64("reserve.shareratio"))
-	fmt.Println("Amount to personal:", personalAmount, viper.GetFloat64("personal.shareratio"))
-
-	fmt.Println("Ratio calc check:", sumRatio, "(should be = 1)")
-	fmt.Println("Ratio share check:", float64(sumShareEarned)/float64(sumEarned), "should be=", viper.GetFloat64("voters.shareratio"))
+	fmt.Println("Amount for fees:", feeAmount, " if bigger > 0, it is deducted from reserve amount")
+	fmt.Println("Amount to personal:", personalAmount, " share ratio: ", viper.GetFloat64("personal.shareratio"))
+	fmt.Println("Voters Ratio calc check:", sumRatio, " (should be = 1)")
+	fmt.Println("Voters Ratio share check:", float64(sumShareEarned)/float64(sumEarned), "should be=", viper.GetFloat64("voters.shareratio"))
 
 	pause()
 }
@@ -95,15 +113,18 @@ func DisplayCalculatedVoteRatio() {
 func SendPayments(silent bool) {
 	payrec := createPaymentRecord()
 	arkpooldb.Save(&payrec)
+	log.Info("Starting payments calculation. Active peer for voter information: ", arkclient.GetActivePeer())
 
 	if !checkConfigSharingRatio() {
 		clearScreen()
 		color.Set(color.FgHiRed)
-		fmt.Println("--------------------------------------------------------------------------------------------------------------")
-		fmt.Println("")
-		fmt.Println("Unable to calculate. Check share ratio configuration.")
-		pause()
-		log.Error("Unable to calculcate. Check share ratio configuration.")
+		if !silent {
+			fmt.Println("--------------------------------------------------------------------------------------------------------------")
+			fmt.Println("")
+			fmt.Println("Unable to calculate. Check share ratio configuration.")
+			pause()
+		}
+		log.Fatal("Unable to calculcate. Check share ratio configuration in your config.toml.")
 		return
 	}
 
@@ -123,14 +144,13 @@ func SendPayments(silent bool) {
 		key1 = arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ActiveCoinConfig)
 		pubKey = hex.EncodeToString(key1.PublicKey.Serialize())
 
-		//pubKey = "02c7455bebeadde04728441e0f57f82f972155c088252bf7c1365eb0dc84fbf5de"
-
 		isLinked = true
 	} else {
 		p1, p2 = readAccountData()
 		key1 = arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ActiveCoinConfig)
 	}
 
+	pubKey = "02c7455bebeadde04728441e0f57f82f972155c088252bf7c1365eb0dc84fbf5de"
 	params := core.DelegateQueryParams{PublicKey: pubKey}
 	var payload core.TransactionPayload
 
@@ -140,13 +160,12 @@ func SendPayments(silent bool) {
 	sumEarned := 0.0
 	sumRatio := 0.0
 	sumShareEarned := 0.0
-	feeAmount := 0
+	feeAmount := 0.0
 
 	clearScreen()
 
+	//calculating voter earnings
 	for _, element := range votersEarnings {
-		//Logging history to DB
-
 		sumEarned += element.EarnedAmount100
 		sumShareEarned += element.EarnedAmountXX
 		sumRatio += element.VoteWeightShare
@@ -162,9 +181,9 @@ func SendPayments(silent bool) {
 			log.Info("Voters Fee deduction enabled")
 		}
 
-		//only payout for earning higher then minamount. - the earned amount remains in the loop for next payment
+		//only payout for voter earning higher then minamount. - the earned amount remains in the loop for next payment
 		//to disable set it to 0.0
-		if element.EarnedAmountXX >= viper.GetFloat64("voters.minamount") && txAmount2Send > 0 {
+		if float64(txAmount2Send) > viper.GetFloat64("voters.minamount") && txAmount2Send > 0 {
 			tx := core.CreateTransaction(element.Address, txAmount2Send, viper.GetString("voters.txdescription"), p1, p2)
 			payload.Transactions = append(payload.Transactions, tx)
 
@@ -173,26 +192,45 @@ func SendPayments(silent bool) {
 		}
 	}
 
-	//if decuting fees from voters is false - we take them into account here....
-	//must be at this spot - as it counts the number of voters to get the rewards - befor other
-	//transactions are added...
-	if !viper.GetBool("voters.deductTxFees") {
-		feeAmount = int(len(payload.Transactions)) * int(core.EnvironmentParams.Fees.Send)
-		payrec.FeeAmount = feeAmount
-	}
-
 	//Cost & reserve fund calculation
 	costAmount := sumEarned * viper.GetFloat64("costs.shareratio")
 	reserveAmount := sumEarned * viper.GetFloat64("reserve.shareratio")
 	personalAmount := sumEarned * viper.GetFloat64("personal.shareratio")
 
+	//if decuting fees from voters is false - we take them into account here....
+	//must be at this spot - as it counts the number of voters to get the rewards - befor other
+	//transactions are added...
+	if !viper.GetBool("voters.deductTxFees") {
+		feeAmount = float64(int(len(payload.Transactions))*int(core.EnvironmentParams.Fees.Send)) / float64(core.SATOSHI)
+		log.Info("Calculated fee amount: ", feeAmount)
+		payrec.FeeAmount = feeAmount
+
+		//deducting feeAmount from reserve address
+		if feeAmount > reserveAmount {
+			log.Fatal("Not enough reserve money to pay the fees from reserve fund. Payment script stopped !!!")
+		}
+		reserveAmount -= float64(feeAmount)
+	}
+
+	log.Info("----------------CALCULATION INFORMATION FOR THIS RUN----------------------------")
+	log.Info("Available amount:", sumEarned)
+	log.Info("Number of voters (excluding blacklisted):", len(votersEarnings))
+	log.Info("Amount to voters:", sumShareEarned, " Share ratio: ", viper.GetFloat64("voters.shareratio"))
+	log.Info("Amount to costs:", costAmount, " Share ratio: ", viper.GetFloat64("costs.shareratio"))
+	log.Info("Amount to reserve:", reserveAmount, " Share ratio: ", viper.GetFloat64("reserve.shareratio"))
+	log.Info("Amount for fees:", feeAmount, "if bigger > 0, it is deducted from reserve amount")
+	log.Info("Amount to personal:", personalAmount, " Share ratio: ", viper.GetFloat64("personal.shareratio"))
+	log.Info("Voters Ratio calc check:", sumRatio, "(should be = 1)")
+	log.Info("Voters Ratio share check:", float64(sumShareEarned)/float64(sumEarned), "should be=", viper.GetFloat64("voters.shareratio"))
+	log.Info("--------------------------------------------------------------------------------------------------------------")
+
 	//summary and conversion checks
-	if (costAmount + reserveAmount + personalAmount + sumShareEarned) != sumEarned {
+	if (costAmount + reserveAmount + personalAmount + sumShareEarned + feeAmount) != sumEarned {
 		color.Set(color.FgHiRed)
 		diff := sumEarned - (costAmount + reserveAmount + personalAmount + sumShareEarned)
 		if diff > 0.00000001 {
 			fmt.Println("Calculation of ratios NOT OK - overall summary failing for diff=", diff)
-			log.Info("Calculation of ratios NOT OK - overall summary failing diff=", diff)
+			log.Fatal("Calculation of ratios NOT OK - overall summary failing diff=", diff)
 		}
 	}
 
@@ -231,7 +269,7 @@ func SendPayments(silent bool) {
 	}
 
 	payrec.NrOfTransactions = len(payload.Transactions)
-	payrec.FeeAmount = len(payload.Transactions) * int(core.EnvironmentParams.Fees.Send)
+	payrec.FeeAmount = float64(int(len(payload.Transactions))*int(core.EnvironmentParams.Fees.Send)) / float64(core.SATOSHI)
 
 	arkpooldb.Update(&payrec)
 
@@ -365,7 +403,7 @@ func calcFidelity(element core.DelegateDataProfit) float64 {
 	if viper.GetBool("voters.fidelity") {
 		if element.VoteDuration < viper.GetInt("voters.fidelityLimit") {
 			fAmount2Send *= float64(element.VoteDuration) / float64(viper.GetInt("voters.fidelityLimit"))
-			log.Info("Fidelity enabled for user", element.Address, "ratio: ", float64(element.VoteDuration)/float64(viper.GetInt("voters.fidelityLimit")), "earned: ", element.EarnedAmountXX, "reduced amount: ", fAmount2Send)
+			log.Info("Fidelity enabled for user ", element.Address, " ratio: ", float64(element.VoteDuration)/float64(viper.GetInt("voters.fidelityLimit")), " earned: ", element.EarnedAmountXX, "reduced amount: ", fAmount2Send)
 		}
 	}
 

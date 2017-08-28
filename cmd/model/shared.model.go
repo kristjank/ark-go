@@ -34,7 +34,7 @@ type PaymentRecord struct {
 	FidelityLimit    int
 	MinAmount        float64
 	FeeDeduction     bool
-	FeeAmount        int
+	FeeAmount        float64
 	NrOfTransactions int
 	VoteWeight       int
 	CreatedAt        time.Time `storm:"index"`

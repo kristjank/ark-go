@@ -204,6 +204,7 @@ func main() {
 	initLogger()
 
 	log.Info("Ark-golang client starting")
+	log.Info("ArkApiClient connected, active peer: ", arkclient.GetActivePeer())
 
 	initializeBoltClient()
 
