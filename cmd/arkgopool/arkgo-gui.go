@@ -188,16 +188,6 @@ func printMenu() {
 	color.Unset()
 }
 
-type cost struct {
-	Address       string
-	AddressRatio  float64
-	TxDescription string
-}
-
-type costs struct {
-	Cost []cost
-}
-
 func main() {
 
 	// Load configration and defaults
