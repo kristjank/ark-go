@@ -102,9 +102,10 @@ func DisplayCalculatedVoteRatio() {
 	fmt.Println("Amount to costs:", costAmount, viper.GetFloat64("costs.shareratio"))
 	fmt.Println("Amount to reserve:", reserveAmount, viper.GetFloat64("reserve.shareratio"))
 	fmt.Println("Amount for fees:", feeAmount, " if bigger > 0, it is deducted from reserve amount")
+	fmt.Println("Fee calc check (reserve2send+fee):", feeAmount+reserveAmount, " should be=", sumEarned*viper.GetFloat64("reserve.shareratio"))
 	fmt.Println("Amount to personal:", personalAmount, " share ratio: ", viper.GetFloat64("personal.shareratio"))
 	fmt.Println("Voters Ratio calc check:", sumRatio, " (should be = 1)")
-	fmt.Println("Voters Ratio share check:", float64(sumShareEarned)/float64(sumEarned), "should be=", viper.GetFloat64("voters.shareratio"))
+	fmt.Println("Voters Ratio share check:", float64(sumShareEarned)/float64(sumEarned), " should be=", viper.GetFloat64("voters.shareratio"))
 
 	pause()
 }
@@ -199,7 +200,7 @@ func SendPayments(silent bool) {
 
 	//if decuting fees from voters is false - we take them into account here....
 	//must be at this spot - as it counts the number of voters to get the rewards - befor other
-	//transactions are added...
+	//transactions are added, and only voters with enough big share to payout
 	if !viper.GetBool("voters.deductTxFees") {
 		feeAmount = float64(int(len(payload.Transactions))*int(core.EnvironmentParams.Fees.Send)) / float64(core.SATOSHI)
 		log.Info("Calculated fee amount: ", feeAmount)
@@ -217,8 +218,9 @@ func SendPayments(silent bool) {
 	log.Info("Number of voters (excluding blacklisted):", len(votersEarnings))
 	log.Info("Amount to voters:", sumShareEarned, " Share ratio: ", viper.GetFloat64("voters.shareratio"))
 	log.Info("Amount to costs:", costAmount, " Share ratio: ", viper.GetFloat64("costs.shareratio"))
-	log.Info("Amount to reserve:", reserveAmount, " Share ratio: ", viper.GetFloat64("reserve.shareratio"))
+	log.Info("Amount to reserve:", reserveAmount, " Share ratio: ", viper.GetFloat64("reserve.shareratio"), "deducted by tx fees")
 	log.Info("Amount for fees:", feeAmount, "if bigger > 0, it is deducted from reserve amount")
+	log.Info("Fee calc check:", feeAmount, feeAmount+reserveAmount, " should be=", sumEarned*viper.GetFloat64("reserve.shareratio"))
 	log.Info("Amount to personal:", personalAmount, " Share ratio: ", viper.GetFloat64("personal.shareratio"))
 	log.Info("Voters Ratio calc check:", sumRatio, "(should be = 1)")
 	log.Info("Voters Ratio share check:", float64(sumShareEarned)/float64(sumEarned), "should be=", viper.GetFloat64("voters.shareratio"))
@@ -227,7 +229,7 @@ func SendPayments(silent bool) {
 	//summary and conversion checks
 	if (costAmount + reserveAmount + personalAmount + sumShareEarned + feeAmount) != sumEarned {
 		color.Set(color.FgHiRed)
-		diff := sumEarned - (costAmount + reserveAmount + personalAmount + sumShareEarned)
+		diff := sumEarned - (costAmount + reserveAmount + personalAmount + sumShareEarned + feeAmount)
 		if diff > 0.00000001 {
 			fmt.Println("Calculation of ratios NOT OK - overall summary failing for diff=", diff)
 			log.Fatal("Calculation of ratios NOT OK - overall summary failing diff=", diff)

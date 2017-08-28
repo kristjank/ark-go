@@ -170,6 +170,7 @@ func printBanner() {
 }
 
 func printMenu() {
+	log.Info("--------- MAIN MENU ----------------")
 	clearScreen()
 	printBanner()
 	printNetworkInfo()
