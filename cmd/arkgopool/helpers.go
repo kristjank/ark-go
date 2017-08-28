@@ -66,6 +66,24 @@ func log2csv(payload core.TransactionPayload, txids []string, filecsv *os.File, 
 	w.WriteAll(records)
 }
 
+/*func logVotersEarnings2csv(voterEarnings []core.DelegateDataProfit) {
+	records := [][]string{
+		{"ADDRESS", "SENT AMOUNT", "TimeStamp", "TxId", "ApiResponse"},
+	}
+
+	for ix, el := range voterEarnings {
+
+
+		line := []string{voterEarnings.}
+
+		records = append(records, line)
+
+	}
+	w := csv.NewWriter(filecsv)
+	defer w.Flush()
+	w.WriteAll(records)
+}*/
+
 func getSystemEnv() string {
 	var buffer bytes.Buffer
 	buffer.WriteString(os.Getenv("OS"))

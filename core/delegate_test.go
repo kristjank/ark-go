@@ -67,7 +67,8 @@ func TestGetDelegatePubKey(t *testing.T) {
 
 func TestGetDelegateVoters(t *testing.T) {
 	arkapi := NewArkClient(nil)
-	params := DelegateQueryParams{PublicKey: "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"}
+	//params := DelegateQueryParams{PublicKey: "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"}
+	params := DelegateQueryParams{PublicKey: "02c7455bebeadde04728441e0f57f82f972155c088252bf7c1365eb0dc84fbf5de"}
 
 	deleResponse, _, err := arkapi.GetDelegateVoters(params)
 	if deleResponse.Success {
@@ -88,7 +89,8 @@ func TestGetDelegateVoters(t *testing.T) {
 
 func TestGetDelegateVoteWeight(t *testing.T) {
 	arkapi := NewArkClient(nil)
-	params := DelegateQueryParams{PublicKey: "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"}
+	//params := DelegateQueryParams{PublicKey: "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"}
+	params := DelegateQueryParams{PublicKey: "02c7455bebeadde04728441e0f57f82f972155c088252bf7c1365eb0dc84fbf5de"}
 
 	voteWeight, _, _ := arkapi.GetDelegateVoteWeight(params)
 
@@ -97,7 +99,8 @@ func TestGetDelegateVoteWeight(t *testing.T) {
 
 func TestCalculcateVotersProfit(t *testing.T) {
 	arkapi := NewArkClient(nil)
-	deleKey := "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"
+	//deleKey := "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"
+	deleKey := "02c7455bebeadde04728441e0f57f82f972155c088252bf7c1365eb0dc84fbf5de" //jar
 	if EnvironmentParams.Network.Type == DEVNET {
 		deleKey = "02bcfa0951a92e7876db1fb71996a853b57f996972ed059a950d910f7d541706c9"
 	}
@@ -106,7 +109,7 @@ func TestCalculcateVotersProfit(t *testing.T) {
 
 	votersEarnings := arkapi.CalculateVotersProfit(params, 0.70, "")
 
-	//log.Println(t.Name(), "Success", votersEarnings)
+	log.Println(t.Name(), "Success", len(votersEarnings))
 	//log.Println(t.Name(), "Success", votersEarnings)
 	sumEarned := 0.0
 	sumRatio := 0.0
