@@ -213,7 +213,7 @@ func SendPayments(silent bool) {
 		reserveAmount -= float64(feeAmount)
 	}
 	log.Info("*******************************************************************************************************************")
-	log.Info("----------------CALCULATION INFORMATION FOR THIS RUN----------------------------")
+	log.Info("                                CALCULATION INFORMATION FOR THIS RUN ")
 	log.Info("Available amount:", sumEarned)
 	log.Info("Number of voters (excluding blacklisted):", len(votersEarnings))
 	log.Info("Amount to voters:", sumShareEarned, " Share ratio: ", viper.GetFloat64("voters.shareratio"))
