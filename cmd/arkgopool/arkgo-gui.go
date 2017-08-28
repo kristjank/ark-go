@@ -170,6 +170,7 @@ func printBanner() {
 }
 
 func printMenu() {
+	log.Info("--------- MAIN MENU ----------------")
 	clearScreen()
 	printBanner()
 	printNetworkInfo()
@@ -187,16 +188,6 @@ func printMenu() {
 	color.Unset()
 }
 
-type cost struct {
-	Address       string
-	AddressRatio  float64
-	TxDescription string
-}
-
-type costs struct {
-	Cost []cost
-}
-
 func main() {
 
 	// Load configration and defaults
@@ -204,6 +195,7 @@ func main() {
 	initLogger()
 
 	log.Info("Ark-golang client starting")
+	log.Info("ArkApiClient connected, active peer: ", arkclient.GetActivePeer())
 
 	initializeBoltClient()
 
