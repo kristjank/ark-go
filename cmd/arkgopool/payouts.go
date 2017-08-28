@@ -212,19 +212,20 @@ func SendPayments(silent bool) {
 		}
 		reserveAmount -= float64(feeAmount)
 	}
-
+	log.Info("*******************************************************************************************************************")
 	log.Info("----------------CALCULATION INFORMATION FOR THIS RUN----------------------------")
 	log.Info("Available amount:", sumEarned)
 	log.Info("Number of voters (excluding blacklisted):", len(votersEarnings))
 	log.Info("Amount to voters:", sumShareEarned, " Share ratio: ", viper.GetFloat64("voters.shareratio"))
 	log.Info("Amount to costs:", costAmount, " Share ratio: ", viper.GetFloat64("costs.shareratio"))
 	log.Info("Amount to reserve:", reserveAmount, " Share ratio: ", viper.GetFloat64("reserve.shareratio"), "deducted by tx fees")
-	log.Info("Amount for fees:", feeAmount, "if bigger > 0, it is deducted from reserve amount")
-	log.Info("Fee calc check:", feeAmount, feeAmount+reserveAmount, " should be=", sumEarned*viper.GetFloat64("reserve.shareratio"))
+	log.Info("Amount for fees:", feeAmount, " if bigger > 0, it is deducted from reserve amount")
+	log.Info("Fee calc check (reserve2send+fee):", feeAmount+reserveAmount, " should be=", sumEarned*viper.GetFloat64("reserve.shareratio"))
 	log.Info("Amount to personal:", personalAmount, " Share ratio: ", viper.GetFloat64("personal.shareratio"))
 	log.Info("Voters Ratio calc check:", sumRatio, "(should be = 1)")
 	log.Info("Voters Ratio share check:", float64(sumShareEarned)/float64(sumEarned), "should be=", viper.GetFloat64("voters.shareratio"))
-	log.Info("--------------------------------------------------------------------------------------------------------------")
+	log.Info()
+	log.Info("*******************************************************************************************************************")
 
 	//summary and conversion checks
 	if (costAmount + reserveAmount + personalAmount + sumShareEarned + feeAmount) != sumEarned {
