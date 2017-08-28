@@ -32,7 +32,7 @@ func DisplayCalculatedVoteRatio() {
 	}
 
 	//TODO REMOVE BEFORE build
-	pubKey = "02c7455bebeadde04728441e0f57f82f972155c088252bf7c1365eb0dc84fbf5de"
+	//pubKey = "02c7455bebeadde04728441e0f57f82f972155c088252bf7c1365eb0dc84fbf5de"
 
 	params := core.DelegateQueryParams{PublicKey: pubKey}
 	deleResp, _, _ := arkclient.GetDelegate(params)
@@ -151,7 +151,8 @@ func SendPayments(silent bool) {
 		key1 = arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ActiveCoinConfig)
 	}
 
-	pubKey = "02c7455bebeadde04728441e0f57f82f972155c088252bf7c1365eb0dc84fbf5de"
+	//TODO JARUNIK TEST
+	//pubKey = "02c7455bebeadde04728441e0f57f82f972155c088252bf7c1365eb0dc84fbf5de"
 	params := core.DelegateQueryParams{PublicKey: pubKey}
 	var payload core.TransactionPayload
 

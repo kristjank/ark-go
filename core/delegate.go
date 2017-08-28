@@ -183,18 +183,16 @@ func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio
 		deleProfit.VoteWeightShare = float64(currentVoterBalance) / float64(delelgateVoteWeight)
 		deleProfit.EarnedAmount100 = float64(delegateBalance) * deleProfit.VoteWeightShare
 		deleProfit.EarnedAmountXX = float64(delegateBalance) * deleProfit.VoteWeightShare * shareRatio
-		deleProfit.VoteDuration = s.GetFidelityFactor(element.Address)
+		deleProfit.VoteDuration = s.GetVoteDuration(element.Address)
 		votersProfit = append(votersProfit, deleProfit)
 	}
 
 	return votersProfit
 }
 
-//GetFidelityFactor returns vote duration in HOURS
-//TODO rename
-func (s *ArkClient) GetFidelityFactor(address string) int {
-	return 50
-	/*transQuery := TransactionQueryParams{SenderID: address}
+//GetVoteDuration returns vote duration in HOURS
+func (s *ArkClient) GetVoteDuration(address string) int {
+	transQuery := TransactionQueryParams{SenderID: address}
 
 	transResp, _, _ := s.ListTransaction(transQuery)
 
@@ -204,5 +202,5 @@ func (s *ArkClient) GetFidelityFactor(address string) int {
 			return GetDurationTime(element.Timestamp)
 		}
 	}
-	return 0*/
+	return 0
 }
