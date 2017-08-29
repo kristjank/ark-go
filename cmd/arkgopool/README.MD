@@ -6,7 +6,7 @@ The app functionalities are currently targeted at delegate functionalities - to 
 See the demo console app shell recording here:
 https://asciinema.org/a/5yndxl794ncfpmjoqftuaiodm?t=8.
 
-## How to setup delegate payment system of arkgo-pool
+## How to setup a simple and efficient delegate payment system with arkgo-pool
 ### 1. Download the binaries from the latest release
 ARKGO-Pool is compiled into a small executable file that can be run on linux or windows. No additional frameworks and installations needed. All you need to do is unzip the binary and run the application. 
 
