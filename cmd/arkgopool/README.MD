@@ -38,6 +38,8 @@ To run the script in silent mode run:
 
 You can add it to you cronjob if you want to have automated payments.
 
+**AND THAT'S ALL :)** 
+
 ### ARKGo-POOL functionalities include:
 - Setting sharing properties in a simple config file: [settings/sample.config.toml](https://github.com/kristjank/ark-go/blob/master/cmd/arkgopool/settings/sample.config.toml). Copy file to config.toml for productive config. (cp sample.config.toml config.toml)
 - Setting up delegate preferences in settings/config.toml. User can set his delegate address, sharing rations for voters and reward fund.
