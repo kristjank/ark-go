@@ -18,7 +18,7 @@ ARKGO-Pool is compiled into a small executable file that can be run on linux or 
 ### 2. Edit you sharing settings in config.toml; to setup payment shares
 Config.toml is a simple.ini setup file, where you specify the share percentages for your:
 - voters,
-- project fund,
+- reserve fund,
 - costs and
 - personal fund. 
 
@@ -32,7 +32,7 @@ Just edit [settings/sample.config.toml](https://github.com/kristjank/ark-go/blob
 See the **demo video** of console app shell recording here:
 https://asciinema.org/a/5yndxl794ncfpmjoqftuaiodm?t=8.
 
-### 4. When all is setup, run in silet mode: 
+### 4. When all is setup, run it in silent mode: 
 To run the script in silent mode run:
 **$>arkgo-gui -silent=true**
 
@@ -138,7 +138,6 @@ Create a folder paymentlog in arkgopool:
 
 ```
 $> cd arkgopool
-$> mkdir paymentlog
 ```
 
 Create such a file go-payment.sh in home:
@@ -147,8 +146,6 @@ Create such a file go-payment.sh in home:
 #!/bin/bash
 cd ~/work/src/github.com/kristjank/ark-go/main
 ./arkgopool -silent=true
-mv paymentLog.csv paymentlog/$(date -d "today" +"%Y%m%d-%H.%M.%S")payments.log
-
 ```
 
 Make it executable:
