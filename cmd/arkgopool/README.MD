@@ -46,6 +46,7 @@ You can add it to you cronjob if you want to have automated payments.
 - Running in silent mode - to process automated reward payments to voters.
 - Logging and overview of succesfull payments in a separate timestamped csv file, linked with sent and confirmed transactionsID from the blockchain (fields: Recepient, Amount, TimeStamp, TxID, VoteWieght).
 - Database logging and REST server is included in the package
+- Blocking of vote hopers
 
 Application was developed to help testing of the core library and to provide a tool for delegates to process automated payments/ or just manual payments.
 
