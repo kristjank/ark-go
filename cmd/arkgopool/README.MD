@@ -1,7 +1,7 @@
 # ARKGO-POOL Documentation
 
 This app was firstly developed to show the basic usage of ark-go library. 
-The app functionalities are currently targeted at delegate functionalities - to setup automated script payments.
+The app functionalities are currently targeted at delegate functionalities - to setup automated script payments for delegate voters.
 
 See the demo console app shell recording here:
 https://asciinema.org/a/5yndxl794ncfpmjoqftuaiodm?t=8.
