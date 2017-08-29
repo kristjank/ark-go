@@ -8,10 +8,12 @@ https://asciinema.org/a/5yndxl794ncfpmjoqftuaiodm?t=8.
 
 ## How to setup a simple and efficient delegate payment system with arkgo-pool
 ### 1. Download the binaries from the latest release
-ARKGO-Pool is compiled into a small executable file that can be run on linux or windows. No additional frameworks and installations needed. All you need to do is unzip the binary and run the application. 
+ARKGO-Pool is compiled into a small executable file that can be run on linux or windows. 
+
+**No additional frameworks and installations needed. All you need to do is unzip the binary and run the application.**
 
 **You can also run it from your secure USB stick.**
-- [Download latest relases](https://github.com/kristjank/ark-go/releases)
+- [Download and unzip latest release](https://github.com/kristjank/ark-go/releases)
 
 ### 2. Edit you sharing settings in config.toml; to setup payment shares
 Config.toml is a simple.ini setup file, where you specify the share percentages for your:
@@ -20,14 +22,14 @@ Config.toml is a simple.ini setup file, where you specify the share percentages 
 - costs and
 - personal fund. 
 
-It is very simple and intuitite.
+**It is very simple and intuitite.**
 Edit [settings/sample.config.toml](https://github.com/kristjank/ark-go/blob/master/cmd/arkgopool/settings/sample.config.toml) and rename it to config.toml.
 
 ### 3. Run the executable to test the calculation
 - $> ./arkgo-gui //Linux
 - c:\ark-go-payment>arkgo-gui.exe  //Windows
 
-See the demo console app shell recording here:
+See the **demo video** of console app shell recording here:
 https://asciinema.org/a/5yndxl794ncfpmjoqftuaiodm?t=8.
 
 ### 4. When all is setup, run in silet mode: 
