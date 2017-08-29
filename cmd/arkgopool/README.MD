@@ -14,20 +14,26 @@ ARKGO-Pool is compiled into a small executable file that can be run on linux or 
 - [Download latest relases](https://github.com/kristjank/ark-go/releases)
 
 ### 2. Edit you sharing settings in config.toml; to setup payment shares
-Config.toml is a simple.ini setup file, where you specify the share percentages for your voters, your project fund, your costs and your personal fund. It is very simple and intuitite.
+Config.toml is a simple.ini setup file, where you specify the share percentages for your:
+- voters,
+- project fund,
+- costs and
+- personal fund. 
 
-Edit sample.config.toml and rename it to config.toml.
+It is very simple and intuitite.
+Edit [settings/sample.config.toml](https://github.com/kristjank/ark-go/blob/master/cmd/arkgopool/settings/sample.config.toml) and rename it to config.toml.
 
 ### 3. Run the executable to test the calculation
-$> ./arkgo-gui  or
-c:\ark-go-payment>arkgo-gui.exe
+**$> ./arkgo-gui  or
+
+c:\ark-go-payment>arkgo-gui.exe**
 
 See the demo console app shell recording here:
 https://asciinema.org/a/5yndxl794ncfpmjoqftuaiodm?t=8.
 
 ### 4. When all is setup, run in silet mode: 
 To run the script in silent mode run:
-$>arkgo-gui -silent=true
+**$>arkgo-gui -silent=true**
 
 You can add it to you cronjob if you want to have automated payments.
 
