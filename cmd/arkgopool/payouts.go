@@ -374,29 +374,26 @@ func splitAndDeliverPayload(payload core.TransactionPayload) {
 }
 
 func deliverPayloadThreaded(tmpPayload core.TransactionPayload, chunkIx int, logFolder string) {
-	numberOfPeers2MultiBroadCastTo := 12
-	log.Info("Starting multibroadcast/multithreaded payout")
+	numberOfPeers2MultiBroadCastTo := viper.GetInt("client.multibroadcast")
+	log.Info("Starting multibroadcast/multithreaded parallel payout to ", numberOfPeers2MultiBroadCastTo, " number of peers")
 	peers := arkclient.GetRandomXPeers(numberOfPeers2MultiBroadCastTo)
 	for i := 0; i < numberOfPeers2MultiBroadCastTo; i++ {
 		wg.Add(1)
 
 		//treaded function
 		go func(tmpPayload core.TransactionPayload, peer core.Peer, chunkIx int, logFolder string) {
-			filename := fmt.Sprintf("Batch_%2d_Peer%s.csv", chunkIx, peer.IP)
-			filecsv, _ := os.Create("log/" + logFolder + "/" + filename)
+			defer wg.Done()
+			filename := fmt.Sprintf("log/%s/Batch_%2d_Peer%s.csv", logFolder, chunkIx, peer.IP)
 
 			arkTmpClient := core.NewArkClientFromPeer(peer)
 			res, _, _ := arkTmpClient.PostTransaction(tmpPayload)
 			if res.Success {
 				color.Set(color.FgHiGreen)
-				log2csv(tmpPayload, res.TransactionIDs, filecsv, "OK")
+				log2csv(tmpPayload, res.TransactionIDs, filename, "OK")
 			} else {
 				color.Set(color.FgHiRed)
-				log2csv(tmpPayload, nil, filecsv, res.Error)
+				log2csv(tmpPayload, nil, filename, res.Error)
 			}
-			filecsv.Close()
-			defer wg.Done()
-
 		}(tmpPayload, peers[i], chunkIx, logFolder)
 	}
 }

@@ -41,7 +41,9 @@ func checkConfigSharingRatio() bool {
 	return true
 }
 
-func log2csv(payload core.TransactionPayload, txids []string, filecsv *os.File, status string) {
+func log2csv(payload core.TransactionPayload, txids []string, fileName string, status string) {
+	filecsv, _ := os.Create(fileName)
+
 	records := [][]string{
 		{"ADDRESS", "SENT AMOUNT", "TimeStamp", "TxId", "ApiResponse"},
 	}
@@ -62,8 +64,9 @@ func log2csv(payload core.TransactionPayload, txids []string, filecsv *os.File, 
 
 	}
 	w := csv.NewWriter(filecsv)
-	defer w.Flush()
+	w.Flush()
 	w.WriteAll(records)
+	filecsv.Close()
 }
 
 /*func logVotersEarnings2csv(voterEarnings []core.DelegateDataProfit) {
