@@ -138,7 +138,6 @@ Create a folder paymentlog in arkgopool:
 
 ```
 $> cd arkgopool
-$> mkdir paymentlog
 ```
 
 Create such a file go-payment.sh in home:
@@ -147,8 +146,6 @@ Create such a file go-payment.sh in home:
 #!/bin/bash
 cd ~/work/src/github.com/kristjank/ark-go/main
 ./arkgopool -silent=true
-mv paymentLog.csv paymentlog/$(date -d "today" +"%Y%m%d-%H.%M.%S")payments.log
-
 ```
 
 Make it executable:
