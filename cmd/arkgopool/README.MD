@@ -24,9 +24,8 @@ It is very simple and intuitite.
 Edit [settings/sample.config.toml](https://github.com/kristjank/ark-go/blob/master/cmd/arkgopool/settings/sample.config.toml) and rename it to config.toml.
 
 ### 3. Run the executable to test the calculation
-**$> ./arkgo-gui  or
-
-c:\ark-go-payment>arkgo-gui.exe**
+- $> ./arkgo-gui //Linux
+- c:\ark-go-payment>arkgo-gui.exe  //Windows
 
 See the demo console app shell recording here:
 https://asciinema.org/a/5yndxl794ncfpmjoqftuaiodm?t=8.
