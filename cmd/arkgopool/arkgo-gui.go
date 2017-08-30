@@ -129,6 +129,7 @@ func loadConfig() {
 
 	viper.SetDefault("client.network", "DEVNET")
 	viper.SetDefault("client.dbFilename", "payment.db")
+	viper.SetDefault("client.multibroadcast", 10)
 }
 
 //////////////////////////////////////////////////////////////////////////////
