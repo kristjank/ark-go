@@ -28,6 +28,8 @@ var reader = bufio.NewReader(os.Stdin)
 var arkpooldb *storm.DB
 var wg sync.WaitGroup
 
+var ArkGoPoolVersion string
+
 func initLogger() {
 	// Log as JSON instead of the default ASCII formatter.
 	//log.SetFormatter(&log.JSONFormatter{})
@@ -156,11 +158,11 @@ func clearScreen() {
 func printNetworkInfo() {
 	color.Set(color.FgHiCyan)
 	if core.EnvironmentParams.Network.Type == core.MAINNET {
-		fmt.Println("Connected to MAINNET on peer:", core.BaseURL)
+		fmt.Println("Connected to MAINNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
 	}
 
 	if core.EnvironmentParams.Network.Type == core.DEVNET {
-		fmt.Println("Connected to DEVNET on peer:", core.BaseURL)
+		fmt.Println("Connected to DEVNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
 	}
 }
 
@@ -190,6 +192,8 @@ func printMenu() {
 }
 
 func main() {
+	//setting the version
+	ArkGoPoolVersion = "v0.7.7"
 
 	// Load configration and defaults
 	loadConfig()
