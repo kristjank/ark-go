@@ -153,6 +153,7 @@ func SendPayments(silent bool) {
 
 	//TODO JARUNIK TEST
 	//pubKey = "02c7455bebeadde04728441e0f57f82f972155c088252bf7c1365eb0dc84fbf5de"
+	pubKey = "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"
 	params := core.DelegateQueryParams{PublicKey: pubKey}
 	var payload core.TransactionPayload
 
@@ -163,6 +164,7 @@ func SendPayments(silent bool) {
 	sumRatio := 0.0
 	sumShareEarned := 0.0
 	feeAmount := 0.0
+	minAmountSetting := int64(viper.GetFloat64("voters.minamount") * core.SATOSHI)
 
 	clearScreen()
 
@@ -183,14 +185,14 @@ func SendPayments(silent bool) {
 			log.Info("Voters Fee deduction enabled")
 		}
 
-		//only payout for voter earning higher then minamount. - the earned amount remains in the loop for next payment
-		//to disable set it to 0.0
-		if float64(txAmount2Send) > viper.GetFloat64("voters.minamount") && txAmount2Send > 0 {
+		//checking MinAmount && MaxAmount properties
+		if txAmount2Send > minAmountSetting && txAmount2Send > 0 {
 			tx := core.CreateTransaction(element.Address, txAmount2Send, viper.GetString("voters.txdescription"), p1, p2)
 			payload.Transactions = append(payload.Transactions, tx)
-
 			//Logging history to DB
 			save2db(element, tx, payrec.Pk)
+		} else {
+			log.Info("Skipping voter address ", element.Address, " Earned amount: ", txAmount2Send, " below minimium: ", minAmountSetting)
 		}
 	}
 
