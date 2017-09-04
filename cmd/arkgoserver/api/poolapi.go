@@ -1,18 +1,21 @@
-package main
+package api
 
 import (
+	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/asdine/storm"
 	"github.com/asdine/storm/q"
+	"github.com/gin-gonic/gin"
 	"github.com/kristjank/ark-go/cmd/model"
 	"github.com/kristjank/ark-go/core"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"gopkg.in/gin-gonic/gin.v1"
 )
 
-var arkclient = core.NewArkClient(nil)
+var ArkAPIclient *core.ArkClient
+var Arkpooldb *storm.DB
 
 //GetVoters Returns a list of peers to client call. Response is in JSON
 func GetVoters(c *gin.Context) {
@@ -24,7 +27,7 @@ func GetVoters(c *gin.Context) {
 
 	params := core.DelegateQueryParams{PublicKey: pubKey}
 
-	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"))
+	votersEarnings := ArkAPIclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"))
 
 	c.JSON(200, votersEarnings)
 }
@@ -37,7 +40,7 @@ func GetDelegate(c *gin.Context) {
 	}
 
 	params := core.DelegateQueryParams{PublicKey: pubKey}
-	deleResp, _, _ := arkclient.GetDelegate(params)
+	deleResp, _, _ := ArkAPIclient.GetDelegate(params)
 
 	c.JSON(200, deleResp)
 }
@@ -69,7 +72,7 @@ func GetDelegateSharingConfig(c *gin.Context) {
 func GetDelegatePaymentRecord(c *gin.Context) {
 	var results []model.PaymentRecord
 	var query storm.Query
-	query = arkpooldb.Select().Reverse()
+	query = Arkpooldb.Select().Reverse()
 
 	err := query.Find(&results)
 
@@ -95,13 +98,13 @@ func GetDelegatePaymentRecordDetails(c *gin.Context) {
 	address := c.DefaultQuery("address", "")
 
 	if id != -1 && address != "" {
-		query = arkpooldb.Select(q.Eq("PaymentRecordID", id), q.Eq("Address", address)).Reverse()
+		query = Arkpooldb.Select(q.Eq("PaymentRecordID", id), q.Eq("Address", address)).Reverse()
 	} else if id != -1 && address == "" {
-		query = arkpooldb.Select(q.Eq("PaymentRecordID", id)).Reverse()
+		query = Arkpooldb.Select(q.Eq("PaymentRecordID", id)).Reverse()
 	} else if id == -1 && address != "" {
-		query = arkpooldb.Select(q.Eq("Address", address)).Reverse()
+		query = Arkpooldb.Select(q.Eq("Address", address)).Reverse()
 	} else {
-		query = arkpooldb.Select().Reverse()
+		query = Arkpooldb.Select().Reverse()
 	}
 
 	err = query.Find(&results)
@@ -110,5 +113,24 @@ func GetDelegatePaymentRecordDetails(c *gin.Context) {
 		c.JSON(200, gin.H{"success": true, "data": results, "count": len(results)})
 	} else {
 		c.JSON(200, gin.H{"success": false, "error": err.Error()})
+	}
+}
+
+func EnterServiceMode(c *gin.Context) {
+	c.JSON(200, gin.H{"success": true})
+}
+
+func LeaveServiceMode(c *gin.Context) {
+	c.JSON(200, gin.H{"success": true})
+}
+
+func OnlyLocalCallAllowed() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.ClientIP() == "127.0.0.1" || c.ClientIP() == "::1" {
+			c.Next()
+		} else {
+			log.Info("Outside call to service mode is not allowed")
+			c.AbortWithStatus(http.StatusBadRequest)
+		}
 	}
 }
