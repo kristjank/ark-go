@@ -8,30 +8,18 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/kristjank/ark-go/cmd/arkgoserver/api"
-	"github.com/kristjank/ark-go/core"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/fatih/color"
 	"github.com/spf13/viper"
-
-	"github.com/asdine/storm"
 )
 
 var router *gin.Engine
 
 func init() {
-	api.ArkAPIclient = core.NewArkClient(nil)
 	initLogger()
 	loadConfig()
-
-	var err error
-	api.Arkpooldb, err = storm.Open(viper.GetString("server.dbfilename"))
-
-	if err != nil {
-		panic(err.Error())
-	}
-
-	log.Println("DB Opened at:", api.Arkpooldb.Path)
+	api.InitGlobals()
 }
 
 func initLogger() {

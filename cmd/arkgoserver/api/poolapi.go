@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/asdine/storm"
 	"github.com/asdine/storm/q"
@@ -14,16 +13,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
-
-var ArkAPIclient *core.ArkClient
-var Arkpooldb *storm.DB
-
-var syncMutex = &sync.RWMutex{}
-var isServiceMode bool
-
-func init() {
-	isServiceMode = false
-}
 
 //GetVoters Returns a list of peers to client call. Response is in JSON
 func GetVoters(c *gin.Context) {
@@ -126,7 +115,6 @@ func GetDelegatePaymentRecordDetails(c *gin.Context) {
 
 ////////////////////////////////////////////////////////
 // HELPERS
-
 func getServiceModeStatus() bool {
 	syncMutex.RLock()
 	defer syncMutex.RUnlock()
@@ -136,13 +124,17 @@ func getServiceModeStatus() bool {
 func EnterServiceMode(c *gin.Context) {
 	syncMutex.Lock()
 	isServiceMode = true
+	closeDB()
 	syncMutex.Unlock()
+	c.JSON(200, gin.H{"success": true, "messsage": "SERVICE MODE STARTED"})
 }
 
 func LeaveServiceMode(c *gin.Context) {
 	syncMutex.Lock()
 	isServiceMode = false
+	openDB()
 	syncMutex.Unlock()
+	c.JSON(200, gin.H{"success": true, "messsage": "SERVICE MODE STOPPED"})
 }
 
 func OnlyLocalCallAllowed() gin.HandlerFunc {
