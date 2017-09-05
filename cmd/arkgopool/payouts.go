@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/kristjank/ark-go/arkcoin"
@@ -157,7 +158,12 @@ func SendPayments(silent bool) {
 	params := core.DelegateQueryParams{PublicKey: pubKey}
 	var payload core.TransactionPayload
 
-	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"))
+	deleResp, _, _ := arkclient.GetDelegateVoters(params)
+
+	// check minVoteDuration
+	var blocklist = checkMinimumVoteTime(deleResp, viper.GetString("voters.blocklist"))
+
+	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), blocklist)
 	payrec.VoteWeight, _, _ = arkclient.GetDelegateVoteWeight(params)
 
 	sumEarned := 0.0
@@ -411,4 +417,22 @@ func calcFidelity(element core.DelegateDataProfit) float64 {
 	}
 
 	return fAmount2Send
+}
+
+func checkMinimumVoteTime(voters core.DelegateVoters, blocklist string) string {
+	var minVoteDuration = viper.GetInt("voters.minVoteDuration")
+
+	for _, element := range voters.Accounts {
+		if minVoteDuration > arkclient.GetVoteDuration(element.Address) {
+			if len(blocklist) > 0 {
+				if !strings.Contains(strings.ToLower(blocklist), strings.ToLower(element.Address)) {
+					blocklist += "," + element.Address
+				}
+			} else {
+				blocklist += element.Address
+			}
+		}
+	}
+
+	return blocklist
 }
