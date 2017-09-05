@@ -26,7 +26,7 @@ func GetVoters(c *gin.Context) {
 
 	votersEarnings := ArkAPIclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"))
 
-	c.JSON(200, votersEarnings)
+	c.JSON(200, gin.H{"count": len(votersEarnings), "data": votersEarnings})
 }
 
 //GetDelegate Returns a list of peers to client call. Response is in JSON
