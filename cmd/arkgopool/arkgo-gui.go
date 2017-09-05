@@ -65,6 +65,7 @@ func broadCastServiceMode(status bool) {
 		url = "http://127.0.0.1:" + strconv.Itoa(viper.GetInt("server.port")) + "/service/start"
 	} else {
 		url = "http://127.0.0.1:" + strconv.Itoa(viper.GetInt("server.port")) + "/service/stop"
+		arkpooldb.Close()
 	}
 
 	res, err := http.Get(url)
