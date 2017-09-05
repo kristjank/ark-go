@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/asdine/storm"
 	"github.com/asdine/storm/q"
@@ -16,6 +17,13 @@ import (
 
 var ArkAPIclient *core.ArkClient
 var Arkpooldb *storm.DB
+
+var syncMutex = &sync.RWMutex{}
+var isServiceMode bool
+
+func init() {
+	isServiceMode = false
+}
 
 //GetVoters Returns a list of peers to client call. Response is in JSON
 func GetVoters(c *gin.Context) {
@@ -116,12 +124,25 @@ func GetDelegatePaymentRecordDetails(c *gin.Context) {
 	}
 }
 
+////////////////////////////////////////////////////////
+// HELPERS
+
+func getServiceModeStatus() bool {
+	syncMutex.RLock()
+	defer syncMutex.RUnlock()
+	return isServiceMode
+}
+
 func EnterServiceMode(c *gin.Context) {
-	c.JSON(200, gin.H{"success": true})
+	syncMutex.Lock()
+	isServiceMode = true
+	syncMutex.Unlock()
 }
 
 func LeaveServiceMode(c *gin.Context) {
-	c.JSON(200, gin.H{"success": true})
+	syncMutex.Lock()
+	isServiceMode = false
+	syncMutex.Unlock()
 }
 
 func OnlyLocalCallAllowed() gin.HandlerFunc {
@@ -131,6 +152,17 @@ func OnlyLocalCallAllowed() gin.HandlerFunc {
 		} else {
 			log.Info("Outside call to service mode is not allowed")
 			c.AbortWithStatus(http.StatusBadRequest)
+		}
+	}
+}
+
+func CheckServiceModelHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if !getServiceModeStatus() {
+			c.Next()
+		} else {
+			log.Info("Service mode is active - please wait")
+			c.AbortWithStatusJSON(http.StatusTemporaryRedirect, gin.H{"success": false, "message": "SERVICE MODE ACTIVE"})
 		}
 	}
 }

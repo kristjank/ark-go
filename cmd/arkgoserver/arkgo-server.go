@@ -124,11 +124,13 @@ func initializeRoutes() {
 	router.Use(CORSMiddleware())
 	// Group peer related routes together
 	peerRoutes := router.Group("/voters")
+	peerRoutes.Use(api.CheckServiceModelHandler())
 	{
 		peerRoutes.GET("/rewards", api.GetVoters)
 		peerRoutes.GET("/blocked", api.GetBlocked)
 	}
 	deleRoutes := router.Group("/delegate")
+	deleRoutes.Use(api.CheckServiceModelHandler())
 	{
 		deleRoutes.GET("", api.GetDelegate)
 		deleRoutes.GET("/config", api.GetDelegateSharingConfig)
@@ -138,8 +140,8 @@ func initializeRoutes() {
 	serviceRoutes := router.Group("/service")
 	serviceRoutes.Use(api.OnlyLocalCallAllowed())
 	{
-		deleRoutes.GET("/start", api.EnterServiceMode)
-		deleRoutes.GET("/stop", api.LeaveServiceMode)
+		serviceRoutes.GET("/start", api.EnterServiceMode)
+		serviceRoutes.GET("/stop", api.LeaveServiceMode)
 	}
 }
 
