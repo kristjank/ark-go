@@ -92,6 +92,7 @@ func DisplayCalculatedVoteRatio() {
 		//deducting feeAmount from reserve address
 		if feeAmount > reserveAmount {
 			log.Fatal("Not enough reserve money to pay the fees from reserve fund. Payment script stopped !!!")
+			broadCastServiceMode(false)
 		}
 		reserveAmount -= float64(feeAmount)
 	}
@@ -126,6 +127,7 @@ func SendPayments(silent bool) {
 			pause()
 		}
 		log.Fatal("Unable to calculcate. Check share ratio configuration in your config.toml.")
+		broadCastServiceMode(false)
 		return
 	}
 
@@ -212,6 +214,7 @@ func SendPayments(silent bool) {
 		//deducting feeAmount from reserve address
 		if feeAmount > reserveAmount {
 			log.Fatal("Not enough reserve money to pay the fees from reserve fund. Payment script stopped !!!")
+			broadCastServiceMode(false)
 		}
 		reserveAmount -= float64(feeAmount)
 	}
@@ -237,6 +240,7 @@ func SendPayments(silent bool) {
 		if diff > 0.00000001 {
 			fmt.Println("Calculation of ratios NOT OK - overall summary failing for diff=", diff)
 			log.Fatal("Calculation of ratios NOT OK - overall summary failing diff=", diff)
+			broadCastServiceMode(false)
 		}
 	}
 

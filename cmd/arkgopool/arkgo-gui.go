@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"regexp"
 	"runtime"
+	"strconv"
 	"sync"
 
 	log "github.com/sirupsen/logrus"
@@ -50,10 +52,27 @@ func initializeBoltClient() {
 
 	if err != nil {
 		log.Panic(err.Error())
+		broadCastServiceMode(false)
 	}
 
 	log.Println("DB Opened at:", arkpooldb.Path)
 	//defer arkpooldb.Close()
+}
+
+func broadCastServiceMode(status bool) {
+	var url string
+	if status {
+		url = "http://127.0.0.1:" + strconv.Itoa(viper.GetInt("server.port")) + "/service/start"
+	} else {
+		url = "http://127.0.0.1:" + strconv.Itoa(viper.GetInt("server.port")) + "/service/stop"
+	}
+
+	res, err := http.Get(url)
+	if err != nil {
+		log.Error("Error setting service mode on arkgopool server", err.Error(), url)
+	} else {
+		log.Info("Status mode set to", status, res.StatusCode)
+	}
 }
 
 func readAccountData() (string, string) {
@@ -192,11 +211,14 @@ func printMenu() {
 }
 
 func main() {
+	//sending ARKGO Server that we are working with payments
 	//setting the version
 	ArkGoPoolVersion = "v0.7.7"
 
 	// Load configration and defaults
+	// Order is important
 	loadConfig()
+	broadCastServiceMode(true)
 	initLogger()
 
 	log.Info("Ark-golang client starting")
@@ -223,6 +245,8 @@ func main() {
 		wg.Wait()
 		log.Info("Exiting silent mode and arkgopool")
 		os.Exit(1985)
+		//sending ARKGO Server that we are working with payments
+		broadCastServiceMode(false)
 	}
 
 	var choice = 1
@@ -276,4 +300,5 @@ func main() {
 		}
 	}
 	color.Unset()
+	broadCastServiceMode(false)
 }
