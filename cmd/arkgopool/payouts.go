@@ -160,7 +160,7 @@ func SendPayments(silent bool) {
 
 	deleResp, _, _ := arkclient.GetDelegateVoters(params)
 
-	// check minVoteTime
+	// check minVoteDuration
 	var blocklist = checkMinimumVoteTime(deleResp, viper.GetString("voters.blocklist"))
 
 	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), blocklist)
@@ -420,10 +420,10 @@ func calcFidelity(element core.DelegateDataProfit) float64 {
 }
 
 func checkMinimumVoteTime(voters core.DelegateVoters, blocklist string) string {
-	var minVoteTime = viper.GetInt("voters.minVoteTime")
+	var minVoteDuration = viper.GetInt("voters.minVoteDuration")
 
 	for _, element := range voters.Accounts {
-		if minVoteTime > arkclient.GetVoteDuration(element.Address) {
+		if minVoteDuration > arkclient.GetVoteDuration(element.Address) {
 			if len(blocklist) > 0 {
 				if !strings.Contains(strings.ToLower(blocklist), strings.ToLower(element.Address)) {
 					blocklist += "," + element.Address
