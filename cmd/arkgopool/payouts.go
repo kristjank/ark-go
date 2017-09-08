@@ -91,7 +91,8 @@ func DisplayCalculatedVoteRatio() {
 
 		//deducting feeAmount from reserve address
 		if feeAmount > reserveAmount {
-			log.Fatal("Not enough reserve money to pay the fees from reserve fund. Payment script stopped !!!")
+			log.Info("Calculation Mode only - Not enough reserve money to pay the fees from reserve fund. Payment script stopped !!!")
+			fmt.Printf("Calculation Mode only - Not enough reserve money to pay the fees from reserve fund. Payment script stopped !!!")
 			broadCastServiceMode(false)
 		}
 		reserveAmount -= float64(feeAmount)
