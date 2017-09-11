@@ -60,7 +60,8 @@ func GetDelegateSharingConfig(c *gin.Context) {
 		"fidelityLimit": viper.GetInt("voters.fidelityLimit"),
 		"minamount":     viper.GetInt("voters.minamount"),
 		"deductTxFees":  viper.GetBool("voters.deductTxFeed"),
-		"blockedList":   strings.Split(blockedList, ",")})
+		"blockedList":   strings.Split(blockedList, ","),
+		"serverversion": ArkGoServerVersion})
 }
 
 //GetDelegatePaymentRecord Returns a list of peers to client call. Response is in JSON

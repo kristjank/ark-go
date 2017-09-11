@@ -12,6 +12,7 @@ import (
 
 var ArkAPIclient *core.ArkClient
 var Arkpooldb *storm.DB
+var ArkGoServerVersion string
 
 var syncMutex = &sync.RWMutex{}
 var isServiceMode bool
