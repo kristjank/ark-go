@@ -203,7 +203,7 @@ func printMenu() {
 	fmt.Println("\t2-Send reward payments")
 	fmt.Println("\t3-Switch network")
 	fmt.Println("\t4-Link account")
-	fmt.Println("\t5-Send bonus payments N/A currently")
+	fmt.Println("\t5-Send bonus payments currently")
 	fmt.Println("\t6-List history payments")
 	fmt.Println("\t0-Exit")
 	fmt.Println("")
@@ -301,7 +301,8 @@ func main() {
 			}
 			fmt.Println("\nEnter bonus transaction description (vendor field)")
 			fmt.Print("-->")
-			fmt.Scanln(&txBonusDesc)
+			fmt.Scanf("%s", &txBonusDesc)
+			//reader.ReadString('\n')
 			SendBonusPayment(iAmount2Send, txBonusDesc)
 			pause()
 			color.Unset()

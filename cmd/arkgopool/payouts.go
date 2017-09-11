@@ -513,6 +513,5 @@ func SendBonusPayment(iAmount int, txDesc string) {
 		log.Info("Automated Payment complete. Please check the logs folder... ")
 
 		reader.ReadString('\n')
-		pause()
 	}
 }
