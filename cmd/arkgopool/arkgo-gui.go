@@ -288,7 +288,22 @@ func main() {
 		case 5:
 			clearScreen()
 			color.Set(color.FgHiGreen)
-			//SendBonus()
+			var iAmount2Send int
+			var txBonusDesc string
+			fmt.Println("\nEnter bonus amount to send to loyal voters")
+			fmt.Print("-->")
+			_, err := fmt.Scanf("%d", &iAmount2Send)
+			if err != nil {
+				log.Error(err.Error())
+				fmt.Println("Wrong input ", err.Error())
+				pause()
+				return
+			}
+			fmt.Println("\nEnter bonus transaction description (vendor field)")
+			fmt.Print("-->")
+			fmt.Scanln(&txBonusDesc)
+			SendBonusPayment(iAmount2Send, txBonusDesc)
+			pause()
 			color.Unset()
 		case 6:
 			clearScreen()
