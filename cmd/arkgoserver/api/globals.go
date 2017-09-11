@@ -27,7 +27,7 @@ func openDB() {
 	var err error
 	Arkpooldb, err = storm.Open(viper.GetString("server.dbfilename"))
 	if err != nil {
-		panic(err.Error())
+		log.Fatal(err.Error())
 	}
 
 	log.Println("DB Opened at:", Arkpooldb.Path)
