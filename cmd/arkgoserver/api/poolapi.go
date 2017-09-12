@@ -1,18 +1,18 @@
-package main
+package api
 
 import (
+	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/asdine/storm"
 	"github.com/asdine/storm/q"
+	"github.com/gin-gonic/gin"
 	"github.com/kristjank/ark-go/cmd/model"
 	"github.com/kristjank/ark-go/core"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"gopkg.in/gin-gonic/gin.v1"
 )
-
-var arkclient = core.NewArkClient(nil)
 
 //GetVoters Returns a list of peers to client call. Response is in JSON
 func GetVoters(c *gin.Context) {
@@ -24,9 +24,9 @@ func GetVoters(c *gin.Context) {
 
 	params := core.DelegateQueryParams{PublicKey: pubKey}
 
-	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"))
+	votersEarnings := ArkAPIclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"))
 
-	c.JSON(200, votersEarnings)
+	c.JSON(200, gin.H{"count": len(votersEarnings), "data": votersEarnings})
 }
 
 //GetDelegate Returns a list of peers to client call. Response is in JSON
@@ -37,7 +37,7 @@ func GetDelegate(c *gin.Context) {
 	}
 
 	params := core.DelegateQueryParams{PublicKey: pubKey}
-	deleResp, _, _ := arkclient.GetDelegate(params)
+	deleResp, _, _ := ArkAPIclient.GetDelegate(params)
 
 	c.JSON(200, deleResp)
 }
@@ -60,7 +60,8 @@ func GetDelegateSharingConfig(c *gin.Context) {
 		"fidelityLimit": viper.GetInt("voters.fidelityLimit"),
 		"minamount":     viper.GetInt("voters.minamount"),
 		"deductTxFees":  viper.GetBool("voters.deductTxFeed"),
-		"blockedList":   strings.Split(blockedList, ",")})
+		"blockedList":   strings.Split(blockedList, ","),
+		"serverversion": ArkGoServerVersion})
 }
 
 //GetDelegatePaymentRecord Returns a list of peers to client call. Response is in JSON
@@ -69,7 +70,7 @@ func GetDelegateSharingConfig(c *gin.Context) {
 func GetDelegatePaymentRecord(c *gin.Context) {
 	var results []model.PaymentRecord
 	var query storm.Query
-	query = arkpooldb.Select().Reverse()
+	query = Arkpooldb.Select().Reverse()
 
 	err := query.Find(&results)
 
@@ -95,13 +96,13 @@ func GetDelegatePaymentRecordDetails(c *gin.Context) {
 	address := c.DefaultQuery("address", "")
 
 	if id != -1 && address != "" {
-		query = arkpooldb.Select(q.Eq("PaymentRecordID", id), q.Eq("Address", address)).Reverse()
+		query = Arkpooldb.Select(q.Eq("PaymentRecordID", id), q.Eq("Address", address)).Reverse()
 	} else if id != -1 && address == "" {
-		query = arkpooldb.Select(q.Eq("PaymentRecordID", id)).Reverse()
+		query = Arkpooldb.Select(q.Eq("PaymentRecordID", id)).Reverse()
 	} else if id == -1 && address != "" {
-		query = arkpooldb.Select(q.Eq("Address", address)).Reverse()
+		query = Arkpooldb.Select(q.Eq("Address", address)).Reverse()
 	} else {
-		query = arkpooldb.Select().Reverse()
+		query = Arkpooldb.Select().Reverse()
 	}
 
 	err = query.Find(&results)
@@ -110,5 +111,51 @@ func GetDelegatePaymentRecordDetails(c *gin.Context) {
 		c.JSON(200, gin.H{"success": true, "data": results, "count": len(results)})
 	} else {
 		c.JSON(200, gin.H{"success": false, "error": err.Error()})
+	}
+}
+
+////////////////////////////////////////////////////////
+// HELPERS
+func getServiceModeStatus() bool {
+	syncMutex.RLock()
+	defer syncMutex.RUnlock()
+	return isServiceMode
+}
+
+func EnterServiceMode(c *gin.Context) {
+	syncMutex.Lock()
+	isServiceMode = true
+	closeDB()
+	syncMutex.Unlock()
+	c.JSON(200, gin.H{"success": true, "messsage": "SERVICE MODE STARTED"})
+}
+
+func LeaveServiceMode(c *gin.Context) {
+	syncMutex.Lock()
+	isServiceMode = false
+	openDB()
+	syncMutex.Unlock()
+	c.JSON(200, gin.H{"success": true, "messsage": "SERVICE MODE STOPPED"})
+}
+
+func OnlyLocalCallAllowed() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.ClientIP() == "127.0.0.1" || c.ClientIP() == "::1" {
+			c.Next()
+		} else {
+			log.Info("Outside call to service mode is not allowed")
+			c.AbortWithStatus(http.StatusBadRequest)
+		}
+	}
+}
+
+func CheckServiceModelHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if !getServiceModeStatus() {
+			c.Next()
+		} else {
+			log.Info("Service mode is active - please wait")
+			c.AbortWithStatusJSON(http.StatusTemporaryRedirect, gin.H{"success": false, "message": "SERVICE MODE ACTIVE"})
+		}
 	}
 }
