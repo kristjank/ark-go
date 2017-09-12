@@ -86,6 +86,7 @@ func loadConfig() {
 	viper.SetDefault("server.address", "0.0.0.0")
 	viper.SetDefault("server.port", 54000)
 	viper.SetDefault("server.version", "0.1.0")
+	viper.SetDefault("server.dbfilename", "payments.db")
 }
 
 //CORSMiddleware function enabling CORS requests

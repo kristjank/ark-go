@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/asdine/storm"
@@ -28,6 +29,7 @@ func openDB() {
 	var err error
 	Arkpooldb, err = storm.Open(viper.GetString("server.dbfilename"))
 	if err != nil {
+		fmt.Println("FATAL - Unable to open/find/access database. Exiting application...")
 		log.Fatal(err.Error())
 	}
 
