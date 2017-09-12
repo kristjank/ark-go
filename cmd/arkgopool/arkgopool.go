@@ -288,21 +288,25 @@ func main() {
 		case 5:
 			clearScreen()
 			color.Set(color.FgHiGreen)
-			var iAmount2Send int
-			var txBonusDesc string
+
 			fmt.Println("\nEnter bonus amount to send to loyal voters")
 			fmt.Print("-->")
-			_, err := fmt.Scanf("%d", &iAmount2Send)
-			if err != nil {
-				log.Error(err.Error())
-				fmt.Println("Wrong input ", err.Error())
-				pause()
-				return
-			}
+			sAmount2Send, err := reader.ReadString('\n')
+			re := regexp.MustCompile("\r?\n")
+			sAmount2Send = re.ReplaceAllString(sAmount2Send, "")
+
 			fmt.Println("\nEnter bonus transaction description (vendor field)")
 			fmt.Print("-->")
-			fmt.Scanf("%s", &txBonusDesc)
-			//reader.ReadString('\n')
+
+			txBonusDesc, err := reader.ReadString('\n')
+			txBonusDesc = re.ReplaceAllString(txBonusDesc, "")
+
+			iAmount2Send, err := strconv.Atoi(sAmount2Send)
+			if err != nil {
+				log.Error("Stopping bonus payment", err.Error())
+				return
+			}
+
 			SendBonusPayment(iAmount2Send, txBonusDesc)
 			pause()
 			color.Unset()

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/kristjank/ark-go/arkcoin"
@@ -465,6 +466,11 @@ func SendBonusPayment(iAmount int, txDesc string) {
 
 	//creating tx
 	for _, element := range voters.Accounts {
+		//no bonuses for blocked addresses
+		if isBlockedAddress(viper.GetString("voters.blocklist"), element.Address) {
+			log.Info("Skipping bonus payment for ", element.Address)
+			continue
+		}
 		//transaction parameters
 		tx := core.CreateTransaction(element.Address, txAmount2Send, txDesc, p1, p2)
 		payload.Transactions = append(payload.Transactions, tx)
@@ -514,4 +520,12 @@ func SendBonusPayment(iAmount int, txDesc string) {
 
 		reader.ReadString('\n')
 	}
+}
+
+func isBlockedAddress(list string, address string) bool {
+	//blocklist checling and excluding
+	if len(list) > 0 {
+		return strings.Contains(strings.ToLower(list), strings.ToLower(address))
+	}
+	return false
 }
