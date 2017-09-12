@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/kristjank/ark-go/arkcoin"
@@ -91,7 +92,9 @@ func DisplayCalculatedVoteRatio() {
 
 		//deducting feeAmount from reserve address
 		if feeAmount > reserveAmount {
-			log.Fatal("Not enough reserve money to pay the fees from reserve fund. Payment script stopped !!!")
+			log.Info("Calculation Mode only - Not enough reserve money to pay the fees from reserve fund. Payment script stopped !!!")
+			fmt.Printf("Calculation Mode only - Not enough reserve money to pay the fees from reserve fund. Payment script stopped !!!")
+			broadCastServiceMode(false)
 		}
 		reserveAmount -= float64(feeAmount)
 	}
@@ -126,6 +129,7 @@ func SendPayments(silent bool) {
 			pause()
 		}
 		log.Fatal("Unable to calculcate. Check share ratio configuration in your config.toml.")
+		broadCastServiceMode(false)
 		return
 	}
 
@@ -212,6 +216,7 @@ func SendPayments(silent bool) {
 		//deducting feeAmount from reserve address
 		if feeAmount > reserveAmount {
 			log.Fatal("Not enough reserve money to pay the fees from reserve fund. Payment script stopped !!!")
+			broadCastServiceMode(false)
 		}
 		reserveAmount -= float64(feeAmount)
 	}
@@ -237,6 +242,7 @@ func SendPayments(silent bool) {
 		if diff > 0.00000001 {
 			fmt.Println("Calculation of ratios NOT OK - overall summary failing for diff=", diff)
 			log.Fatal("Calculation of ratios NOT OK - overall summary failing diff=", diff)
+			broadCastServiceMode(false)
 		}
 	}
 
@@ -411,4 +417,115 @@ func calcFidelity(element core.DelegateDataProfit) float64 {
 	}
 
 	return fAmount2Send
+}
+
+//SendBonusPayment based on parameters in config.toml
+func SendBonusPayment(iAmount int, txDesc string) {
+
+	payrec := createPaymentRecord()
+	arkpooldb.Save(&payrec)
+	log.Info("Starting payments calculation. Active peer for voter information: ", arkclient.GetActivePeer())
+
+	pubKey := viper.GetString("delegate.pubkey")
+	if core.EnvironmentParams.Network.Type == core.DEVNET {
+		pubKey = viper.GetString("delegate.Dpubkey")
+	}
+
+	var p1, p2 string
+	var key1 *arkcoin.PrivateKey
+	if _, err := os.Stat("assembly.ark"); err == nil {
+		log.Info("Linked accound data found. Using saved account information.")
+
+		p1, p2 = read()
+
+		key1 = arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ActiveCoinConfig)
+		pubKey = hex.EncodeToString(key1.PublicKey.Serialize())
+
+	} else {
+		p1, p2 = readAccountData()
+		key1 = arkcoin.NewPrivateKeyFromPassword(p1, arkcoin.ActiveCoinConfig)
+	}
+
+	//TODO JARUNIK TEST
+	//pubKey = "02c7455bebeadde04728441e0f57f82f972155c088252bf7c1365eb0dc84fbf5de"
+	//pubKey = "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"
+	params := core.DelegateQueryParams{PublicKey: pubKey}
+	var payload core.TransactionPayload
+
+	voters, _, err := arkclient.GetDelegateVoters(params)
+	if !voters.Success {
+		log.Error("Failed getting delegate voters", err.Error())
+		fmt.Println("Failed getting delegate voters", err.Error())
+		pause()
+		return
+	}
+
+	clearScreen()
+
+	txAmount2Send := int64(iAmount * core.SATOSHI)
+
+	//creating tx
+	for _, element := range voters.Accounts {
+		//no bonuses for blocked addresses
+		if isBlockedAddress(viper.GetString("voters.blocklist"), element.Address) {
+			log.Info("Skipping bonus payment for ", element.Address)
+			continue
+		}
+		//transaction parameters
+		tx := core.CreateTransaction(element.Address, txAmount2Send, txDesc, p1, p2)
+		payload.Transactions = append(payload.Transactions, tx)
+		//Logging history to DB
+		savebonus2db(element.Address, tx, payrec.Pk)
+	}
+
+	log.Info("*******************************************************************************************************************")
+	log.Info("                                DELEGATE BONUS PAYOUT")
+	log.Info("Number of voters:", len(voters.Accounts))
+	log.Info("*******************************************************************************************************************")
+
+	arkpooldb.Update(&payrec)
+
+	color.Set(color.FgHiGreen)
+	fmt.Println("--------------------------------------------------------------------------------------------------------------")
+	fmt.Println("Transactions to be sent from:")
+	color.Set(color.FgHiYellow)
+	fmt.Println("\tDelegate address:", key1.PublicKey.Address())
+
+	color.Set(color.FgHiGreen)
+	fmt.Println("--------------------------------------------------------------------------------------------------------------")
+	color.Set(color.FgHiCyan)
+	for ix, el := range payload.Transactions {
+		s := fmt.Sprintf("%3d.|%s|%15d| %-40s|", ix+1, el.RecipientID, el.Amount, el.VendorField)
+		fmt.Println(s)
+		log.Info(s)
+	}
+
+	color.Set(color.FgHiYellow)
+	fmt.Println("")
+	fmt.Println("--------------------------------------------------------------------------------------------------------------")
+
+	var c byte
+	fmt.Print("Send BONUS PAYMENT transactions and complete reward payments [Y/N]: ")
+	c, _ = reader.ReadByte()
+
+	if c == []byte("Y")[0] || c == []byte("y")[0] {
+
+		fmt.Println("Sending BONUS to VOTERS.............")
+		log.Info("Starting automated payment... ")
+
+		splitAndDeliverPayload(payload)
+
+		fmt.Println("Automated Payment complete. Please check the logs folder... ")
+		log.Info("Automated Payment complete. Please check the logs folder... ")
+
+		reader.ReadString('\n')
+	}
+}
+
+func isBlockedAddress(list string, address string) bool {
+	//blocklist checling and excluding
+	if len(list) > 0 {
+		return strings.Contains(strings.ToLower(list), strings.ToLower(address))
+	}
+	return false
 }

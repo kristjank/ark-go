@@ -29,6 +29,20 @@ func save2db(ve core.DelegateDataProfit, tx *core.Transaction, relID int) {
 	}
 }
 
+func savebonus2db(address string, tx *core.Transaction, relID int) {
+	dbData := model.PaymentLogRecord{}
+
+	dbData.Address = address
+	dbData.Transaction = *tx
+	dbData.PaymentRecordID = relID
+	dbData.CreatedAt = time.Now()
+
+	err := arkpooldb.Save(&dbData)
+	if err != nil {
+		log.Error(err.Error())
+	}
+}
+
 func listPaymentsDetailsFromDB() {
 	var results []model.PaymentLogRecord
 	err := arkpooldb.All(&results)

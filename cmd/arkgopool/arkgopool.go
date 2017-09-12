@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"regexp"
 	"runtime"
+	"strconv"
 	"sync"
 
 	log "github.com/sirupsen/logrus"
@@ -50,10 +52,28 @@ func initializeBoltClient() {
 
 	if err != nil {
 		log.Panic(err.Error())
+		broadCastServiceMode(false)
 	}
 
 	log.Println("DB Opened at:", arkpooldb.Path)
 	//defer arkpooldb.Close()
+}
+
+func broadCastServiceMode(status bool) {
+	var url string
+	if status {
+		url = "http://127.0.0.1:" + strconv.Itoa(viper.GetInt("server.port")) + "/service/start"
+	} else {
+		arkpooldb.Close()
+		url = "http://127.0.0.1:" + strconv.Itoa(viper.GetInt("server.port")) + "/service/stop"
+	}
+
+	res, err := http.Get(url)
+	if err != nil {
+		log.Error("Error setting service mode on arkgopool server", err.Error(), url)
+	} else {
+		log.Info("Status mode set to", status, res.StatusCode)
+	}
 }
 
 func readAccountData() (string, string) {
@@ -183,7 +203,7 @@ func printMenu() {
 	fmt.Println("\t2-Send reward payments")
 	fmt.Println("\t3-Switch network")
 	fmt.Println("\t4-Link account")
-	fmt.Println("\t5-Send bonus payments N/A currently")
+	fmt.Println("\t5-Send bonus payments currently")
 	fmt.Println("\t6-List history payments")
 	fmt.Println("\t0-Exit")
 	fmt.Println("")
@@ -192,11 +212,14 @@ func printMenu() {
 }
 
 func main() {
+	//sending ARKGO Server that we are working with payments
 	//setting the version
-	ArkGoPoolVersion = "v0.7.7"
+	ArkGoPoolVersion = "v0.7.8"
 
 	// Load configration and defaults
+	// Order is important
 	loadConfig()
+	broadCastServiceMode(true)
 	initLogger()
 
 	log.Info("Ark-golang client starting")
@@ -223,6 +246,8 @@ func main() {
 		wg.Wait()
 		log.Info("Exiting silent mode and arkgopool")
 		os.Exit(1985)
+		//sending ARKGO Server that we are working with payments
+		broadCastServiceMode(false)
 	}
 
 	var choice = 1
@@ -263,7 +288,27 @@ func main() {
 		case 5:
 			clearScreen()
 			color.Set(color.FgHiGreen)
-			//SendBonus()
+
+			fmt.Println("\nEnter bonus amount to send to loyal voters")
+			fmt.Print("-->")
+			sAmount2Send, err := reader.ReadString('\n')
+			re := regexp.MustCompile("\r?\n")
+			sAmount2Send = re.ReplaceAllString(sAmount2Send, "")
+
+			fmt.Println("\nEnter bonus transaction description (vendor field)")
+			fmt.Print("-->")
+
+			txBonusDesc, err := reader.ReadString('\n')
+			txBonusDesc = re.ReplaceAllString(txBonusDesc, "")
+
+			iAmount2Send, err := strconv.Atoi(sAmount2Send)
+			if err != nil {
+				log.Error("Stopping bonus payment", err.Error())
+				return
+			}
+
+			SendBonusPayment(iAmount2Send, txBonusDesc)
+			pause()
 			color.Unset()
 		case 6:
 			clearScreen()
@@ -276,4 +321,5 @@ func main() {
 		}
 	}
 	color.Unset()
+	broadCastServiceMode(false)
 }

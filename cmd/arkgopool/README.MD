@@ -27,15 +27,15 @@ Config.toml is a simple.ini setup file, where you specify the share percentages 
 Just edit [settings/sample.config.toml](https://github.com/kristjank/ark-go/blob/master/cmd/arkgopool/settings/sample.config.toml) to your preferences and rename it to config.toml.
 
 ### 3. Run the executable to test the calculation
-- $> ./arkgo-gui //Linux
-- c:\ark-go-payment>arkgo-gui.exe  //Windows
+- $> ./arkgopool //Linux
+- c:\ark-go-payment>arkgopool.exe  //Windows
 
 See the **demo video** of console app shell recording here:
 https://asciinema.org/a/5yndxl794ncfpmjoqftuaiodm?t=8.
 
 ### 4. When all is setup, run it in silent mode: 
 To run the script in silent mode run:
-**$>arkgo-gui -silent=true**
+**$>arkgopool -silent=true**
 
 You can add it to you cronjob if you want to have automated payments.
 
@@ -60,7 +60,7 @@ Application was developed to help testing of the core library and to provide a t
 ### Run from source
 ```
 $> cd $GOPATH/src/github.com/kristjank/ark-go/cmd/arkgopool
-$> go run arkgo-gui.go
+$> go run arkgopool.go
 ```
 
 ### Build
@@ -72,7 +72,7 @@ $> go build
 ### Run in Windows
 ```
 $> cd $GOPATH/src/github.com/kristjank/ark-go/cmd/arkgopool
-$> ./arkgo-gui.exe
+$> ./arkgopool.exe
 ```
 
 ### Run in Linux
