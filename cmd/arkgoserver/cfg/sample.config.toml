@@ -15,6 +15,9 @@ fidelityLimit = 24  #fidelity limit in hours
 minamount = 0.0 #minimum amount limit for payout.
 deductTxFees = true #if true tx fees are deducted from recepients
 blocklist = "" #comma separated address list of addresses of voters to block
+whitelist = "" #comma separated address list of addresses of voters to allow
+capBalance = false
+balanceCapAmount = 0.0
 
 [costs]
 address = "ANqeL7CP2som7q9NFbRuaUc5WUnwYkSbFY" #costs
