@@ -145,8 +145,16 @@ func isBlockedAddress(list string, address string) bool {
 	return false
 }
 
+func isAllowedAddress(list string, address string) bool {
+	//blocklist checling and excluding
+	if len(list) > 0 {
+		return strings.Contains(strings.ToLower(list), strings.ToLower(address))
+	}
+	return false
+}
+
 //CalculateVotersProfit returns voter calculation details - based on settings
-func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio float64, blocklist string) []DelegateDataProfit {
+func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio float64, blocklist string, whitelist string, capBalance bool, balanceCapAmount float64) []DelegateDataProfit {
 	delegateRes, _, _ := s.GetDelegate(params)
 	voters, _, _ := s.GetDelegateVoters(params)
 	accountRes, _, _ := s.GetAccount(AccountQueryParams{Address: delegateRes.SingleDelegate.Address})
@@ -164,6 +172,14 @@ func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio
 		if isBlockedAddress(blocklist, element.Address) {
 			continue
 		}
+
+		//skip balanceCap unless whitelisted
+		currentVoterBalance, _ := strconv.ParseFloat(element.Balance, 64)
+		if capBalance && currentVoterBalance > balanceCapAmount {
+			if !isAllowedAddress(whitelist, element.Address) {
+				continue
+			}
+		}
 		intBalance, _ := strconv.Atoi(element.Balance)
 		delelgateVoteWeight += intBalance
 	}
@@ -175,10 +191,17 @@ func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio
 			continue
 		}
 
+		//skip balanceCap unless whitelisted
+		currentVoterBalance, _ := strconv.ParseFloat(element.Balance, 64)
+		if capBalance && currentVoterBalance > balanceCapAmount {
+			if !isAllowedAddress(whitelist, element.Address) {
+				continue
+			}
+		}
+
 		deleProfit := DelegateDataProfit{
 			Address: element.Address,
 		}
-		currentVoterBalance, _ := strconv.ParseFloat(element.Balance, 64)
 		deleProfit.VoteWeight = currentVoterBalance / SATOSHI
 		deleProfit.VoteWeightShare = float64(currentVoterBalance) / float64(delelgateVoteWeight)
 		deleProfit.EarnedAmount100 = float64(delegateBalance) * deleProfit.VoteWeightShare
@@ -193,14 +216,17 @@ func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio
 //GetVoteDuration returns vote duration in HOURS
 func (s *ArkClient) GetVoteDuration(address string) int {
 	transQuery := TransactionQueryParams{SenderID: address}
-
 	transResp, _, _ := s.ListTransaction(transQuery)
 
+	timestamp := 0
+	duration := 0
 	for _, element := range transResp.Transactions {
 		if element.Type == VOTE {
-			//log.Println("Found Transaction", element.ToJSON())
-			return GetDurationTime(element.Timestamp)
+			if int(element.Timestamp) > timestamp {
+				timestamp = int(element.Timestamp)
+				duration = GetDurationTime(element.Timestamp)
+			}
 		}
 	}
-	return 0
+	return duration
 }

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/kristjank/ark-go/arkcoin"
+	"github.com/kristjank/ark-go/core"
 )
 
 func TestReadAccountData(t *testing.T) {
@@ -90,4 +91,16 @@ func TestCreateLogFolder(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
+}
+
+func TestCheckMinimumVoteTimeCandidates(t *testing.T) {
+	arkapi := core.NewArkClient(nil)
+	arkapi = arkapi.SetActiveConfiguration(core.DEVNET)
+
+	pubKey := "02bcfa0951a92e7876db1fb71996a853b57f996972ed059a950d910f7d541706c9"
+	params := core.DelegateQueryParams{PublicKey: pubKey}
+
+	deleResp, _, _ := arkapi.GetDelegateVoters(params)
+	addresses2Block := checkMinimumVoteTime(deleResp, "")
+	log.Println(addresses2Block)
 }

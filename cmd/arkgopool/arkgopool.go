@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"regexp"
 	"runtime"
+	"strconv"
 	"sync"
 
 	log "github.com/sirupsen/logrus"
@@ -27,6 +29,8 @@ var arkclient = core.NewArkClient(nil)
 var reader = bufio.NewReader(os.Stdin)
 var arkpooldb *storm.DB
 var wg sync.WaitGroup
+
+var ArkGoPoolVersion string
 
 func initLogger() {
 	// Log as JSON instead of the default ASCII formatter.
@@ -48,10 +52,28 @@ func initializeBoltClient() {
 
 	if err != nil {
 		log.Panic(err.Error())
+		broadCastServiceMode(false)
 	}
 
 	log.Println("DB Opened at:", arkpooldb.Path)
 	//defer arkpooldb.Close()
+}
+
+func broadCastServiceMode(status bool) {
+	var url string
+	if status {
+		url = "http://127.0.0.1:" + strconv.Itoa(viper.GetInt("server.port")) + "/service/start"
+	} else {
+		arkpooldb.Close()
+		url = "http://127.0.0.1:" + strconv.Itoa(viper.GetInt("server.port")) + "/service/stop"
+	}
+
+	res, err := http.Get(url)
+	if err != nil {
+		log.Error("Error setting service mode on arkgopool server", err.Error(), url)
+	} else {
+		log.Info("Status mode set to", status, res.StatusCode)
+	}
 }
 
 func readAccountData() (string, string) {
@@ -110,7 +132,12 @@ func loadConfig() {
 	viper.SetDefault("voters.fidelity", true)
 	viper.SetDefault("voters.fidelityLimit", 24)
 	viper.SetDefault("voters.minamount", 0.0)
+	viper.SetDefault("voters.minVoteTime", 0)
 	viper.SetDefault("voters.deductTxFees", true)
+	viper.SetDefault("voters.blocklist", "")
+	viper.SetDefault("voters.capBalance", false)
+	viper.SetDefault("voters.balanceCapAmount", 0.0)
+	viper.SetDefault("voters.whitelist", "")
 
 	viper.SetDefault("costs.address", "")
 	viper.SetDefault("costs.shareRatio", 0.0)
@@ -129,6 +156,7 @@ func loadConfig() {
 
 	viper.SetDefault("client.network", "DEVNET")
 	viper.SetDefault("client.dbFilename", "payment.db")
+	viper.SetDefault("client.multibroadcast", 10)
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -155,11 +183,11 @@ func clearScreen() {
 func printNetworkInfo() {
 	color.Set(color.FgHiCyan)
 	if core.EnvironmentParams.Network.Type == core.MAINNET {
-		fmt.Println("Connected to MAINNET on peer:", core.BaseURL)
+		fmt.Println("Connected to MAINNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
 	}
 
 	if core.EnvironmentParams.Network.Type == core.DEVNET {
-		fmt.Println("Connected to DEVNET on peer:", core.BaseURL)
+		fmt.Println("Connected to DEVNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
 	}
 }
 
@@ -180,8 +208,8 @@ func printMenu() {
 	fmt.Println("\t2-Send reward payments")
 	fmt.Println("\t3-Switch network")
 	fmt.Println("\t4-Link account")
-	fmt.Println("\t5-Send bonus payments N/A currently")
-	fmt.Println("\t6-List history payments")
+	fmt.Println("\t5-Send bonus payments")
+	fmt.Println("\t6-List payment history")
 	fmt.Println("\t0-Exit")
 	fmt.Println("")
 	fmt.Print("\tSelect option [1-9]:")
@@ -189,9 +217,14 @@ func printMenu() {
 }
 
 func main() {
+	//sending ARKGO Server that we are working with payments
+	//setting the version
+	ArkGoPoolVersion = "v0.7.8"
 
 	// Load configration and defaults
+	// Order is important
 	loadConfig()
+	broadCastServiceMode(true)
 	initLogger()
 
 	log.Info("Ark-golang client starting")
@@ -218,6 +251,8 @@ func main() {
 		wg.Wait()
 		log.Info("Exiting silent mode and arkgopool")
 		os.Exit(1985)
+		//sending ARKGO Server that we are working with payments
+		broadCastServiceMode(false)
 	}
 
 	var choice = 1
@@ -258,7 +293,27 @@ func main() {
 		case 5:
 			clearScreen()
 			color.Set(color.FgHiGreen)
-			//SendBonus()
+
+			fmt.Println("\nEnter bonus amount to send to loyal voters")
+			fmt.Print("-->")
+			sAmount2Send, err := reader.ReadString('\n')
+			re := regexp.MustCompile("\r?\n")
+			sAmount2Send = re.ReplaceAllString(sAmount2Send, "")
+
+			fmt.Println("\nEnter bonus transaction description (vendor field)")
+			fmt.Print("-->")
+
+			txBonusDesc, err := reader.ReadString('\n')
+			txBonusDesc = re.ReplaceAllString(txBonusDesc, "")
+
+			iAmount2Send, err := strconv.Atoi(sAmount2Send)
+			if err != nil {
+				log.Error("Stopping bonus payment", err.Error())
+				return
+			}
+
+			SendBonusPayment(iAmount2Send, txBonusDesc)
+			pause()
 			color.Unset()
 		case 6:
 			clearScreen()
@@ -271,4 +326,5 @@ func main() {
 		}
 	}
 	color.Unset()
+	broadCastServiceMode(false)
 }

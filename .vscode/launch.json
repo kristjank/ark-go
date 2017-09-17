@@ -9,7 +9,7 @@
             "remotePath": "",
             "port": 2345,
             "host": "127.0.0.1",
-            "program": "${workspaceRoot}/cmd/arkgopool/arkgo-gui.go",
+            "program": "${workspaceRoot}/cmd/arkgopool/arkgopool.go",
             "env": {},
             "args": ["-silent=true"],
             "showLog": true
@@ -23,7 +23,21 @@
             "remotePath": "",
             "port": 2345,
             "host": "127.0.0.1",
-            "program": "${workspaceRoot}/cmd/arkgopool/arkgo-gui.go",
+            "program": "${workspaceRoot}/cmd/arkgopool/arkgopool.go",
+            "env": {},
+            "args": [],
+            "showLog": true
+        },
+
+        {
+            "name": "ARKGO-SERVER",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${workspaceRoot}/cmd/arkgoserver/arkgo-server.go",
             "env": {},
             "args": [],
             "showLog": true

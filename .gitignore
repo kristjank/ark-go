@@ -40,3 +40,8 @@ cmd/arkgoserver/cfg/config.toml
 cmd/arkgopool/paymentLog.csv
 cmd/arkgoserver/log/goark-node.log
 cmd/arkgopool/settings/config.1.toml
+cmd/arkgoserver/log/arkgo-server.log
+cmd/arkgoserver/debug
+cmd/arkgoserver/payment.db
+cmd/arkgopool/arkgopool
+cmd/arkgoserver/arkgoserver

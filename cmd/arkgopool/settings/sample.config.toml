@@ -13,8 +13,12 @@ txdescription = "delegate: voters share. Thank you! |tx by ark-go"
 fidelity = true
 fidelityLimit = 24  #fidelity limit in hours
 minamount = 0.0 #minimum amount limit for payout.
+minVoteTime = 0 #minimum vote time in hours to receive payout
 deductTxFees = true #if true tx fees are deducted from recepients
 blocklist = "" #comma separated address list of addresses of voters to block
+whitelist = "" #comma separated address list of addresses of voters to allow
+capBalance = false
+balanceCapAmount = 0.0
 
 [costs]
 address = "ANqeL7CP2som7q9NFbRuaUc5WUnwYkSbFY" #costs
@@ -42,5 +46,13 @@ Daddress = "DQPr5WHkhau3Ka2RKb7egm7isr5wbNHbF1"
 
 [client]
 network = "DEVNET" #which network is active when application starts
+dbfilename = "payment.db"
+multibroadcast = 10 #to how many peers at once - we can multibroadcast
+
+#ARK-POOL SERVER SETTINGS
+[server]
+port = 54000
+address = "0.0.0.0"
+version = "0.1.0"
 dbfilename = "payment.db"
 

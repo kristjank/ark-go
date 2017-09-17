@@ -2,43 +2,38 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
-	"log"
 	"os"
 
-	"github.com/asdine/storm"
+	"github.com/gin-gonic/gin"
+	"github.com/kristjank/ark-go/cmd/arkgoserver/api"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/fatih/color"
 	"github.com/spf13/viper"
-	"gopkg.in/gin-gonic/gin.v1"
 )
 
-var errorlog *os.File
-var logger *log.Logger
 var router *gin.Engine
-var arkpooldb *storm.DB
 
 func init() {
 	initLogger()
 	loadConfig()
-
-	var err error
-	arkpooldb, err = storm.Open(viper.GetString("server.dbfilename"))
-
-	if err != nil {
-		panic(err.Error())
-	}
-
-	log.Println("DB Opened at:", arkpooldb.Path)
+	api.InitGlobals()
 }
 
 func initLogger() {
-	errorlog, err := os.OpenFile("log/goark-node.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		fmt.Printf("error opening file: %v", err)
-		os.Exit(1)
+	// Log as JSON instead of the default ASCII formatter.
+	//log.SetFormatter(&log.JSONFormatter{})
+
+	// You could set this to any `io.Writer` such as a file
+	file, err := os.OpenFile("log/arkgo-server.log", os.O_CREATE|os.O_WRONLY, 0666)
+	if err == nil {
+		log.SetOutput(io.MultiWriter(file))
+	} else {
+		log.Error("Failed to log to file, using default stderr")
 	}
 
-	logger = log.New(errorlog, "ark-go: ", log.Lshortfile|log.LstdFlags)
 }
 
 func loadConfig() {
@@ -49,14 +44,14 @@ func loadConfig() {
 	err := viper.ReadInConfig() // Find and read the config file
 
 	if err != nil {
-		logger.Println("No productive config found - loading sample")
+		log.Info("No productive config found - loading sample")
 		// try to load sample config
 		viper.SetConfigName("sample.config")
 		viper.AddConfigPath("cfg")
 		err := viper.ReadInConfig()
 
 		if err != nil { // Handle errors reading the config file
-			logger.Println("No configuration file loaded - using defaults")
+			log.Fatal("No configuration file loaded - using defaults")
 		}
 	}
 
@@ -71,6 +66,10 @@ func loadConfig() {
 	viper.SetDefault("voters.fidelityLimit", 24)
 	viper.SetDefault("voters.minamount", 0.0)
 	viper.SetDefault("voters.deductTxFees", true)
+	viper.SetDefault("voters.blocklist", "")
+	viper.SetDefault("voters.capBalance", false)
+	viper.SetDefault("voters.balanceCapAmount", 0.0)
+	viper.SetDefault("voters.whitelist", "")
 
 	viper.SetDefault("costs.address", "")
 	viper.SetDefault("costs.shareRatio", 0.0)
@@ -81,7 +80,6 @@ func loadConfig() {
 	viper.SetDefault("reserve.shareRatio", 0.0)
 	viper.SetDefault("reserve.txdescription", "reserve tx by ark-go")
 	viper.SetDefault("reserve.Daddress", "")
-
 	viper.SetDefault("personal.address", "")
 	viper.SetDefault("personal.shareRatio", 0.0)
 	viper.SetDefault("personal.txdescription", "personal tx by ark-go")
@@ -91,7 +89,52 @@ func loadConfig() {
 
 	viper.SetDefault("server.address", "0.0.0.0")
 	viper.SetDefault("server.port", 54000)
-	viper.SetDefault("server.version", "0.1.0")
+	viper.SetDefault("server.dbfilename", "payments.db")
+}
+
+//CORSMiddleware function enabling CORS requests
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+		c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(200)
+		} else {
+			c.Next()
+		}
+	}
+}
+
+func initializeRoutes() {
+	log.Info("Initializing routes")
+
+	router.Use(CORSMiddleware())
+	// Group peer related routes together
+	peerRoutes := router.Group("/voters")
+	peerRoutes.Use(api.CheckServiceModelHandler())
+	{
+		peerRoutes.GET("/rewards", api.GetVoters)
+		peerRoutes.GET("/blocked", api.GetBlocked)
+	}
+	deleRoutes := router.Group("/delegate")
+	deleRoutes.Use(api.CheckServiceModelHandler())
+	{
+		deleRoutes.GET("", api.GetDelegate)
+		deleRoutes.GET("/config", api.GetDelegateSharingConfig)
+		deleRoutes.GET("/paymentruns", api.GetDelegatePaymentRecord)
+		deleRoutes.GET("/paymentruns/details", api.GetDelegatePaymentRecordDetails)
+	}
+	serviceRoutes := router.Group("/service")
+	serviceRoutes.Use(api.OnlyLocalCallAllowed())
+	{
+		serviceRoutes.GET("/start", api.EnterServiceMode)
+		serviceRoutes.GET("/stop", api.LeaveServiceMode)
+	}
 }
 
 func printBanner() {
@@ -103,7 +146,11 @@ func printBanner() {
 ///////////////////////////
 func main() {
 	printBanner()
-	logger.Println("GOARK-DELEGATE-POOL-SERVER-STARTING")
+	log.Info("..........GOARK-DELEGATE-POOL-SERVER-STARTING............")
+
+	//sending ARKGO Server that we are working with payments
+	//setting the version
+	api.ArkGoServerVersion = "v0.2.0"
 
 	// Set the router as the default one provided by Gin
 	router = gin.Default()
