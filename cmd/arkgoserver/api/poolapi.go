@@ -24,7 +24,7 @@ func GetVoters(c *gin.Context) {
 
 	params := core.DelegateQueryParams{PublicKey: pubKey}
 
-	votersEarnings := ArkAPIclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"))
+	votersEarnings := ArkAPIclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"), viper.GetString("voters.whitelist"), viper.GetBool("voters.capBalance"), viper.GetFloat64("voters.BalanceCapAmount")*core.SATOSHI)
 
 	c.JSON(200, gin.H{"count": len(votersEarnings), "data": votersEarnings})
 }
