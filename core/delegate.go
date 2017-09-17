@@ -216,14 +216,17 @@ func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio
 //GetVoteDuration returns vote duration in HOURS
 func (s *ArkClient) GetVoteDuration(address string) int {
 	transQuery := TransactionQueryParams{SenderID: address}
-
 	transResp, _, _ := s.ListTransaction(transQuery)
 
+	timestamp := 0
+	duration := 0
 	for _, element := range transResp.Transactions {
 		if element.Type == VOTE {
-			//log.Println("Found Transaction", element.ToJSON())
-			return GetDurationTime(element.Timestamp)
+			if int(element.Timestamp) > timestamp {
+				timestamp = int(element.Timestamp)
+				duration = GetDurationTime(element.Timestamp)
+			}
 		}
 	}
-	return 0
+	return duration
 }
