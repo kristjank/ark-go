@@ -202,7 +202,6 @@ func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio
 		deleProfit := DelegateDataProfit{
 			Address: element.Address,
 		}
-		currentVoterBalance, _ := strconv.ParseFloat(element.Balance, 64)
 		deleProfit.VoteWeight = currentVoterBalance / SATOSHI
 		deleProfit.VoteWeightShare = float64(currentVoterBalance) / float64(delelgateVoteWeight)
 		deleProfit.EarnedAmount100 = float64(delegateBalance) * deleProfit.VoteWeightShare
