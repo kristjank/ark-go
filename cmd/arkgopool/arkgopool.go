@@ -132,6 +132,7 @@ func loadConfig() {
 	viper.SetDefault("voters.fidelity", true)
 	viper.SetDefault("voters.fidelityLimit", 24)
 	viper.SetDefault("voters.minamount", 0.0)
+	viper.SetDefault("voters.minVoteTime", 0)
 	viper.SetDefault("voters.deductTxFees", true)
 	viper.SetDefault("voters.blocklist", "")
 	viper.SetDefault("voters.capBalance", false)
