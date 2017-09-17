@@ -93,8 +93,9 @@ func LoadActiveConfiguration(arknetwork ArkNetworkType) string {
 		if err != nil {
 			log.Println("Error receiving autoloader params rest from: ", selectedPeer, " Error: ", err.Error())
 			selectedPeer = ""
+		} else {
+			json.NewDecoder(res.Body).Decode(&EnvironmentParams)
 		}
-		json.NewDecoder(res.Body).Decode(&EnvironmentParams)
 	}
 
 	if selectedPeer == "" {
