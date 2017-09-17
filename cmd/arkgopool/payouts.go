@@ -37,7 +37,7 @@ func DisplayCalculatedVoteRatio() {
 
 	params := core.DelegateQueryParams{PublicKey: pubKey}
 	deleResp, _, _ := arkclient.GetDelegate(params)
-	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"))
+	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"), viper.GetString("voters.whitelist"), viper.GetBool("voters.capBalance"), viper.GetFloat64("voters.BalanceCapAmount")*core.SATOSHI)
 	shareRatioStr := strconv.FormatFloat(viper.GetFloat64("voters.shareratio")*100, 'f', -1, 64) + "%"
 
 	sumEarned := 0.0
@@ -56,6 +56,9 @@ func DisplayCalculatedVoteRatio() {
 	color.Set(color.FgHiYellow)
 	fmt.Print("\tfee deduction:")
 	color.HiRed("%t", viper.GetBool("voters.deductTxFees"))
+	color.Set(color.FgHiYellow)
+	fmt.Print("\tcap balance:")
+	color.HiRed("%t", viper.GetBool("voters.capBalance"))
 	color.Set(color.FgHiYellow)
 	fmt.Print("\tlinked:")
 	color.HiRed("%t\n", isLinked)
@@ -161,7 +164,7 @@ func SendPayments(silent bool) {
 	params := core.DelegateQueryParams{PublicKey: pubKey}
 	var payload core.TransactionPayload
 
-	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"))
+	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"), viper.GetString("voters.whitelist"), viper.GetBool("voters.capBalance"), viper.GetFloat64("voters.BalanceCapAmount")*core.SATOSHI)
 	payrec.VoteWeight, _, _ = arkclient.GetDelegateVoteWeight(params)
 
 	sumEarned := 0.0
@@ -296,6 +299,9 @@ func SendPayments(silent bool) {
 	color.Set(color.FgHiYellow)
 	fmt.Print("\tFee deduction:")
 	color.HiRed("%t", viper.GetBool("voters.deductTxFees"))
+	color.Set(color.FgHiYellow)
+	fmt.Print("\tcap balance:")
+	color.HiRed("%t", viper.GetBool("voters.capBalance"))
 	color.Set(color.FgHiYellow)
 	fmt.Println("\tFee Amount:", feeAmount)
 	color.Set(color.FgHiYellow)
