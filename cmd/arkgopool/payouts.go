@@ -544,8 +544,10 @@ func checkMinimumVoteTime(voters core.DelegateVoters, blocklist string) string {
 	var minVoteTime = viper.GetInt("voters.minVoteTime")
 
 	if minVoteTime > 0 {
+		log.Info("MinVoteTime is ACTIVE.")
 		for _, element := range voters.Accounts {
 			if minVoteTime > arkclient.GetVoteDuration(element.Address) {
+				log.Info("MinVoteTime is ACTIVE. Blocking address: ", element.Address)
 				if len(blocklist) > 0 {
 					if !strings.Contains(strings.ToLower(blocklist), strings.ToLower(element.Address)) {
 						blocklist += "," + element.Address
@@ -555,6 +557,7 @@ func checkMinimumVoteTime(voters core.DelegateVoters, blocklist string) string {
 				}
 			}
 		}
+
 	}
 	return blocklist
 }
