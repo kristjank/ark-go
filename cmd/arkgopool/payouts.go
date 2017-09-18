@@ -393,6 +393,10 @@ func splitAndDeliverPayload(payload core.TransactionPayload) {
 
 func deliverPayloadThreaded(tmpPayload core.TransactionPayload, chunkIx int, logFolder string) {
 	numberOfPeers2MultiBroadCastTo := viper.GetInt("client.multibroadcast")
+	if numberOfPeers2MultiBroadCastTo > 15 {
+		numberOfPeers2MultiBroadCastTo = 15
+		log.Warn("Max broadcast number too high - set by user, reseting to value 15")
+	}
 	log.Info("Starting multibroadcast/multithreaded parallel payout to ", numberOfPeers2MultiBroadCastTo, " number of peers")
 	peers := arkclient.GetRandomXPeers(numberOfPeers2MultiBroadCastTo)
 	for i := 0; i < numberOfPeers2MultiBroadCastTo; i++ {
