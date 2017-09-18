@@ -27,6 +27,7 @@ Config.toml is a simple.ini setup file, where you specify the share percentages 
 Just edit [settings/sample.config.toml](https://github.com/kristjank/ark-go/blob/master/cmd/arkgopool/settings/sample.config.toml) to your preferences and rename it to config.toml.
 
 ### 3. Run the executable to test the calculation
+- $> chmod +x arkgopool //make file executable on Linux
 - $> ./arkgopool //Linux
 - c:\ark-go-payment>arkgopool.exe  //Windows
 
