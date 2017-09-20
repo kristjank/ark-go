@@ -14,6 +14,7 @@ txdescription = "delegate: voters share. Thank you! |tx by ark-go"
 fidelity = true
 fidelityLimit = 24  #fidelity limit in hours - calculation: profit * (voted time / fidelityLimit)
 minamount = 0.0 #minimum amount limit for payout.
+minVoteTime = 0 #minimum vote time in hours to receive payout
 deductTxFees = true #if true tx fees are deducted from recepients
 blocklist = "" #comma separated address list of addresses of voters to block
 whitelist = "" #comma separated address list of addresses of voters to allow ( only applies to cap options)
