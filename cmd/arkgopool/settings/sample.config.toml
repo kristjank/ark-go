@@ -1,4 +1,5 @@
 # Adapt and copy this file to settings/config.toml for productive configuration
+# Do NOT change the header in brackets example: [delegate]
 [delegate]
 address = "ASJBHz4JfWVUGDyN61hMMnW1Y4ZCTBHL1K"
 pubkey = "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"
@@ -11,14 +12,15 @@ Dpubkey = "02bcfa0951a92e7876db1fb71996a853b57f996972ed059a950d910f7d541706c9"
 shareRatio = 0.70 #percent goes to voters
 txdescription = "delegate: voters share. Thank you! |tx by ark-go"
 fidelity = true
-fidelityLimit = 24  #fidelity limit in hours
+fidelityLimit = 24  #fidelity limit in hours - calculation: profit * (voted time / fidelityLimit)
 minamount = 0.0 #minimum amount limit for payout.
 minVoteTime = 0 #minimum vote time in hours to receive payout
 deductTxFees = true #if true tx fees are deducted from recepients
 blocklist = "" #comma separated address list of addresses of voters to block
-whitelist = "" #comma separated address list of addresses of voters to allow
-capBalance = false
-balanceCapAmount = 0.0
+whitelist = "" #comma separated address list of addresses of voters to allow ( only applies to cap options)
+capBalance = false #should the payout be capped?
+balanceCapAmount = 0.0 #treshold to cap the balance
+blockBalanceCap = true #Should the payout be completely blocked, false = pay profit for cap
 
 [costs]
 address = "ANqeL7CP2som7q9NFbRuaUc5WUnwYkSbFY" #costs
@@ -53,6 +55,5 @@ multibroadcast = 10 #to how many peers at once - we can multibroadcast
 [server]
 port = 54000
 address = "0.0.0.0"
-version = "0.1.0"
 dbfilename = "payment.db"
 
