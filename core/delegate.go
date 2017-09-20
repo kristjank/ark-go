@@ -154,7 +154,7 @@ func isAllowedAddress(list string, address string) bool {
 }
 
 //CalculateVotersProfit returns voter calculation details - based on settings
-func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio float64, blocklist string, whitelist string, capBalance bool, balanceCapAmount float64) []DelegateDataProfit {
+func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio float64, blocklist string, whitelist string, capBalance bool, balanceCapAmount float64, blockBalanceCap bool) []DelegateDataProfit {
 	delegateRes, _, _ := s.GetDelegate(params)
 	voters, _, _ := s.GetDelegateVoters(params)
 	accountRes, _, _ := s.GetAccount(AccountQueryParams{Address: delegateRes.SingleDelegate.Address})
@@ -175,12 +175,17 @@ func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio
 
 		//skip balanceCap unless whitelisted
 		currentVoterBalance, _ := strconv.ParseFloat(element.Balance, 64)
+		intBalance, _ := strconv.Atoi(element.Balance)
 		if capBalance && currentVoterBalance > balanceCapAmount {
 			if !isAllowedAddress(whitelist, element.Address) {
-				continue
+				if blockBalanceCap {
+					intBalance = 0
+					continue
+				} else {
+					intBalance = int(balanceCapAmount)
+				}
 			}
 		}
-		intBalance, _ := strconv.Atoi(element.Balance)
 		delelgateVoteWeight += intBalance
 	}
 
@@ -195,7 +200,12 @@ func (s *ArkClient) CalculateVotersProfit(params DelegateQueryParams, shareRatio
 		currentVoterBalance, _ := strconv.ParseFloat(element.Balance, 64)
 		if capBalance && currentVoterBalance > balanceCapAmount {
 			if !isAllowedAddress(whitelist, element.Address) {
-				continue
+				if blockBalanceCap {
+					currentVoterBalance = 0
+					continue
+				} else {
+					currentVoterBalance = balanceCapAmount
+				}
 			}
 		}
 

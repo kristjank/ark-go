@@ -137,6 +137,7 @@ func loadConfig() {
 	viper.SetDefault("voters.capBalance", false)
 	viper.SetDefault("voters.balanceCapAmount", 0.0)
 	viper.SetDefault("voters.whitelist", "")
+	viper.SetDefault("voters.blockBalanceCap", true)
 
 	viper.SetDefault("costs.address", "")
 	viper.SetDefault("costs.shareRatio", 0.0)
