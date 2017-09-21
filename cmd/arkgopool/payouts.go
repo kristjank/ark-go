@@ -37,7 +37,7 @@ func DisplayCalculatedVoteRatio() {
 
 	params := core.DelegateQueryParams{PublicKey: pubKey}
 	deleResp, _, _ := arkclient.GetDelegate(params)
-	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"), viper.GetString("voters.whitelist"), viper.GetBool("voters.capBalance"), viper.GetFloat64("voters.BalanceCapAmount")*core.SATOSHI)
+	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"), viper.GetString("voters.whitelist"), viper.GetBool("voters.capBalance"), viper.GetFloat64("voters.BalanceCapAmount")*core.SATOSHI, viper.GetBool("voters.blockBalanceCap"))
 	shareRatioStr := strconv.FormatFloat(viper.GetFloat64("voters.shareratio")*100, 'f', -1, 64) + "%"
 
 	sumEarned := 0.0
@@ -167,8 +167,8 @@ func SendPayments(silent bool) {
 	// check minVoteTime
 	deleResp, _, _ := arkclient.GetDelegateVoters(params)
 	blocklist := checkMinimumVoteTime(deleResp, viper.GetString("voters.blocklist"))
+  votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), blocklist, viper.GetString("voters.whitelist"), viper.GetBool("voters.capBalance"), viper.GetFloat64("voters.BalanceCapAmount")*core.SATOSHI, viper.GetBool("voters.blockBalanceCap"))
 
-	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), blocklist, viper.GetString("voters.whitelist"), viper.GetBool("voters.capBalance"), viper.GetFloat64("voters.BalanceCapAmount")*core.SATOSHI)
 	payrec.VoteWeight, _, _ = arkclient.GetDelegateVoteWeight(params)
 
 	sumEarned := 0.0

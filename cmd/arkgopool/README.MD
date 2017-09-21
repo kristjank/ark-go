@@ -135,9 +135,6 @@ $> nano config.toml
 ## How to automate payment run
 
 First, make sure that you did link your account. (Option 4)
-
-Create a folder paymentlog in arkgopool:
-
 ```
 $> cd arkgopool
 ```
@@ -146,36 +143,26 @@ Create such a file go-payment.sh in home:
 
 ```
 #!/bin/bash
-cd ~/work/src/github.com/kristjank/ark-go/main
+cd ~/YOUR_ARK_GO_FOLDER_PATH_TO_WHERE_ARK_GO_POOL_IS
 ./arkgopool -silent=true
 ```
 
 Make it executable:
-
 ```
 $> chmod +x go-payment.sh
 ```
 
 Open crontab:
-
 ```
 $> crontab -e
 ```
 
-Add a line at the top (replace ~ with your absolute root path):
-
-```
-GOPATH=~/work
-```
-
 Add a line at the end and an empty line behind:
-
 ```
 30 17 * * * ~/go-payment.sh
 ```
 
 Save and now your payments will done automatic every day. Enjoy!
-
 
 Thank you for checking in.
 
@@ -190,6 +177,9 @@ Jarunik (jens@hviid.ch), with a lot of help from Chris
 ## Support this project
 ![Ark Logo](/raw/ark-logo-60x60.png)
 Ark address:``AUgTuukcKeE4XFdzaK6rEHMD5FLmVBSmHk``
+
+## Sponsor
+@Jarunik
 
 
 # License

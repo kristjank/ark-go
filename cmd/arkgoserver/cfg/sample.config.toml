@@ -18,6 +18,7 @@ blocklist = "" #comma separated address list of addresses of voters to block
 whitelist = "" #comma separated address list of addresses of voters to allow
 capBalance = false
 balanceCapAmount = 0.0
+blockBalanceCap = true #Should the payout be completely blocked, false = pay profit for cap
 
 [costs]
 address = "ANqeL7CP2som7q9NFbRuaUc5WUnwYkSbFY" #costs

@@ -107,7 +107,7 @@ func TestCalculcateVotersProfit(t *testing.T) {
 
 	params := DelegateQueryParams{PublicKey: deleKey}
 
-	votersEarnings := arkapi.CalculateVotersProfit(params, 0.70, "", "", false, 0.0)
+	votersEarnings := arkapi.CalculateVotersProfit(params, 0.70, "", "", false, 0.0, true)
 
 	log.Println(t.Name(), "Success", len(votersEarnings))
 	//log.Println(t.Name(), "Success", votersEarnings)
