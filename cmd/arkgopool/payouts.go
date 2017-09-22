@@ -118,8 +118,9 @@ func DisplayCalculatedVoteRatio() {
 
 //SendPayments based on parameters in config.toml
 func SendPayments(silent bool) {
+	dbtx := beginTx()
 	payrec := createPaymentRecord()
-	arkpooldb.Save(&payrec)
+	dbtx.Save(&payrec)
 	log.Info("Starting payments calculation. Active peer for voter information: ", arkclient.GetActivePeer())
 
 	if !checkConfigSharingRatio() {
@@ -132,6 +133,7 @@ func SendPayments(silent bool) {
 			pause()
 		}
 		log.Fatal("Unable to calculcate. Check share ratio configuration in your config.toml.")
+		rollbackTx(dbtx)
 		broadCastServiceMode(false)
 		return
 	}
@@ -167,7 +169,7 @@ func SendPayments(silent bool) {
 	// check minVoteTime
 	deleResp, _, _ := arkclient.GetDelegateVoters(params)
 	blocklist := checkMinimumVoteTime(deleResp, viper.GetString("voters.blocklist"))
-  votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), blocklist, viper.GetString("voters.whitelist"), viper.GetBool("voters.capBalance"), viper.GetFloat64("voters.BalanceCapAmount")*core.SATOSHI, viper.GetBool("voters.blockBalanceCap"))
+	votersEarnings := arkclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), blocklist, viper.GetString("voters.whitelist"), viper.GetBool("voters.capBalance"), viper.GetFloat64("voters.BalanceCapAmount")*core.SATOSHI, viper.GetBool("voters.blockBalanceCap"))
 
 	payrec.VoteWeight, _, _ = arkclient.GetDelegateVoteWeight(params)
 
@@ -201,7 +203,7 @@ func SendPayments(silent bool) {
 			tx := core.CreateTransaction(element.Address, txAmount2Send, viper.GetString("voters.txdescription"), p1, p2)
 			payload.Transactions = append(payload.Transactions, tx)
 			//Logging history to DB
-			save2db(element, tx, payrec.Pk)
+			save2db(dbtx, element, tx, payrec.Pk)
 		} else {
 			log.Info("Skipping voter address ", element.Address, " Earned amount: ", txAmount2Send, " below minimium: ", minAmountSetting)
 		}
@@ -222,6 +224,7 @@ func SendPayments(silent bool) {
 
 		//deducting feeAmount from reserve address
 		if feeAmount > reserveAmount {
+			rollbackTx(dbtx)
 			log.Fatal("Not enough reserve money to pay the fees from reserve fund. Payment script stopped !!!")
 			broadCastServiceMode(false)
 		}
@@ -247,6 +250,7 @@ func SendPayments(silent bool) {
 		color.Set(color.FgHiRed)
 		diff := sumEarned - (costAmount + reserveAmount + personalAmount + sumShareEarned + feeAmount)
 		if diff > 0.00000001 {
+			rollbackTx(dbtx)
 			fmt.Println("Calculation of ratios NOT OK - overall summary failing for diff=", diff)
 			log.Fatal("Calculation of ratios NOT OK - overall summary failing diff=", diff)
 			broadCastServiceMode(false)
@@ -290,7 +294,7 @@ func SendPayments(silent bool) {
 	payrec.NrOfTransactions = len(payload.Transactions)
 	payrec.FeeAmount = float64(int(len(payload.Transactions))*int(core.EnvironmentParams.Fees.Send)) / float64(core.SATOSHI)
 
-	arkpooldb.Update(&payrec)
+	dbtx.Update(&payrec)
 
 	color.Set(color.FgHiGreen)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
@@ -342,6 +346,7 @@ func SendPayments(silent bool) {
 		log.Info("Starting automated payment... ")
 
 		splitAndDeliverPayload(payload)
+		commitTx(dbtx)
 
 		fmt.Println("Automated Payment complete. Please check the logs folder... ")
 		log.Info("Automated Payment complete. Please check the logs folder... ")
@@ -351,6 +356,8 @@ func SendPayments(silent bool) {
 			pause()
 		}
 
+	} else {
+		rollbackTx(dbtx)
 	}
 }
 
@@ -436,8 +443,9 @@ func calcFidelity(element core.DelegateDataProfit) float64 {
 //SendBonusPayment based on parameters in config.toml
 func SendBonusPayment(iAmount int, txDesc string) {
 
+	dbtx := beginTx()
 	payrec := createPaymentRecord()
-	arkpooldb.Save(&payrec)
+	dbtx.Save(&payrec)
 	log.Info("Starting payments calculation. Active peer for voter information: ", arkclient.GetActivePeer())
 
 	pubKey := viper.GetString("delegate.pubkey")
@@ -468,6 +476,7 @@ func SendBonusPayment(iAmount int, txDesc string) {
 
 	voters, _, err := arkclient.GetDelegateVoters(params)
 	if !voters.Success {
+		rollbackTx(dbtx)
 		log.Error("Failed getting delegate voters", err.Error())
 		fmt.Println("Failed getting delegate voters", err.Error())
 		pause()
@@ -489,7 +498,7 @@ func SendBonusPayment(iAmount int, txDesc string) {
 		tx := core.CreateTransaction(element.Address, txAmount2Send, txDesc, p1, p2)
 		payload.Transactions = append(payload.Transactions, tx)
 		//Logging history to DB
-		savebonus2db(element.Address, tx, payrec.Pk)
+		savebonus2db(dbtx, element.Address, tx, payrec.Pk)
 	}
 
 	log.Info("*******************************************************************************************************************")
@@ -497,7 +506,7 @@ func SendBonusPayment(iAmount int, txDesc string) {
 	log.Info("Number of voters:", len(voters.Accounts))
 	log.Info("*******************************************************************************************************************")
 
-	arkpooldb.Update(&payrec)
+	dbtx.Update(&payrec)
 
 	color.Set(color.FgHiGreen)
 	fmt.Println("--------------------------------------------------------------------------------------------------------------")
@@ -528,11 +537,14 @@ func SendBonusPayment(iAmount int, txDesc string) {
 		log.Info("Starting automated payment... ")
 
 		splitAndDeliverPayload(payload)
+		commitTx(dbtx)
 
 		fmt.Println("Automated Payment complete. Please check the logs folder... ")
 		log.Info("Automated Payment complete. Please check the logs folder... ")
 
 		reader.ReadString('\n')
+	} else {
+		rollbackTx(dbtx)
 	}
 }
 
