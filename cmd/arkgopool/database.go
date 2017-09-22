@@ -4,13 +4,36 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/asdine/storm"
 	"github.com/kristjank/ark-go/cmd/model"
 	"github.com/kristjank/ark-go/core"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
-func save2db(ve core.DelegateDataProfit, tx *core.Transaction, relID int) {
+func beginTx() storm.Node {
+	dbtx, err := arkpooldb.Begin(true)
+	if err != nil {
+		log.Error(err.Error())
+	}
+	return dbtx
+}
+
+func commitTx(dbtx storm.Node) {
+	err := dbtx.Commit()
+	if err != nil {
+		log.Error(err.Error())
+	}
+}
+
+func rollbackTx(dbtx storm.Node) {
+	err := dbtx.Rollback()
+	if err != nil {
+		log.Error(err.Error())
+	}
+}
+
+func save2db(dbtx storm.Node, ve core.DelegateDataProfit, tx *core.Transaction, relID int) {
 	dbData := model.PaymentLogRecord{}
 
 	dbData.Address = ve.Address
@@ -23,13 +46,13 @@ func save2db(ve core.DelegateDataProfit, tx *core.Transaction, relID int) {
 	dbData.PaymentRecordID = relID
 	dbData.CreatedAt = time.Now()
 
-	err := arkpooldb.Save(&dbData)
+	err := dbtx.Save(&dbData)
 	if err != nil {
 		log.Error(err.Error())
 	}
 }
 
-func savebonus2db(address string, tx *core.Transaction, relID int) {
+func savebonus2db(dbtx storm.Node, address string, tx *core.Transaction, relID int) {
 	dbData := model.PaymentLogRecord{}
 
 	dbData.Address = address
@@ -37,7 +60,7 @@ func savebonus2db(address string, tx *core.Transaction, relID int) {
 	dbData.PaymentRecordID = relID
 	dbData.CreatedAt = time.Now()
 
-	err := arkpooldb.Save(&dbData)
+	err := dbtx.Save(&dbData)
 	if err != nil {
 		log.Error(err.Error())
 	}
