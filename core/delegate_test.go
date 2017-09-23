@@ -153,9 +153,9 @@ func TestGetForgedData(t *testing.T) {
 
 func TestGetVoteDuration(t *testing.T) {
 	arkapi := NewArkClient(nil)
-	arkapi = arkapi.SetActiveConfiguration(DEVNET)
-	//deleKey := "02bcfa0951a92e7876db1fb71996a853b57f996972ed059a950d910f7d541706c9"
+	//arkapi = arkapi.SetActiveConfiguration(DEVNET)
+	//deleKey := "03d9ed6e7f29daf12ef925d4ce5753aade23c8cfd52a0427240fb30ad6ec232fed"
 
-	duration := arkapi.GetVoteDuration("D5St8ot3asrxYW3o63EV3bM1VC6UBKMUfE")
+	duration := arkapi.GetVoteDuration("AdjCcEjtj9rAAVUWZofuMevEk69sfhRDvU")
 	log.Println("Vote duration", duration)
 }
