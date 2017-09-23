@@ -412,7 +412,7 @@ func deliverPayloadThreaded(tmpPayload core.TransactionPayload, chunkIx int, log
 		//treaded function
 		go func(tmpPayload core.TransactionPayload, peer core.Peer, chunkIx int, logFolder string) {
 			defer wg.Done()
-			filename := fmt.Sprintf("log/%s/Batch_%2d_Peer%s.csv", logFolder, chunkIx, peer.IP)
+			filename := fmt.Sprintf("log/%s/Batch_%02d_Peer%s.csv", logFolder, chunkIx, peer.IP)
 
 			arkTmpClient := core.NewArkClientFromPeer(peer)
 			res, _, _ := arkTmpClient.PostTransaction(tmpPayload)
