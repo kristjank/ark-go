@@ -11,6 +11,7 @@ import (
 
 	"github.com/kristjank/ark-go/arkcoin"
 	"github.com/kristjank/ark-go/arkcoin/base58"
+	"github.com/kristjank/goark-node/base/model"
 )
 
 //TransactionType to make it more readable - enum
@@ -331,6 +332,25 @@ type TransactionResponse struct {
 //PostTransaction to selected ARKNetwork
 func (s *ArkClient) PostTransaction(payload TransactionPayload) (PostTransactionResponse, *http.Response, error) {
 	respTr := new(PostTransactionResponse)
+	errTr := new(ArkApiResponseError)
+
+	/*var payload transactionPayload
+	payload.Transactions = append(payload.Transactions, tx)
+	*/
+	resp, err := s.sling.New().Post("peer/transactions").BodyJSON(payload).Receive(respTr, errTr)
+
+	if err == nil {
+		err = errTr
+	}
+
+	return *respTr, resp, err
+}
+
+//RelayNodeTransaction2Nodes to selected ARKNetwork
+//different structure types - packagea
+//Call only from GOARK-NODE
+func (s *ArkClient) RelayNodeTransaction2Nodes(payload model.TransactionPayload) (model.PostTransactionResponse, *http.Response, error) {
+	respTr := new(model.PostTransactionResponse)
 	errTr := new(ArkApiResponseError)
 
 	/*var payload transactionPayload

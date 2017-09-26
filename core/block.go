@@ -34,3 +34,20 @@ func (s *ArkClient) GetPeerHeight() (model.BlockHeightResponse, ArkApiResponseEr
 
 	return *respData, *respError, resp
 }
+
+//PostBlock to selected ARKNetwork
+func (s *ArkClient) PostBlock(payload model.BlockReceiveStruct) (model.PostBlockResponse, ArkApiResponseError, *http.Response) {
+	respTr := new(model.PostBlockResponse)
+	errTr := new(ArkApiResponseError)
+
+	/*var payload transactionPayload
+	payload.Transactions = append(payload.Transactions, tx)
+	*/
+	resp, err := s.sling.New().Post("peer/blocks").BodyJSON(payload).Receive(respTr, errTr)
+
+	if err != nil {
+		errTr.ErrorMessage = err.Error()
+	}
+
+	return *respTr, *errTr, resp
+}
