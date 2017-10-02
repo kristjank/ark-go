@@ -118,8 +118,9 @@ func initializeRoutes() {
 	peerRoutes := router.Group("/voters")
 	peerRoutes.Use(api.CheckServiceModelHandler())
 	{
-		peerRoutes.GET("/rewards", api.GetVoters)
+		peerRoutes.GET("/rewards", api.GetVotersPendingRewards)
 		peerRoutes.GET("/blocked", api.GetBlocked)
+		peerRoutes.GET("", api.GetVotersList)
 	}
 	deleRoutes := router.Group("/delegate")
 	deleRoutes.Use(api.CheckServiceModelHandler())

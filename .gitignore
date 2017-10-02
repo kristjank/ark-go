@@ -45,3 +45,6 @@ cmd/arkgoserver/debug
 cmd/arkgoserver/payment.db
 cmd/arkgopool/arkgopool
 cmd/arkgoserver/arkgoserver
+cmd/arkgostats/db/delegatestats.db.lock
+cmd/arkgostats/cfg/config.toml
+cmd/arkgostats/debug
