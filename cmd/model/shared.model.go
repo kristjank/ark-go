@@ -24,7 +24,7 @@ type PaymentLogRecord struct {
 //PaymentRecord structure
 //MainStructure
 type PaymentRecord struct {
-	Pk               int    `storm:"id,increment"`
+	Pk               int    `storm:"id,increment,index"`
 	Delegate         string `storm:"index"`
 	DelegatePubKey   string
 	ShareRatio       float64
