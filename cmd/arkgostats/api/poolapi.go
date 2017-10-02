@@ -40,17 +40,19 @@ func ReceivePaymetLog(c *gin.Context) {
 	if err != nil {
 		log.Error(err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"success": false})
+		return
 	}
 
 	if recv.Delegate == "" || recv.DelegatePubKey == "" {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"success": false})
-	} else {
-
-		recv.SourceIP = c.ClientIP()
-		err = ArkStatsDB.Save(&recv)
-		log.Info("Received and saved paymentrecord log")
-		c.JSON(200, gin.H{"success": true, "logID": recv.Pk})
+		return
 	}
+
+	recv.SourceIP = c.ClientIP()
+	err = ArkStatsDB.Save(&recv)
+	log.Info("Received and saved paymentrecord log")
+	c.JSON(200, gin.H{"success": true, "logID": recv.Pk})
+
 }
 
 //SendPaymentLog Returns a list of peers to client call. Response is in JSON
