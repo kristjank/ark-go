@@ -111,5 +111,4 @@ func main() {
 	// Start serving the application
 	pNodeInfo := fmt.Sprintf("%s:%d", viper.GetString("server.address"), viper.GetInt("server.port"))
 	router.Run(pNodeInfo)
-
 }
