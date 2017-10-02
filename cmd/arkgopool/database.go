@@ -97,8 +97,10 @@ func listPaymentsDB() {
 func createPaymentRecord() model.PaymentRecord {
 
 	delegateAddress := viper.GetString("delegate.address")
+	delegatePubKey := viper.GetString("delegate.pubkey")
 	if viper.GetString("client.network") == "DEVNET" {
 		delegateAddress = viper.GetString("delegate.Daddress")
+		delegatePubKey = viper.GetString("delegate.Dpubkey")
 	}
 
 	payRec := model.PaymentRecord{
@@ -118,6 +120,7 @@ func createPaymentRecord() model.PaymentRecord {
 		BalanceCapAmount: viper.GetFloat64("voters.balanceCapAmount"),
 		BlockBalanceCap:  viper.GetBool("voters.blockBalanceCap"),
 		Delegate:         delegateAddress,
+		DelegatePubKey:   delegatePubKey,
 	}
 	return payRec
 }
