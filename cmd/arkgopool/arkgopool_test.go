@@ -109,6 +109,7 @@ func TestSendStatisticsData(t *testing.T) {
 	payrec := createPaymentRecord()
 	payrec.ArkGoPoolVersion = "test class"
 	payrec.Delegate = "frenk"
+	payrec.DelegatePubKey = "#234234"
 	i := 0
 	for i < 10 {
 		i++

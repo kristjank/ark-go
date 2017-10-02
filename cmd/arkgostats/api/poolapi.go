@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kristjank/ark-go/cmd/model"
@@ -35,21 +36,28 @@ func GetServerInformation(c *gin.Context) {
 func ReceivePaymetLog(c *gin.Context) {
 	var recv model.PaymentRecord
 	err := c.BindJSON(&recv)
+
 	if err != nil {
 		log.Error(err.Error())
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"success": false})
 	}
 
-	recv.SourceIP = c.ClientIP()
+	if recv.Delegate == "" || recv.DelegatePubKey == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"success": false})
+	} else {
 
-	err = ArkStatsDB.Save(&recv)
-	log.Info("Received and saved paymentrecord log")
-	c.JSON(200, gin.H{"success": true, "logID": recv.Pk})
-	//c.JSON(200)
+		recv.SourceIP = c.ClientIP()
+		err = ArkStatsDB.Save(&recv)
+		log.Info("Received and saved paymentrecord log")
+		c.JSON(200, gin.H{"success": true, "logID": recv.Pk})
+	}
 }
 
 //SendPaymentLog Returns a list of peers to client call. Response is in JSON
 func SendPaymentLog(c *gin.Context) {
-	payments, err := getPayments(0)
+	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	payments, err := getPayments(offset)
 
 	if err == nil {
 		var response PostDataResponse
