@@ -120,6 +120,7 @@ func createPaymentRecord() model.PaymentRecord {
 		BlockBalanceCap:  viper.GetBool("voters.blockBalanceCap"),
 		Delegate:         delegateAddress,
 		DelegatePubKey:   delegatePubKey,
+		ArkGoPoolVersion: ArkGoPoolVersion,
 	}
 	return payRec
 }

@@ -46,4 +46,5 @@ type PaymentRecord struct {
 	BlockBalanceCap  bool
 	SourceIP         string
 	CreatedAt        time.Time `storm:"index"`
+	ArkGoPoolVersion string
 }
