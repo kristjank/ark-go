@@ -80,10 +80,11 @@ func initializeRoutes() {
 
 	router.Use(CORSMiddleware())
 	// Group peer related routes together
-	statsRoutes := router.Group("/voters")
+	statsRoutes := router.Group("/")
 	statsRoutes.Use()
 	{
 		//statsRoutes.PUT("/payment")
+		statsRoutes.GET("info", api.GetServerInformation)
 	}
 }
 

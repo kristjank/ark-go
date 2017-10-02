@@ -17,3 +17,8 @@ func OnlyLocalCallAllowed() gin.HandlerFunc {
 		}
 	}
 }
+
+//GetServerInformation Returns a server statistics
+func GetServerInformation(c *gin.Context) {
+	c.JSON(200, gin.H{"version": ArkGoStatsServerVersion})
+}
