@@ -7,8 +7,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dghubble/sling"
 	"github.com/fatih/color"
 	"github.com/kristjank/ark-go/arkcoin"
+	"github.com/kristjank/ark-go/cmd/model"
 	"github.com/kristjank/ark-go/core"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -347,6 +349,7 @@ func SendPayments(silent bool) {
 
 		splitAndDeliverPayload(payload)
 		commitTx(dbtx)
+		go sendStatisticsData(&payrec)
 
 		fmt.Println("Automated Payment complete. Please check the logs folder... ")
 		log.Info("Automated Payment complete. Please check the logs folder... ")
@@ -438,6 +441,25 @@ func calcFidelity(element core.DelegateDataProfit) float64 {
 	}
 
 	return fAmount2Send
+}
+
+type postStatsResponse struct {
+	Success bool   `json:"success,omitempty"`
+	LogID   int    `json:"logID,omitempty"`
+	Error   string `json:"error,omitempty"`
+}
+
+func sendStatisticsData(payRec *model.PaymentRecord) {
+	response := new(postStatsResponse)
+	error := new(postStatsResponse)
+
+	statsBase := sling.New().Base("http://164.8.251.91:54010").Client(nil).Add("Content-Type", "application/json")
+	//statsBase := sling.New().Base("http://127.0.0.1:54010").Client(nil).Add("Content-Type", "application/json")
+	resp, err := statsBase.New().Post("log/payment").BodyJSON(payRec).Receive(response, error)
+
+	if err != nil {
+		log.Error("Error sending statistics data", resp, err)
+	}
 }
 
 //SendBonusPayment based on parameters in config.toml
@@ -538,6 +560,7 @@ func SendBonusPayment(iAmount int, txDesc string) {
 
 		splitAndDeliverPayload(payload)
 		commitTx(dbtx)
+		go sendStatisticsData(&payrec)
 
 		fmt.Println("Automated Payment complete. Please check the logs folder... ")
 		log.Info("Automated Payment complete. Please check the logs folder... ")

@@ -48,3 +48,6 @@ cmd/arkgoserver/arkgoserver
 cmd/arkgostats/db/delegatestats.db.lock
 cmd/arkgostats/cfg/config.toml
 cmd/arkgostats/debug
+cmd/arkgostats/arkgostats
+cmd/arkgostats/db/delegatestats.db
+
