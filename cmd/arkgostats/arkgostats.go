@@ -85,6 +85,7 @@ func initializeRoutes() {
 	{
 		//statsRoutes.PUT("/payment")
 		statsRoutes.GET("info", api.GetServerInformation)
+		statsRoutes.PUT("log/payment", api.ReceivePaymetLog)
 	}
 }
 

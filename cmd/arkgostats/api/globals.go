@@ -11,7 +11,7 @@ import (
 )
 
 var ArkAPIclient *core.ArkClient
-var Arkpooldb *storm.DB
+var ArkStatsDB *storm.DB
 var ArkGoStatsServerVersion string
 
 func InitGlobals() {
@@ -22,18 +22,18 @@ func InitGlobals() {
 func openDB() {
 	log.Info("Opening/Reopening database")
 	var err error
-	Arkpooldb, err = storm.Open(viper.GetString("server.dbfilename"))
+	ArkStatsDB, err = storm.Open(viper.GetString("server.dbfilename"))
 	if err != nil {
 		fmt.Println("FATAL - Unable to open/find/access database. Exiting application...")
 		log.Fatal(err.Error())
 	}
 
-	log.Println("DB Opened at:", Arkpooldb.Path)
+	log.Println("DB Opened at:", ArkStatsDB.Path)
 }
 
 func closeDB() {
 	log.Info("Closing database")
-	err := Arkpooldb.Close()
+	err := ArkStatsDB.Close()
 	if err != nil {
 		log.Error(err.Error())
 	}
