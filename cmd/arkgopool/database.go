@@ -95,23 +95,32 @@ func listPaymentsDB() {
 }
 
 func createPaymentRecord() model.PaymentRecord {
-
 	delegateAddress := viper.GetString("delegate.address")
+	delegatePubKey := viper.GetString("delegate.pubkey")
 	if viper.GetString("client.network") == "DEVNET" {
 		delegateAddress = viper.GetString("delegate.Daddress")
+		delegatePubKey = viper.GetString("delegate.Dpubkey")
 	}
 
 	payRec := model.PaymentRecord{
-		ShareRatio:    viper.GetFloat64("voters.shareratio"),
-		CostsRatio:    viper.GetFloat64("costs.shareratio"),
-		PersonalRatio: viper.GetFloat64("personal.shareratio"),
-		ReserveRatio:  viper.GetFloat64("reserve.shareratio"),
-		CreatedAt:     time.Now(),
-		FeeDeduction:  viper.GetBool("voters.deductTxFees"),
-		Fidelity:      viper.GetBool("voters.fidelity"),
-		FidelityLimit: viper.GetInt("voters.fidelityLimit"),
-		MinAmount:     viper.GetFloat64("voters.minamount"),
-		Delegate:      delegateAddress,
+		ShareRatio:       viper.GetFloat64("voters.shareratio"),
+		CostsRatio:       viper.GetFloat64("costs.shareratio"),
+		PersonalRatio:    viper.GetFloat64("personal.shareratio"),
+		ReserveRatio:     viper.GetFloat64("reserve.shareratio"),
+		CreatedAt:        time.Now().UTC(),
+		FeeDeduction:     viper.GetBool("voters.deductTxFees"),
+		Fidelity:         viper.GetBool("voters.fidelity"),
+		FidelityLimit:    viper.GetInt("voters.fidelityLimit"),
+		MinAmount:        viper.GetFloat64("voters.minamount"),
+		Network:          viper.GetString("client.network"),
+		Blocklist:        viper.GetString("voters.blocklist"),
+		Whitelist:        viper.GetString("voters.whitelist"),
+		CapBalance:       viper.GetBool("voters.capBalance"),
+		BalanceCapAmount: viper.GetFloat64("voters.balanceCapAmount"),
+		BlockBalanceCap:  viper.GetBool("voters.blockBalanceCap"),
+		Delegate:         delegateAddress,
+		DelegatePubKey:   delegatePubKey,
+		ArkGoPoolVersion: ArkGoPoolVersion,
 	}
 	return payRec
 }
