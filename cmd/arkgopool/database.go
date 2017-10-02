@@ -95,7 +95,6 @@ func listPaymentsDB() {
 }
 
 func createPaymentRecord() model.PaymentRecord {
-
 	delegateAddress := viper.GetString("delegate.address")
 	delegatePubKey := viper.GetString("delegate.pubkey")
 	if viper.GetString("client.network") == "DEVNET" {
@@ -108,7 +107,7 @@ func createPaymentRecord() model.PaymentRecord {
 		CostsRatio:       viper.GetFloat64("costs.shareratio"),
 		PersonalRatio:    viper.GetFloat64("personal.shareratio"),
 		ReserveRatio:     viper.GetFloat64("reserve.shareratio"),
-		CreatedAt:        time.Now(),
+		CreatedAt:        time.Now().UTC(),
 		FeeDeduction:     viper.GetBool("voters.deductTxFees"),
 		Fidelity:         viper.GetBool("voters.fidelity"),
 		FidelityLimit:    viper.GetInt("voters.fidelityLimit"),
