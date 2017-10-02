@@ -14,8 +14,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-//GetVoters Returns a list of peers to client call. Response is in JSON
-func GetVoters(c *gin.Context) {
+//GetVotersPendingRewards Returns a list of peers to client call. Response is in JSON
+func GetVotersPendingRewards(c *gin.Context) {
 
 	pubKey := viper.GetString("delegate.pubkey")
 	if core.EnvironmentParams.Network.Type == core.DEVNET {
@@ -40,6 +40,19 @@ func GetDelegate(c *gin.Context) {
 	deleResp, _, _ := ArkAPIclient.GetDelegate(params)
 
 	c.JSON(200, deleResp)
+}
+
+//GetVotersList Returns a list voters that voted for a delegate
+func GetVotersList(c *gin.Context) {
+	pubKey := viper.GetString("delegate.pubkey")
+	if core.EnvironmentParams.Network.Type == core.DEVNET {
+		pubKey = viper.GetString("delegate.Dpubkey")
+	}
+
+	params := core.DelegateQueryParams{PublicKey: pubKey}
+	resp, _, _ := ArkAPIclient.GetDelegateVoters(params)
+
+	c.JSON(200, resp)
 }
 
 //GetBlocked Returns a list of peers to client call. Response is in JSON

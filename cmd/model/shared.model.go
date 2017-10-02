@@ -37,5 +37,11 @@ type PaymentRecord struct {
 	FeeAmount        float64
 	NrOfTransactions int
 	VoteWeight       int
+	Network          string
+	Blocklist        string
+	Whitelist        string
+	CapBalance       bool
+	BalanceCapAmount float64
+	BlockBalanceCap  bool
 	CreatedAt        time.Time `storm:"index"`
 }
