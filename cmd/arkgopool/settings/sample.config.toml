@@ -50,6 +50,9 @@ Daddress = "DQPr5WHkhau3Ka2RKb7egm7isr5wbNHbF1"
 network = "DEVNET" #which network is active when application starts
 dbfilename = "payment.db"
 multibroadcast = 10 #to how many peers at once - we can multibroadcast
+statistics = true
+statPeer = "164.8.251.91"
+statPort = 54010
 
 #ARK-POOL SERVER SETTINGS
 [server]

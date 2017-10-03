@@ -158,6 +158,9 @@ func loadConfig() {
 	viper.SetDefault("client.network", "DEVNET")
 	viper.SetDefault("client.dbFilename", "payment.db")
 	viper.SetDefault("client.multibroadcast", 10)
+	viper.SetDefault("client.statistics", true)
+	viper.SetDefault("client.statPeer", "164.8.251.91")
+	viper.SetDefault("client.statPort", 54010)
 }
 
 //////////////////////////////////////////////////////////////////////////////
