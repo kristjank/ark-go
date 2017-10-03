@@ -30,3 +30,7 @@ mkdir log
 REM create archive
 cd ..
 for /d %%X in (*) do "c:\Program Files\7-Zip\7z.exe" a -mx "%%X.zip" "%%X\*"
+
+move linux.zip ARKGO-LinuxRelease.zip
+move windows.zip ARKGO-WindowsRelease.zip
+
