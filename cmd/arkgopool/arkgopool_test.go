@@ -106,10 +106,10 @@ func TestCheckMinimumVoteTimeCandidates(t *testing.T) {
 }
 
 func TestSendStatisticsData(t *testing.T) {
+	loadConfig()
 	payrec := createPaymentRecord()
-	payrec.ArkGoPoolVersion = "test class"
-	payrec.Delegate = "frenk"
-	payrec.DelegatePubKey = "#234234"
+	//payrec.Delegate = "frenk"
+	//payrec.DelegatePubKey = ""
 	i := 0
 	for i < 10 {
 		i++
