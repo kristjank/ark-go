@@ -346,10 +346,10 @@ func SendPayments(silent bool) {
 		log.Info("Starting automated payment... ")
 
 		splitAndDeliverPayload(payload)
-		commitTx(dbtx)
 		if viper.GetBool("client.statistics") {
 			go sendStatisticsData(&payrec)
 		}
+		commitTx(dbtx)
 
 		fmt.Println("Automated Payment complete. Please check the logs folder... ")
 		log.Info("Automated Payment complete. Please check the logs folder... ")
@@ -474,11 +474,11 @@ func SendBonusPayment(iAmount int, txDesc string) {
 		log.Info("Starting automated payment... ")
 
 		splitAndDeliverPayload(payload)
-		commitTx(dbtx)
 
 		if viper.GetBool("client.statistics") {
 			go sendStatisticsData(&payrec)
 		}
+		commitTx(dbtx)
 
 		fmt.Println("Automated Payment complete. Please check the logs folder... ")
 		log.Info("Automated Payment complete. Please check the logs folder... ")
