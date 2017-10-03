@@ -118,8 +118,9 @@ func initializeRoutes() {
 	peerRoutes := router.Group("/voters")
 	peerRoutes.Use(api.CheckServiceModelHandler())
 	{
-		peerRoutes.GET("/rewards", api.GetVoters)
+		peerRoutes.GET("/rewards", api.GetVotersPendingRewards)
 		peerRoutes.GET("/blocked", api.GetBlocked)
+		peerRoutes.GET("", api.GetVotersList)
 	}
 	deleRoutes := router.Group("/delegate")
 	deleRoutes.Use(api.CheckServiceModelHandler())
@@ -150,7 +151,7 @@ func main() {
 
 	//sending ARKGO Server that we are working with payments
 	//setting the version
-	api.ArkGoServerVersion = "v0.2.0"
+	api.ArkGoServerVersion = "v0.3.0"
 
 	// Set the router as the default one provided by Gin
 	router = gin.Default()

@@ -138,6 +138,7 @@ func loadConfig() {
 	viper.SetDefault("voters.capBalance", false)
 	viper.SetDefault("voters.balanceCapAmount", 0.0)
 	viper.SetDefault("voters.whitelist", "")
+	viper.SetDefault("voters.blockBalanceCap", true)
 
 	viper.SetDefault("costs.address", "")
 	viper.SetDefault("costs.shareRatio", 0.0)
@@ -157,6 +158,9 @@ func loadConfig() {
 	viper.SetDefault("client.network", "DEVNET")
 	viper.SetDefault("client.dbFilename", "payment.db")
 	viper.SetDefault("client.multibroadcast", 10)
+	viper.SetDefault("client.statistics", true)
+	viper.SetDefault("client.statPeer", "164.8.251.91")
+	viper.SetDefault("client.statPort", 54010)
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -219,7 +223,7 @@ func printMenu() {
 func main() {
 	//sending ARKGO Server that we are working with payments
 	//setting the version
-	ArkGoPoolVersion = "v0.7.8"
+	ArkGoPoolVersion = "v0.7.9"
 
 	// Load configration and defaults
 	// Order is important

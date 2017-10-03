@@ -24,8 +24,9 @@ type PaymentLogRecord struct {
 //PaymentRecord structure
 //MainStructure
 type PaymentRecord struct {
-	Pk               int    `storm:"id,increment"`
+	Pk               int    `storm:"id,increment,index"`
 	Delegate         string `storm:"index"`
+	DelegatePubKey   string
 	ShareRatio       float64
 	CostsRatio       float64
 	ReserveRatio     float64
@@ -37,5 +38,13 @@ type PaymentRecord struct {
 	FeeAmount        float64
 	NrOfTransactions int
 	VoteWeight       int
+	Network          string
+	Blocklist        string
+	Whitelist        string
+	CapBalance       bool
+	BalanceCapAmount float64
+	BlockBalanceCap  bool
+	SourceIP         string
 	CreatedAt        time.Time `storm:"index"`
+	ArkGoPoolVersion string
 }
