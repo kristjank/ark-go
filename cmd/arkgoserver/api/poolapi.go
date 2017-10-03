@@ -16,17 +16,9 @@ import (
 
 //GetVotersPendingRewards Returns a list of peers to client call. Response is in JSON
 func GetVotersPendingRewards(c *gin.Context) {
-
-	pubKey := viper.GetString("delegate.pubkey")
-	if core.EnvironmentParams.Network.Type == core.DEVNET {
-		pubKey = viper.GetString("delegate.Dpubkey")
-	}
-
-	params := core.DelegateQueryParams{PublicKey: pubKey}
-
-	votersEarnings := ArkAPIclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"), viper.GetString("voters.whitelist"), viper.GetBool("voters.capBalance"), viper.GetFloat64("voters.BalanceCapAmount")*core.SATOSHI, viper.GetBool("voters.blockBalanceCap"))
-
-	c.JSON(200, gin.H{"count": len(votersEarnings), "data": votersEarnings})
+	voterMutex.RLock()
+	c.JSON(200, gin.H{"count": len(VotersEarnings), "data": VotersEarnings})
+	voterMutex.RUnlock()
 }
 
 //GetDelegate Returns a list of peers to client call. Response is in JSON
