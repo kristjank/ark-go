@@ -34,6 +34,7 @@ func GetServerInformation(c *gin.Context) {
 
 //ReceivePaymetLog from blockchain
 func ReceivePaymetLog(c *gin.Context) {
+	var dest model.PaymentRecord
 	var recv model.PaymentRecord
 	err := c.BindJSON(&recv)
 
@@ -49,7 +50,8 @@ func ReceivePaymetLog(c *gin.Context) {
 	}
 
 	recv.SourceIP = c.ClientIP()
-	err = ArkStatsDB.Save(&recv)
+	copyStructure(&recv, &dest)
+	err = ArkStatsDB.Save(&dest)
 	log.Info("Received and saved paymentrecord log")
 	c.JSON(200, gin.H{"success": true, "logID": recv.Pk})
 
