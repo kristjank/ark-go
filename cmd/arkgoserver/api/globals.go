@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/asdine/storm"
 
@@ -16,12 +17,44 @@ var Arkpooldb *storm.DB
 var ArkGoServerVersion string
 
 var syncMutex = &sync.RWMutex{}
+var voterMutex = &sync.RWMutex{}
 var isServiceMode bool
+var rewardTicker *time.Ticker
+var VotersEarnings []core.DelegateDataProfit
 
 func InitGlobals() {
 	isServiceMode = false
 	ArkAPIclient = core.NewArkClient(nil)
 	openDB()
+
+	initTicker4PendingRewardCalculation()
+}
+
+func initTicker4PendingRewardCalculation() {
+	rewardTicker = time.NewTicker(time.Minute * 10)
+	pubKey := viper.GetString("delegate.pubkey")
+	if core.EnvironmentParams.Network.Type == core.DEVNET {
+		pubKey = viper.GetString("delegate.Dpubkey")
+	}
+	params := core.DelegateQueryParams{PublicKey: pubKey}
+
+	//do first reading of calculations (first tick is in 10 minutes from now)
+	go func() {
+		voterMutex.Lock()
+		VotersEarnings = ArkAPIclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"), viper.GetString("voters.whitelist"), viper.GetBool("voters.capBalance"), viper.GetFloat64("voters.BalanceCapAmount")*core.SATOSHI, viper.GetBool("voters.blockBalanceCap"))
+		voterMutex.Unlock()
+	}()
+
+	go func() {
+		for t := range rewardTicker.C {
+			log.Info("Caling voter earning cache calculation for faster display", t)
+			fmt.Println("Caling voter earning cache calculation for faster display", t)
+
+			voterMutex.Lock()
+			VotersEarnings = ArkAPIclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"), viper.GetString("voters.whitelist"), viper.GetBool("voters.capBalance"), viper.GetFloat64("voters.BalanceCapAmount")*core.SATOSHI, viper.GetBool("voters.blockBalanceCap"))
+			voterMutex.Unlock()
+		}
+	}()
 }
 
 func openDB() {

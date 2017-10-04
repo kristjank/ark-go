@@ -151,7 +151,7 @@ func main() {
 
 	//sending ARKGO Server that we are working with payments
 	//setting the version
-	api.ArkGoServerVersion = "v0.2.0"
+	api.ArkGoServerVersion = "v0.3.0"
 
 	// Set the router as the default one provided by Gin
 	router = gin.Default()
