@@ -60,8 +60,9 @@ func ReceivePaymetLog(c *gin.Context) {
 //SendPaymentLog Returns a list of peers to client call. Response is in JSON
 func SendPaymentLog(c *gin.Context) {
 	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	network := c.DefaultQuery("network", "MAINNET")
 
-	payments, err := getPayments(offset)
+	payments, err := getPayments(offset, network)
 
 	if err == nil {
 		var response PostDataResponse
