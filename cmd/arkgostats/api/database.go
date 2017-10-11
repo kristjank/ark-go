@@ -31,3 +31,22 @@ func getPaymentsByDelegate(address string, network string) ([]model.PaymentRecor
 
 	return results, err
 }
+
+func getStatistics(network string) (map[string]int, error) {
+	var results []model.PaymentRecord
+	m := map[string]int{}
+
+	query := ArkStatsDB.Select(q.Eq("Network", network))
+	err := query.Find(&results)
+
+	if err != nil {
+		log.Error("getStatistics", err.Error())
+		return m, err
+	}
+
+	for _, el := range results {
+		m[el.Delegate]++
+	}
+
+	return m, err
+}
