@@ -74,3 +74,21 @@ func SendPaymentLog(c *gin.Context) {
 		c.JSON(500, gin.H{"success": false, "message": err.Error()})
 	}
 }
+
+//SendPaymentLog4Delegate Returns a list of peers to client call. Response is in JSON
+func SendPaymentLog4Delegate(c *gin.Context) {
+	address := c.Param("address")
+	network := c.DefaultQuery("network", "MAINNET")
+
+	payments, err := getPaymentsByDelegate(address, network)
+
+	if err == nil {
+		var response PostDataResponse
+		response.Success = true
+		response.Payments = payments
+		response.Count = len(payments)
+		c.JSON(200, response)
+	} else {
+		c.JSON(500, gin.H{"success": false, "message": err.Error()})
+	}
+}

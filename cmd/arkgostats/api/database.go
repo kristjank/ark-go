@@ -18,3 +18,16 @@ func getPayments(offset int, network string) ([]model.PaymentRecord, error) {
 
 	return results, err
 }
+
+func getPaymentsByDelegate(address string, network string) ([]model.PaymentRecord, error) {
+	var results []model.PaymentRecord
+
+	query := ArkStatsDB.Select(q.Eq("Network", network), q.Eq("Delegate", address)).Reverse()
+	err := query.Find(&results)
+
+	if err != nil {
+		log.Error("getPaymentsByDelegate", err.Error())
+	}
+
+	return results, err
+}
