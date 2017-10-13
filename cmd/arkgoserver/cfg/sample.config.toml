@@ -52,4 +52,5 @@ network = "DEVNET" #which network is active when application starts
 [server]
 port = 54000
 address = "0.0.0.0"
+frontend = false
 dbfilename = "C:\_WORK\ARK\ark-go\src\github.com\kristjank\ark-go\cmd\arkgopool\payment.db"

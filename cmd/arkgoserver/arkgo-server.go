@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/kristjank/ark-go/cmd/arkgoserver/api"
 	log "github.com/sirupsen/logrus"
@@ -89,6 +90,7 @@ func loadConfig() {
 
 	viper.SetDefault("server.address", "0.0.0.0")
 	viper.SetDefault("server.port", 54000)
+	viper.SetDefault("server.frontend", false)
 	viper.SetDefault("server.dbfilename", "payments.db")
 }
 
@@ -135,6 +137,10 @@ func initializeRoutes() {
 	{
 		serviceRoutes.GET("/start", api.EnterServiceMode)
 		serviceRoutes.GET("/stop", api.LeaveServiceMode)
+	}
+
+	if viper.GetBool("server.frontend") {
+		router.Use(static.Serve("/", static.LocalFile("./public", true)))
 	}
 }
 
