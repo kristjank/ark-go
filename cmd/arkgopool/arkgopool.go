@@ -35,9 +35,9 @@ var ArkGoPoolVersion string
 func initLogger() {
 	// Log as JSON instead of the default ASCII formatter.
 	//log.SetFormatter(&log.JSONFormatter{})
-
+	log.SetFormatter(&log.TextFormatter{})
 	// You could set this to any `io.Writer` such as a file
-	file, err := os.OpenFile("log/arkgo-pool.log", os.O_CREATE|os.O_WRONLY, 0666)
+	file, err := os.OpenFile("log/arkgo-pool.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err == nil {
 		log.SetOutput(io.MultiWriter(file))
 	} else {
@@ -223,7 +223,7 @@ func printMenu() {
 func main() {
 	//sending ARKGO Server that we are working with payments
 	//setting the version
-	ArkGoPoolVersion = "v0.7.9"
+	ArkGoPoolVersion = "v0.8.0"
 
 	// Load configration and defaults
 	// Order is important
@@ -231,7 +231,8 @@ func main() {
 	broadCastServiceMode(true)
 	initLogger()
 
-	log.Info("Ark-golang client starting")
+	log.Info("=============================================================================")
+	log.Info("ARKGO client starting")
 	log.Info("ArkApiClient connected, active peer: ", arkclient.GetActivePeer())
 
 	initializeBoltClient()
@@ -331,4 +332,5 @@ func main() {
 	}
 	color.Unset()
 	broadCastServiceMode(false)
+	log.Info("Exiting arkgopool....")
 }
