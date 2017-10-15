@@ -104,7 +104,7 @@ func (s *ArkClient) GetDelegate(params DelegateQueryParams) (DelegateResponse, *
 	return *respData, resp, err
 }
 
-//GetDelegateVoters function returns a delegate
+//GetDelegateVoters function returns a delegates voters
 func (s *ArkClient) GetDelegateVoters(params DelegateQueryParams) (DelegateVoters, *http.Response, error) {
 	respData := new(DelegateVoters)
 	respError := new(ArkApiResponseError)
