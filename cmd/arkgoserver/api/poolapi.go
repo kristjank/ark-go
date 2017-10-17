@@ -94,6 +94,19 @@ func GetArkNewsFromAddress(c *gin.Context) {
 	}
 }
 
+//GetDelegateNodeStatus - returns news to show
+func GetDelegateNodeStatus(c *gin.Context) {
+	arkapi := core.NewArkClientFromIP(viper.GetString("server.nodeip"))
+	peerStatus, _, err := arkapi.GetConnectedPeerStatus()
+	if peerStatus.Success {
+		c.JSON(200, peerStatus)
+	} else {
+		c.JSON(200, gin.H{
+			"success": false,
+			"error":   err.Error()})
+	}
+}
+
 //GetDelegatePaymentRecord Returns a list of peers to client call. Response is in JSON
 //URL samples:
 //Get All Payment Runs: http://localhost:54000/delegate/paymentruns

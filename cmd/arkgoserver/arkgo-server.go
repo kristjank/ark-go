@@ -90,6 +90,7 @@ func loadConfig() {
 	viper.SetDefault("server.address", "0.0.0.0")
 	viper.SetDefault("server.port", 54000)
 	viper.SetDefault("server.dbfilename", "payments.db")
+	viper.SetDefault("server.nodeip", "")
 
 	viper.SetDefault("web.frontend", false)
 	viper.SetDefault("web.email", "")
@@ -136,6 +137,7 @@ func initializeRoutes() {
 		deleRoutes.GET("/config", api.GetDelegateSharingConfig)
 		deleRoutes.GET("/paymentruns", api.GetDelegatePaymentRecord)
 		deleRoutes.GET("/paymentruns/details", api.GetDelegatePaymentRecordDetails)
+		deleRoutes.GET("/nodestatus", api.GetDelegateNodeStatus)
 	}
 	serviceRoutes := router.Group("/service")
 	serviceRoutes.Use(api.OnlyLocalCallAllowed())
