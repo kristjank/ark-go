@@ -136,14 +136,18 @@ func initializeRoutes() {
 		deleRoutes.GET("/config", api.GetDelegateSharingConfig)
 		deleRoutes.GET("/paymentruns", api.GetDelegatePaymentRecord)
 		deleRoutes.GET("/paymentruns/details", api.GetDelegatePaymentRecordDetails)
-		deleRoutes.GET("/social", api.GetDelegateSocialData)
-
 	}
 	serviceRoutes := router.Group("/service")
 	serviceRoutes.Use(api.OnlyLocalCallAllowed())
 	{
 		serviceRoutes.GET("/start", api.EnterServiceMode)
 		serviceRoutes.GET("/stop", api.LeaveServiceMode)
+	}
+	socialRoutes := router.Group("/social")
+	socialRoutes.Use(api.CheckServiceModelHandler())
+	{
+		socialRoutes.GET("", api.GetArkNewsFromAddress)
+		socialRoutes.GET("/info", api.GetDelegateSocialData)
 	}
 
 	if viper.GetBool("web.frontend") {

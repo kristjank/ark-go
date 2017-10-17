@@ -80,6 +80,20 @@ func GetDelegateSocialData(c *gin.Context) {
 		"arknewsaddress": viper.GetString("web.arknewsaddress")})
 }
 
+//GetArkNewsFromAddress - returns news to show
+func GetArkNewsFromAddress(c *gin.Context) {
+	params := core.TransactionQueryParams{RecipientID: viper.GetString("web.arknewsaddress")}
+
+	transResponse, _, err := ArkAPIclient.ListTransaction(params)
+	if transResponse.Success {
+		c.JSON(200, transResponse)
+	} else {
+		c.JSON(200, gin.H{
+			"success": false,
+			"error":   err.Error()})
+	}
+}
+
 //GetDelegatePaymentRecord Returns a list of peers to client call. Response is in JSON
 //URL samples:
 //Get All Payment Runs: http://localhost:54000/delegate/paymentruns

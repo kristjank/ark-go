@@ -322,11 +322,11 @@ type TransactionQueryParams struct {
 //when calling list methods the Transactions [] has results
 //when calling get methods the transaction object (Single) has results
 type TransactionResponse struct {
-	Success           bool          `json:"success"`
-	Transactions      []Transaction `json:"transactions"`
-	SingleTransaction Transaction   `json:"transaction"`
-	Count             string        `json:"count"`
-	Error             string        `json:"error"`
+	Success           bool          `json:"success,omitempty"`
+	Transactions      []Transaction `json:"transactions,omitempty"`
+	SingleTransaction Transaction   `json:"transaction,omitempty"`
+	Count             string        `json:"count,omitempty"`
+	Error             string        `json:"error,omitempty"`
 }
 
 //PostTransaction to selected ARKNetwork
