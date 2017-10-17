@@ -69,6 +69,17 @@ func GetDelegateSharingConfig(c *gin.Context) {
 		"serverversion": ArkGoServerVersion})
 }
 
+//GetDelegateSocialData returns delegate social details for fron page generation
+func GetDelegateSocialData(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"email":          viper.GetString("web.email"),
+		"slack":          viper.GetString("web.slack"),
+		"reddit":         viper.GetString("web.reddit"),
+		"arkforum":       viper.GetString("web.arkforum"),
+		"twitter":        viper.GetString("web.twitter"),
+		"arknewsaddress": viper.GetString("web.arknewsaddress")})
+}
+
 //GetDelegatePaymentRecord Returns a list of peers to client call. Response is in JSON
 //URL samples:
 //Get All Payment Runs: http://localhost:54000/delegate/paymentruns

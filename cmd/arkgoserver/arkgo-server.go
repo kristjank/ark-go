@@ -87,11 +87,16 @@ func loadConfig() {
 	viper.SetDefault("personal.Daddress", "")
 
 	viper.SetDefault("client.network", "DEVNET")
-
 	viper.SetDefault("server.address", "0.0.0.0")
 	viper.SetDefault("server.port", 54000)
-	viper.SetDefault("server.frontend", false)
 	viper.SetDefault("server.dbfilename", "payments.db")
+
+	viper.SetDefault("web.frontend", false)
+	viper.SetDefault("web.email", "")
+	viper.SetDefault("web.slack", "")
+	viper.SetDefault("web.reddit", "")
+	viper.SetDefault("web.arkforum", "")
+	viper.SetDefault("web.arknewsaddress", "")
 }
 
 //CORSMiddleware function enabling CORS requests
@@ -131,6 +136,8 @@ func initializeRoutes() {
 		deleRoutes.GET("/config", api.GetDelegateSharingConfig)
 		deleRoutes.GET("/paymentruns", api.GetDelegatePaymentRecord)
 		deleRoutes.GET("/paymentruns/details", api.GetDelegatePaymentRecordDetails)
+		deleRoutes.GET("/social", api.GetDelegateSocialData)
+
 	}
 	serviceRoutes := router.Group("/service")
 	serviceRoutes.Use(api.OnlyLocalCallAllowed())
@@ -139,7 +146,7 @@ func initializeRoutes() {
 		serviceRoutes.GET("/stop", api.LeaveServiceMode)
 	}
 
-	if viper.GetBool("server.frontend") {
+	if viper.GetBool("web.frontend") {
 		router.Use(static.Serve("/", static.LocalFile("./public", true)))
 	}
 }
