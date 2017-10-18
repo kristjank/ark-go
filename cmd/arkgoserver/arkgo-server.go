@@ -28,7 +28,7 @@ func initLogger() {
 	//log.SetFormatter(&log.JSONFormatter{})
 
 	// You could set this to any `io.Writer` such as a file
-	file, err := os.OpenFile("log/arkgo-server.log", os.O_CREATE|os.O_WRONLY, 0666)
+	file, err := os.OpenFile("log/arkgo-server.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err == nil {
 		log.SetOutput(io.MultiWriter(file))
 	} else {
