@@ -153,7 +153,6 @@ func initializeRoutes() {
 	}
 
 	if viper.GetBool("web.frontend") {
-		log.Info("FRONT END ACTIVE")
 		router.Use(static.Serve("/", static.LocalFile("./public", true)))
 	}
 }
