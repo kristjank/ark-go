@@ -64,7 +64,7 @@ func GetDelegateSharingConfig(c *gin.Context) {
 		"fidelity":      viper.GetBool("voters.fidelity"),
 		"fidelityLimit": viper.GetInt("voters.fidelityLimit"),
 		"minamount":     viper.GetInt("voters.minamount"),
-		"deductTxFees":  viper.GetBool("voters.deductTxFees"),
+		"deductTxFees":  viper.GetBool("voters.deductTxFeed"),
 		"blockedList":   strings.Split(blockedList, ","),
 		"serverversion": ArkGoServerVersion})
 }
