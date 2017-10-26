@@ -110,8 +110,9 @@ func TestSendStatisticsData(t *testing.T) {
 	payrec := createPaymentRecord()
 	//payrec.Delegate = "frenk"
 	//payrec.DelegatePubKey = ""
+	payrec.Pk = 100
 	i := 0
-	for i < 10 {
+	for i < 100 {
 		i++
 		sendStatisticsData(&payrec)
 	}

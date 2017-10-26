@@ -29,11 +29,22 @@ func OnlyLocalCallAllowed() gin.HandlerFunc {
 
 //GetServerInformation Returns a server statistics
 func GetServerInformation(c *gin.Context) {
-	c.JSON(200, gin.H{"version": ArkGoStatsServerVersion})
+	stats, _ := getStatistics("MAINNET")
+	statsD, _ := getStatistics("DEVNET")
+	statsK, _ := getStatistics("KAPU")
+	c.JSON(200, gin.H{"version": ArkGoStatsServerVersion,
+		"mainnet":          stats,
+		"mainnetCount":     len(stats),
+		"devnet":           statsD,
+		"devnetCount":      len(statsD),
+		"kapumainnet":      statsK,
+		"kapumainnetCount": len(statsK),
+	})
 }
 
 //ReceivePaymetLog from blockchain
 func ReceivePaymetLog(c *gin.Context) {
+	var dest model.PaymentRecord
 	var recv model.PaymentRecord
 	err := c.BindJSON(&recv)
 
@@ -49,7 +60,8 @@ func ReceivePaymetLog(c *gin.Context) {
 	}
 
 	recv.SourceIP = c.ClientIP()
-	err = ArkStatsDB.Save(&recv)
+	copyStructure(&recv, &dest)
+	err = ArkStatsDB.Save(&dest)
 	log.Info("Received and saved paymentrecord log")
 	c.JSON(200, gin.H{"success": true, "logID": recv.Pk})
 
@@ -58,8 +70,27 @@ func ReceivePaymetLog(c *gin.Context) {
 //SendPaymentLog Returns a list of peers to client call. Response is in JSON
 func SendPaymentLog(c *gin.Context) {
 	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	network := c.DefaultQuery("network", "MAINNET")
 
-	payments, err := getPayments(offset)
+	payments, err := getPayments(offset, network)
+
+	if err == nil {
+		var response PostDataResponse
+		response.Success = true
+		response.Payments = payments
+		response.Count = len(payments)
+		c.JSON(200, response)
+	} else {
+		c.JSON(500, gin.H{"success": false, "message": err.Error()})
+	}
+}
+
+//SendPaymentLog4Delegate Returns a list of peers to client call. Response is in JSON
+func SendPaymentLog4Delegate(c *gin.Context) {
+	address := c.Param("address")
+	network := c.DefaultQuery("network", "MAINNET")
+
+	payments, err := getPaymentsByDelegate(address, network)
 
 	if err == nil {
 		var response PostDataResponse

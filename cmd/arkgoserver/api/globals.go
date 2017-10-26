@@ -47,11 +47,13 @@ func initTicker4PendingRewardCalculation() {
 
 	go func() {
 		for t := range rewardTicker.C {
-			log.Info("Caling voter earning cache calculation for faster display", t)
-			fmt.Println("Caling voter earning cache calculation for faster display", t)
+			log.Info("Calling voter earning cache calculation for faster display", t)
+			fmt.Println("Calling voter earning cache calculation for faster display", t)
+
+			tmpEarnings := ArkAPIclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"), viper.GetString("voters.whitelist"), viper.GetBool("voters.capBalance"), viper.GetFloat64("voters.BalanceCapAmount")*core.SATOSHI, viper.GetBool("voters.blockBalanceCap"))
 
 			voterMutex.Lock()
-			VotersEarnings = ArkAPIclient.CalculateVotersProfit(params, viper.GetFloat64("voters.shareratio"), viper.GetString("voters.blocklist"), viper.GetString("voters.whitelist"), viper.GetBool("voters.capBalance"), viper.GetFloat64("voters.BalanceCapAmount")*core.SATOSHI, viper.GetBool("voters.blockBalanceCap"))
+			VotersEarnings = tmpEarnings
 			voterMutex.Unlock()
 		}
 	}()

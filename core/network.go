@@ -60,6 +60,23 @@ func NewArkClientFromPeer(peer Peer) *ArkClient {
 	}
 }
 
+//NewArkClientFromIP creations with supported network
+func NewArkClientFromIP(ipAddress string) *ArkClient {
+	port := 4001
+	if EnvironmentParams.Network.Type == DEVNET {
+		port = 4002
+	}
+	BaseURL = "http://" + ipAddress + ":" + strconv.Itoa(port)
+	EnvironmentParams.Network.ActivePeer = Peer{IP: ipAddress, Port: port}
+	return &ArkClient{
+		sling: sling.New().Base(BaseURL).
+			Add("nethash", EnvironmentParams.Network.Nethash).
+			Add("version", EnvironmentParams.Network.ActivePeer.Version).
+			Add("port", strconv.Itoa(EnvironmentParams.Network.ActivePeer.Port)).
+			Add("Content-Type", "application/json"),
+	}
+}
+
 //TestMethodNewArkClient creations with supported network
 //A test method for local node testing when implementid
 //Not for production use

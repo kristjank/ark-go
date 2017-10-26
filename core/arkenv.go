@@ -22,6 +22,10 @@ const (
 	MAINNET = iota
 	//DEVNET connection
 	DEVNET
+	//KAPU
+	KAPU
+	//KAPUDEVNET
+	KAPUDEVNET
 )
 
 //TO HELP DIVIDE
@@ -78,14 +82,19 @@ func LoadActiveConfiguration(arknetwork ArkNetworkType) string {
 		i++
 		switch arknetwork {
 		case MAINNET:
-			log.Println("Active network is MAINNET")
+			log.Println("Active network is ARK MAINNET")
 			selectedPeer = seedList[r1.Intn(len(seedList))]
 			log.Println("Random peer selected: ", selectedPeer)
 
 		case DEVNET:
-			log.Println("Active network is DEVNET")
+			log.Println("Active network is ARK DEVNET")
 			selectedPeer = testSeedList[r1.Intn(len(testSeedList))]
 			log.Println("Random peer selected: ", selectedPeer)
+		case KAPU:
+			log.Println("Active network is KAPU MAINNET")
+			selectedPeer = seedListKAPU[r1.Intn(len(seedListKAPU))]
+			log.Println("Random peer selected: ", selectedPeer)
+
 		}
 		log.Println("Connecting to random peer", selectedPeer, r1.Intn(len(seedList)))
 		//reading basic network params
@@ -142,9 +151,12 @@ func optimizePeerList(selectedPeer string) string {
 	log.Println("Start to optimize peer list, currently ", len(EnvironmentParams.Network.PeerList), " peers.")
 
 	//setting the version condition
+	//TODO - bring from settings as param
 	versionString := "1.0.1"
 	if EnvironmentParams.Network.Type == DEVNET {
 		versionString = "1.1.0"
+	} else if EnvironmentParams.Network.Type == KAPU {
+		versionString = "0.3.0"
 	}
 
 	//Clean the peer list (filters not working as they shoud) - so checking again here
@@ -272,3 +284,24 @@ var testSeedList = [...]string{
 	"167.114.29.37:4002",
 	"167.114.29.58:4002",
 	"167.114.29.39:4002"}
+
+var seedListKAPU = [...]string{
+	"51.15.198.173:4600",
+	"51.15.215.113:4600",
+	"51.15.221.100:4600",
+	"51.15.194.207:4600",
+	"94.176.238.173:4600",
+	"185.5.55.249:4600",
+	"94.176.233.213:4600",
+	"94.176.236.51:4600",
+	"94.176.233.210:4600",
+	"51.15.89.225:9700",
+	"51.15.201.56:4600",
+	"51.15.84.234:4600",
+	"51.15.84.139:4600",
+	"185.5.55.249:4600",
+	"80.241.218.21:4600",
+	"145.239.90.228:4600",
+	"144.217.242.167:4600",
+	"51.15.201.243:4600",
+	"45.32.29.180:4600"}

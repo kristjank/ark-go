@@ -87,6 +87,7 @@ func initializeRoutes() {
 		statsRoutes.GET("info", api.GetServerInformation)
 		statsRoutes.POST("log/payment", api.ReceivePaymetLog)
 		statsRoutes.GET("/payments", api.SendPaymentLog)
+		statsRoutes.GET("/delegate/:address", api.SendPaymentLog4Delegate)
 	}
 }
 
@@ -103,7 +104,7 @@ func main() {
 
 	//sending ARKGO Server that we are working with payments
 	//setting the version
-	api.ArkGoStatsServerVersion = "v0.1.0"
+	api.ArkGoStatsServerVersion = "v0.1.1"
 
 	// Set the router as the default one provided by Gin
 	router = gin.Default()
