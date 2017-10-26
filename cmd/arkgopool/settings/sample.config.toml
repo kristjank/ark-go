@@ -53,6 +53,10 @@ multibroadcast = 10 #to how many peers at once - we can multibroadcast
 statistics = true
 statPeer = "164.8.251.91"
 statPort = 54010
+nodeversion = "1.0.1" #filter setting for node version list talk... only nodes with this version are used
+#DEVNET nodeversion
+Dnodeversion = "1.1.0" #filter setting for node version list talk... only nodes with this version are used
+
 
 #ARK-POOL SERVER SETTINGS
 [server]

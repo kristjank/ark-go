@@ -151,9 +151,12 @@ func optimizePeerList(selectedPeer string) string {
 	log.Println("Start to optimize peer list, currently ", len(EnvironmentParams.Network.PeerList), " peers.")
 
 	//setting the version condition
+	//TODO - bring from settings as param
 	versionString := "1.0.1"
 	if EnvironmentParams.Network.Type == DEVNET {
 		versionString = "1.1.0"
+	} else if EnvironmentParams.Network.Type == KAPU {
+		versionString = "0.3.0"
 	}
 
 	//Clean the peer list (filters not working as they shoud) - so checking again here

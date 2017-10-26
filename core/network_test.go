@@ -80,3 +80,17 @@ func TestGetRandomXPeers(t *testing.T) {
 		arkapi = arkapi.SetActiveConfiguration(DEVNET)
 	}
 }
+
+func TestGetRandomXPeersKAPU(t *testing.T) {
+	arkapi := NewArkClient(nil)
+	for i := 0; i < 20; i++ {
+		arkapi = arkapi.SetActiveConfiguration(KAPU)
+
+		peers := arkapi.GetRandomXPeers(20)
+
+		for _, el := range peers {
+			log.Println(el)
+		}
+		arkapi = arkapi.SetActiveConfiguration(KAPU)
+	}
+}
