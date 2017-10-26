@@ -31,11 +31,14 @@ func OnlyLocalCallAllowed() gin.HandlerFunc {
 func GetServerInformation(c *gin.Context) {
 	stats, _ := getStatistics("MAINNET")
 	statsD, _ := getStatistics("DEVNET")
+	statsK, _ := getStatistics("KAPU")
 	c.JSON(200, gin.H{"version": ArkGoStatsServerVersion,
-		"mainnet":      stats,
-		"mainnetCount": len(stats),
-		"devnet":       statsD,
-		"devnetCount":  len(statsD),
+		"mainnet":          stats,
+		"mainnetCount":     len(stats),
+		"devnet":           statsD,
+		"devnetCount":      len(statsD),
+		"kapumainnet":      statsK,
+		"kapumainnetCount": len(statsK),
 	})
 }
 
