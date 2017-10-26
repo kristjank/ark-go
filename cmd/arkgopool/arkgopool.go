@@ -193,6 +193,10 @@ func printNetworkInfo() {
 	if core.EnvironmentParams.Network.Type == core.DEVNET {
 		fmt.Println("Connected to DEVNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
 	}
+
+	if core.EnvironmentParams.Network.Type == core.KAPU {
+		fmt.Println("Connected to KAPU MAINNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
+	}
 }
 
 func printBanner() {
@@ -210,10 +214,11 @@ func printMenu() {
 	fmt.Println("")
 	fmt.Println("\t1-Display contributors")
 	fmt.Println("\t2-Send reward payments")
-	fmt.Println("\t3-Switch network")
+	fmt.Println("\t3-Switch networks ARK")
 	fmt.Println("\t4-Link account")
 	fmt.Println("\t5-Send bonus payments")
-	fmt.Println("\t6-List payment history")
+	fmt.Println("\t6-Switch networks KAPU")
+	fmt.Println("\t7-List payment history")
 	fmt.Println("\t0-Exit")
 	fmt.Println("")
 	fmt.Print("\tSelect option [1-9]:")
@@ -321,6 +326,8 @@ func main() {
 			pause()
 			color.Unset()
 		case 6:
+			arkclient = arkclient.SetActiveConfiguration(core.KAPU)
+		case 7:
 			clearScreen()
 			color.Set(color.FgHiGreen)
 			listPaymentsDB()
