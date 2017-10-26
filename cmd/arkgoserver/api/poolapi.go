@@ -64,9 +64,47 @@ func GetDelegateSharingConfig(c *gin.Context) {
 		"fidelity":      viper.GetBool("voters.fidelity"),
 		"fidelityLimit": viper.GetInt("voters.fidelityLimit"),
 		"minamount":     viper.GetInt("voters.minamount"),
-		"deductTxFees":  viper.GetBool("voters.deductTxFeed"),
+		"deductTxFees":  viper.GetBool("voters.deductTxFees"),
 		"blockedList":   strings.Split(blockedList, ","),
 		"serverversion": ArkGoServerVersion})
+}
+
+//GetDelegateSocialData returns delegate social details for fron page generation
+func GetDelegateSocialData(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"email":          viper.GetString("web.email"),
+		"slack":          viper.GetString("web.slack"),
+		"reddit":         viper.GetString("web.reddit"),
+		"arkforum":       viper.GetString("web.arkforum"),
+		"twitter":        viper.GetString("web.twitter"),
+		"arknewsaddress": viper.GetString("web.arknewsaddress")})
+}
+
+//GetArkNewsFromAddress - returns news to show
+func GetArkNewsFromAddress(c *gin.Context) {
+	params := core.TransactionQueryParams{RecipientID: viper.GetString("web.arknewsaddress")}
+
+	transResponse, _, err := ArkAPIclient.ListTransaction(params)
+	if transResponse.Success {
+		c.JSON(200, transResponse)
+	} else {
+		c.JSON(200, gin.H{
+			"success": false,
+			"error":   err.Error()})
+	}
+}
+
+//GetDelegateNodeStatus - returns news to show
+func GetDelegateNodeStatus(c *gin.Context) {
+	arkapi := core.NewArkClientFromIP(viper.GetString("server.nodeip"))
+	peerStatus, _, err := arkapi.GetConnectedPeerStatus()
+	if peerStatus.Success {
+		c.JSON(200, peerStatus)
+	} else {
+		c.JSON(200, gin.H{
+			"success": false,
+			"error":   err.Error()})
+	}
 }
 
 //GetDelegatePaymentRecord Returns a list of peers to client call. Response is in JSON

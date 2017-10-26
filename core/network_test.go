@@ -2,9 +2,13 @@ package core
 
 import (
 	"log"
+	"os"
 	"testing"
 )
 
+func init() {
+	log.SetOutput(os.Stdout)
+}
 func TestNewArkClient(t *testing.T) {
 	arkapi := NewArkClient(nil)
 
@@ -51,6 +55,18 @@ func TestNewPeerArkApiClient(t *testing.T) {
 	log.Println(t.Name(), "Success")
 }
 
+func TestNewPeerArkApiClientFromIP(t *testing.T) {
+	arkapi := NewArkClientFromIP("164.8.251.173")
+
+	log.Println(arkapi.GetActivePeer())
+	peerStatus, _, err := arkapi.GetConnectedPeerStatus()
+	if peerStatus.Success {
+		log.Println("New arkapi for peer", peerStatus)
+		log.Println(t.Name(), "Success")
+	} else {
+		log.Println(t.Name(), "ERROR", err.Error())
+	}
+}
 func TestGetRandomXPeers(t *testing.T) {
 	arkapi := NewArkClient(nil)
 	for i := 0; i < 20; i++ {
@@ -62,5 +78,19 @@ func TestGetRandomXPeers(t *testing.T) {
 			log.Println(el)
 		}
 		arkapi = arkapi.SetActiveConfiguration(DEVNET)
+	}
+}
+
+func TestGetRandomXPeersKAPU(t *testing.T) {
+	arkapi := NewArkClient(nil)
+	for i := 0; i < 20; i++ {
+		arkapi = arkapi.SetActiveConfiguration(KAPU)
+
+		peers := arkapi.GetRandomXPeers(20)
+
+		for _, el := range peers {
+			log.Println(el)
+		}
+		arkapi = arkapi.SetActiveConfiguration(KAPU)
 	}
 }

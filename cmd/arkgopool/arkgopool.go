@@ -161,6 +161,9 @@ func loadConfig() {
 	viper.SetDefault("client.statistics", true)
 	viper.SetDefault("client.statPeer", "164.8.251.91")
 	viper.SetDefault("client.statPort", 54010)
+	viper.SetDefault("client.nodeversion", "1.0.1")
+	viper.SetDefault("client.Dnodeversion", "1.1.0")
+
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -187,11 +190,18 @@ func clearScreen() {
 func printNetworkInfo() {
 	color.Set(color.FgHiCyan)
 	if core.EnvironmentParams.Network.Type == core.MAINNET {
-		fmt.Println("Connected to MAINNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
+		fmt.Println("Connected to ARK MAINNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
+		log.Info("Connected to ARK MAINNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
 	}
 
 	if core.EnvironmentParams.Network.Type == core.DEVNET {
-		fmt.Println("Connected to DEVNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
+		fmt.Println("Connected to ARK DEVNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
+		log.Info("Connected to ARK DEVNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
+	}
+
+	if core.EnvironmentParams.Network.Type == core.KAPU {
+		fmt.Println("Connected to KAPU MAINNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
+		log.Info("Connected to KAPU MAINNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
 	}
 }
 
@@ -210,10 +220,11 @@ func printMenu() {
 	fmt.Println("")
 	fmt.Println("\t1-Display contributors")
 	fmt.Println("\t2-Send reward payments")
-	fmt.Println("\t3-Switch network")
-	fmt.Println("\t4-Link account")
+	fmt.Println("\t3-Link account")
+	fmt.Println("\t4-List payment history")
 	fmt.Println("\t5-Send bonus payments")
-	fmt.Println("\t6-List payment history")
+	fmt.Println("\t6-Switch networks ARK")
+	fmt.Println("\t7-Switch networks KAPU")
 	fmt.Println("\t0-Exit")
 	fmt.Println("")
 	fmt.Print("\tSelect option [1-9]:")
@@ -240,6 +251,10 @@ func main() {
 	//switch to preset network
 	if viper.GetString("client.network") == "DEVNET" {
 		arkclient = arkclient.SetActiveConfiguration(core.DEVNET)
+	}
+	//switch to preset network
+	if viper.GetString("client.network") == "KAPU" {
+		arkclient = arkclient.SetActiveConfiguration(core.KAPU)
 	}
 
 	//SILENT MODE CHECKING AND AUTOMATION RUNNING
@@ -281,13 +296,13 @@ func main() {
 			SendPayments(false)
 			wg.Wait()
 			color.Unset()
-		case 3:
+		case 6:
 			if core.EnvironmentParams.Network.Type == core.MAINNET {
 				arkclient = arkclient.SetActiveConfiguration(core.DEVNET)
 			} else {
 				arkclient = arkclient.SetActiveConfiguration(core.MAINNET)
 			}
-		case 4:
+		case 3:
 			clearScreen()
 			save(readAccountData())
 			color.Set(color.FgHiGreen)
@@ -320,7 +335,9 @@ func main() {
 			SendBonusPayment(iAmount2Send, txBonusDesc)
 			pause()
 			color.Unset()
-		case 6:
+		case 7:
+			arkclient = arkclient.SetActiveConfiguration(core.KAPU)
+		case 4:
 			clearScreen()
 			color.Set(color.FgHiGreen)
 			listPaymentsDB()
