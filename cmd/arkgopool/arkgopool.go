@@ -270,9 +270,10 @@ func main() {
 		color.Unset()
 		wg.Wait()
 		log.Info("Exiting silent mode and arkgopool")
-		os.Exit(1985)
 		//sending ARKGO Server that we are working with payments
 		broadCastServiceMode(false)
+
+		os.Exit(1985)
 	}
 
 	var choice = 1
