@@ -1,4 +1,8 @@
 [env]
-txPerPayload=250    #nr of transactions per payloas
-txMultiBroadCast = 1 #nr of peers to multibroadcast to
+txPerPayload=250                        #nr of transactions per payloas
+txMultiBroadCast = 1                    #nr of peers to multibroadcast to
 dbFileName = "testlog.db"
+
+[account]
+passphrase=""                           #set your dev account passphrase
+secondPassPhrase=""                     # set your dev account passphrase second
