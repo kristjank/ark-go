@@ -1,0 +1,7 @@
+[env]
+txPerPayload=250    #nr of transactions per payloas
+txMultiBroadCast = 1 #nr of peers to multibroadcast to
+dbFileName = "db/testlog.db"
+
+[account]
+passwork=""
