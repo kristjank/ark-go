@@ -1,17 +1,20 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
-	"time"
 
 	"github.com/asdine/storm"
+	"github.com/fatih/color"
 	"github.com/kristjank/ark-go/core"
 	"github.com/spf13/viper"
 
 	log "github.com/sirupsen/logrus"
 )
+
+var ArkGoTesterVersion string
 
 //ArkAPIClient - ARKAPI Client
 var ArkAPIClient *core.ArkClient
@@ -19,11 +22,16 @@ var ArkAPIClient *core.ArkClient
 //ArkTestDB - testDB to store log records
 var ArkTestDB *storm.DB
 
+//ConsoleReader console input reader
+var ConsoleReader = bufio.NewReader(os.Stdin)
+
 func init() {
 	initLogger()
 	loadConfig()
 	ArkAPIClient = core.NewArkClient(nil)
+	ArkAPIClient = ArkAPIClient.SetActiveConfiguration(core.DEVNET)
 	openDB()
+	dumpConfig()
 }
 
 func openDB() {
@@ -43,7 +51,7 @@ func initLogger() {
 	//log.SetFormatter(&log.JSONFormatter{})
 
 	// You could set this to any `io.Writer` such as a file
-	file, err := os.OpenFile("log/arkgotest.log", os.O_CREATE|os.O_WRONLY, 0666)
+	file, err := os.OpenFile("log/arkgotest.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err == nil {
 		log.SetOutput(io.MultiWriter(file))
 	} else {
@@ -73,44 +81,49 @@ func loadConfig() {
 	viper.SetDefault("env.dbfilename", "db/testlog.db")
 }
 
+func dumpConfig() {
+	log.Info("--- Running ArkGO Test with the following config ---")
+	log.Info("Iterations: ", viper.GetInt("env.txIterations"))
+	log.Info("Tx per payload: ", viper.GetInt("env.txPerPayload"))
+	log.Info("Recepient of tx: ", viper.GetString("account.recepient"))
+	log.Info("Tx description: ", viper.GetString("env.txDescription"))
+	log.Info("--- end of config params lisitngs ---")
+}
+
 func checkTx4Confirmations() {
 
 }
 
 func main() {
-	arkapi := core.NewArkClient(nil)
-	arkapi = arkapi.SetActiveConfiguration(core.DEVNET)
+	ArkGoTesterVersion = "v0.1.0"
 
-	t0 := time.Now()
+	log.Info("=============================================================================")
+	log.Info("ARKGO Tester application starting")
+	log.Info("ArkApiClient connected, active peer: ", ArkAPIClient.GetActivePeer())
 
-	for xx := 0; xx < viper.GetInt("env.txIterations"); xx++ {
-		arkapi = arkapi.SetActiveConfiguration(core.DEVNET)
+	var choice = 1
+	for choice != 0 {
+		//pause()
+		printMenu()
 
-		var payload core.TransactionPayload
+		//fmt.Scan(&choice)
+		fmt.Fscan(ConsoleReader, &choice)
+		ConsoleReader.ReadString('\n')
 
-		for i := 0; i < viper.GetInt("env.txPerPayload"); i++ {
-			tx := core.CreateTransaction(viper.GetString("account.recepient"),
-				1,
-				viper.GetString("env.txDescription"),
-				viper.GetString("account.passphrase"), viper.GetString("account.secondPassphrase"))
-			payload.Transactions = append(payload.Transactions, tx)
+		switch choice {
+		case 1:
+			clearScreen()
+			color.Set(color.FgMagenta)
+			runTests()
+			color.Unset()
+		case 9:
+			clearScreen()
+			color.Set(color.FgHiGreen)
+			//listPaymentsDB()
+			pause()
+			color.Unset()
 		}
-
-		res, httpresponse, err := arkapi.PostTransaction(payload)
-		if res.Success {
-			log.Println("Success,", httpresponse.Status, xx)
-
-		} else {
-			if httpresponse != nil {
-				log.Println(res.Message, res.Error, xx)
-			}
-			log.Println(err.Error(), res.Error)
-		}
-		payload.Transactions = nil
-		time.Sleep(1000)
 	}
-
-	t1 := time.Now()
-	log.Printf("The call took %v to run.\n", t1.Sub(t0))
-
+	color.Unset()
+	log.Info("Exiting ARKGOTest Application....")
 }
