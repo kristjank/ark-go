@@ -49,7 +49,6 @@ func initLogger() {
 	} else {
 		log.Error("Failed to log to file, using default stderr")
 	}
-
 }
 
 func loadConfig() {
