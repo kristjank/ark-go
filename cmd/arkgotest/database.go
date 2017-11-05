@@ -6,6 +6,7 @@ import (
 
 	"github.com/asdine/storm"
 	"github.com/asdine/storm/q"
+	"github.com/fatih/color"
 	"github.com/kristjank/ark-go/core"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -125,7 +126,7 @@ func getTxIDsFromTestIterationRecords(testRec TestLogRecord) ([]string, error) {
 	var query storm.Query
 	var transIDList []string
 
-	query = ArkTestDB.Select(q.Eq("TestLogRecordID", testRec.ID)).Reverse()
+	query = ArkTestDB.Select(q.Eq("TestLogRecordID", testRec.ID))
 	err = query.Find(&results)
 
 	if err != nil {
@@ -169,24 +170,12 @@ func findConfirmations(testRec TestLogRecord) {
 		divided = append(divided, transIDList[i:end])
 	}
 	//end of spliting transactions
-	//testing correct split
-	splitcout := 0
-	for _, h := range divided {
-		//tmpPayload.Transactions = h
-		splitcout += len(h)
-		//deliverPayloadThreaded(tmpPayload, chunkIx, payoutsFolderName)
-
-	}
-	if splitcout != len(transIDList) {
-		log.Error("TX spliting not OK")
-		log.Panic("TX spliting not OK")
-	}
 
 	for id, transIDPart := range divided {
-		//tmpPayload.Transactions = h
-		splitcout += len(transIDPart)
-		//deliverPayloadThreaded(tmpPayload, chunkIx, payoutsFolderName)
+		wg.Add(1)
+
 		go func(transIDs []string, idPeer int, arkapi *core.ArkClient) {
+			defer wg.Done()
 			arkTmpClient := core.NewArkClientFromPeer(arkapi.GetRandomXPeers(1)[0])
 			for _, txID := range transIDs {
 				params := core.TransactionQueryParams{ID: txID}
@@ -211,7 +200,9 @@ func checkConfirmations(testRec TestLogRecord) {
 	var err error
 	var query storm.Query
 
-	query = ArkTestDB.Select(q.Eq("TestLogRecordID", testRec.ID)).Reverse()
+	fmt.Println("Calling REST endpoints to check confirmations....")
+	wg.Wait()
+	query = ArkTestDB.Select(q.Eq("TestLogRecordID", testRec.ID))
 	err = query.Find(&results)
 
 	if err != nil {
@@ -219,12 +210,19 @@ func checkConfirmations(testRec TestLogRecord) {
 		return
 	}
 
-	fmt.Println("Missing transactions ")
+	fmt.Println("Checking confirmations...")
 	missingCounter := 0
-	for ix, txRes := range results {
+	for _, txRes := range results {
 		if txRes.Confirmations < 1 {
 			missingCounter++
-			fmt.Println(ix, ". ID=", txRes.TransactionID)
+			//fmt.Println(ix, ".ID=", txRes.TransactionID)
 		}
+	}
+	if missingCounter == 0 {
+		color.Set(color.FgGreen)
+		fmt.Println("All sent transactions are confirmed...")
+	} else {
+		color.Set(color.FgRed)
+		fmt.Println("Missing", missingCounter, " transactions. Try checking again in a minute or so...")
 	}
 }

@@ -25,8 +25,8 @@ type TestLogIteration struct {
 	IterationStarted time.Time
 	IterationStopped time.Time
 	TestStatus       string
-	TxIDs            []string `storm:"index"`
-	TestLogRecordID  int      `storm:"index"`
+	TxIDs            []string
+	TestLogRecordID  int `storm:"index"`
 }
 
 //TestLogTransaction structure

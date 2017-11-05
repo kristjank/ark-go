@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sync"
 
 	"github.com/asdine/storm"
 	"github.com/fatih/color"
@@ -25,6 +26,8 @@ var ArkTestDB *storm.DB
 
 //ConsoleReader console input reader
 var ConsoleReader = bufio.NewReader(os.Stdin)
+
+var wg sync.WaitGroup
 
 func init() {
 	initLogger()

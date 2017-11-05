@@ -44,7 +44,6 @@ func runTests() {
 			log.Error(err.Error(), res.Error)
 		}
 		testIterRecord.Update()
-		time.Sleep(1000)
 	}
 	testRecord.TestStopped = time.Now()
 	testRecord.Update()
