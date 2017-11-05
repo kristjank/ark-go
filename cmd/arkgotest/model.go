@@ -31,8 +31,7 @@ type TestLogIteration struct {
 
 //TestLogTransaction structure
 type TestLogTransaction struct {
-	ID              int    `storm:"id,increment"`
-	TransactionID   string `storm:"index"`
+	TransactionID   string `storm:"id"`
 	Confirmations   int
 	TestLogRecordID int       `storm:"index"`
 	CreatedAt       time.Time `storm:"index"`

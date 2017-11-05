@@ -80,6 +80,9 @@ func loadConfig() {
 	viper.SetDefault("env.txMultiBroadCast", 1)
 	viper.SetDefault("env.txIterations", 1)
 	viper.SetDefault("env.dbfilename", "db/testlog.db")
+	viper.SetDefault("env.txDescription", "ARK Test tx script")
+	viper.SetDefault("env.singlePeerTest", false)
+	viper.SetDefault("env.singlePeerIp", "")
 }
 
 func dumpConfig() {
@@ -91,10 +94,6 @@ func dumpConfig() {
 	log.Info("--- end of config params lisitngs ---")
 }
 
-func checkTx4Confirmations() {
-
-}
-
 func main() {
 	ArkGoTesterVersion = "v0.1.0"
 
@@ -102,6 +101,13 @@ func main() {
 	log.Info("ARKGO Tester application starting")
 	log.Info("ArkApiClient connected, active peer: ", ArkAPIClient.GetActivePeer())
 
+	//test code
+	/*	lastRec, err := getLatstTestRecord()
+		if err == nil {
+			findConfirmations(lastRec)
+			checkConfirmations(lastRec)
+		}
+	*/
 	//SILENT MODE CHECKING AND AUTOMATION RUNNING
 	modeSilentPtr := flag.Bool("silent", false, "Is silent mode")
 	//autoPayment := flag.Bool("autopay", true, "Process auto payment")
@@ -130,11 +136,21 @@ func main() {
 			color.Set(color.FgMagenta)
 			runTests()
 			color.Unset()
+		case 8:
+			clearScreen()
+			color.Set(color.FgHiWhite)
+			lastRec, err := getLatstTestRecord()
+			if err == nil {
+				findConfirmations(lastRec)
+				checkConfirmations(lastRec)
+			}
+			pause()
+			color.Unset()
 		case 9:
 			clearScreen()
 			color.Set(color.FgHiGreen)
 			listTestRecordsDB()
-			listTestIterationsRecordsDB()
+			//listTestIterationsRecordsDB()
 			pause()
 			color.Unset()
 		}

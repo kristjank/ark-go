@@ -63,7 +63,7 @@ func splitAndDeliverPayload(payload core.TransactionPayload) {
 
 	}
 	if splitcout != len(payload.Transactions) {
-		log.Info("TX spliting not OK")
+		log.Error("TX spliting not OK")
 	}
 }
 

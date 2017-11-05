@@ -64,7 +64,7 @@ func printMenu() {
 	color.Set(color.FgHiYellow)
 	fmt.Println("")
 	fmt.Println("\t1-Run Tests")
-	fmt.Println("\t8-Check confirmations")
+	fmt.Println("\t8-Check confirmations (latest run)")
 	fmt.Println("\t9-List DB tests")
 	fmt.Println("\t0-Exit")
 	fmt.Println("")

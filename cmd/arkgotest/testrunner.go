@@ -49,4 +49,5 @@ func runTests() {
 	testRecord.TestStopped = time.Now()
 	testRecord.Update()
 	log.Info("The call took %v to run.\n", testRecord.TestStopped.Sub(testRecord.TestStarted))
+
 }
