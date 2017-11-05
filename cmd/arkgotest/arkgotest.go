@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -101,6 +102,19 @@ func main() {
 	log.Info("ARKGO Tester application starting")
 	log.Info("ArkApiClient connected, active peer: ", ArkAPIClient.GetActivePeer())
 
+	//SILENT MODE CHECKING AND AUTOMATION RUNNING
+	modeSilentPtr := flag.Bool("silent", false, "Is silent mode")
+	//autoPayment := flag.Bool("autopay", true, "Process auto payment")
+	flag.Parse()
+	log.Info(flag.Args())
+	if *modeSilentPtr {
+		log.Info("Silent Mode active")
+		log.Info("Starting to send Test trx")
+		runTests()
+		log.Info("Exiting silent mode")
+		os.Exit(1985)
+	}
+
 	var choice = 1
 	for choice != 0 {
 		//pause()
@@ -119,7 +133,8 @@ func main() {
 		case 9:
 			clearScreen()
 			color.Set(color.FgHiGreen)
-			//listPaymentsDB()
+			listTestRecordsDB()
+			listTestIterationsRecordsDB()
 			pause()
 			color.Unset()
 		}

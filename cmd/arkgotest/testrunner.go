@@ -9,9 +9,10 @@ import (
 )
 
 func runTests() {
-	testRecord := new TestLogRecord{}
-	
-	//testRecord.TestStarted = time.Now()
+	testRecord := createTestRecord()
+	testRecord.Save()
+
+	testRecord.TestStarted = time.Now()
 	for xx := 0; xx < viper.GetInt("env.txIterations"); xx++ {
 		ArkAPIClient = ArkAPIClient.SetActiveConfiguration(core.DEVNET)
 		payload := core.TransactionPayload{}
@@ -25,18 +26,27 @@ func runTests() {
 		}
 
 		log.Info("Sending transactions to ", ArkAPIClient.GetActivePeer(), "nr of tx: ", len(payload.Transactions))
+
+		testIterRecord := createTestIterationRecord(testRecord.ID)
+		testIterRecord.Save()
 		res, httpresponse, err := ArkAPIClient.PostTransaction(payload)
+		testIterRecord.IterationStopped = time.Now()
+
 		if res.Success {
 			log.Info("Success,", httpresponse.Status, xx)
-
+			testIterRecord.TestStatus = "SUCCESS"
+			testIterRecord.TxIDs = res.TransactionIDs
 		} else {
+			testIterRecord.TestStatus = "FAILED"
 			if httpresponse != nil {
 				log.Error(res.Message, res.Error, xx)
 			}
 			log.Error(err.Error(), res.Error)
 		}
+		testIterRecord.Update()
 		time.Sleep(1000)
 	}
 	testRecord.TestStopped = time.Now()
+	testRecord.Update()
 	log.Info("The call took %v to run.\n", testRecord.TestStopped.Sub(testRecord.TestStarted))
 }

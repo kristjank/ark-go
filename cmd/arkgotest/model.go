@@ -6,11 +6,11 @@ import (
 
 //TestLogRecord structure
 type TestLogRecord struct {
-	Pk                 int `storm:"id,increment,index"` // primary key with auto increment
-	txPerPayload       int
-	txIterations       int
-	txMultiBroadCast   int
-	txDescription      string
+	ID                 int `storm:"id,increment"` // primary key with auto increment
+	TxPerPayload       int
+	TxIterations       int
+	TxMultiBroadCast   int
+	TxDescription      string
 	TestStarted        time.Time
 	TestStopped        time.Time
 	TestStatus         string
@@ -21,18 +21,19 @@ type TestLogRecord struct {
 
 //TestLogIteration structure
 type TestLogIteration struct {
-	Pk                     int `storm:"id,increment,index"`
-	IterationStarted       time.Time
-	IterationStopped       time.Time
-	TestStatus             string
-	IterationTransactionID int       `storm:"index"`
-	CreatedAt              time.Time `storm:"index"`
+	ID               int `storm:"id,increment"`
+	IterationStarted time.Time
+	IterationStopped time.Time
+	TestStatus       string
+	TxIDs            []string `storm:"index"`
+	TestLogRecordID  int      `storm:"index"`
 }
 
-//IterationTransaction structure
-type IterationTransaction struct {
-	Pk            int    `storm:"id,increment,index"`
-	TransactionID string `storm:"index"`
-	Confirmations int
-	CreatedAt     time.Time `storm:"index"`
+//TestLogTransaction structure
+type TestLogTransaction struct {
+	ID              int    `storm:"id,increment"`
+	TransactionID   string `storm:"index"`
+	Confirmations   int
+	TestLogRecordID int       `storm:"index"`
+	CreatedAt       time.Time `storm:"index"`
 }
