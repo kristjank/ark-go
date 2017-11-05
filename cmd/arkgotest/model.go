@@ -7,15 +7,16 @@ import (
 //TestLogRecord structure
 type TestLogRecord struct {
 	Pk                 int `storm:"id,increment,index"` // primary key with auto increment
-	txPerPayload       string
-	txIterations       string
-	txMultiBroadCast   string
+	txPerPayload       int
+	txIterations       int
+	txMultiBroadCast   int
 	txDescription      string
 	TestStarted        time.Time
 	TestStopped        time.Time
 	TestStatus         string
 	TestLogIterationID int       `storm:"index"`
 	CreatedAt          time.Time `storm:"index"`
+	ArkGoTesterVersion string
 }
 
 //TestLogIteration structure

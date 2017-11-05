@@ -9,7 +9,9 @@ import (
 )
 
 func runTests() {
-	t0 := time.Now()
+	testRecord := new TestLogRecord{}
+	
+	//testRecord.TestStarted = time.Now()
 	for xx := 0; xx < viper.GetInt("env.txIterations"); xx++ {
 		ArkAPIClient = ArkAPIClient.SetActiveConfiguration(core.DEVNET)
 		payload := core.TransactionPayload{}
@@ -35,7 +37,6 @@ func runTests() {
 		}
 		time.Sleep(1000)
 	}
-
-	t1 := time.Now()
-	log.Info("The call took %v to run.\n", t1.Sub(t0))
+	testRecord.TestStopped = time.Now()
+	log.Info("The call took %v to run.\n", testRecord.TestStopped.Sub(testRecord.TestStarted))
 }
