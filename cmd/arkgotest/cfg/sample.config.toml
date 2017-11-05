@@ -1,8 +1,11 @@
 [env]
-txPerPayload=250                        #nr of transactions per payloas
-txMultiBroadCast = 1                    #nr of peers to multibroadcast to
-dbFileName = "testlog.db"
+txPerPayload=250                               #nr of transactions per payloas
+txIterations=1                                 #nr of iterations of payload deliveris... all txIterations * txPerPayload = all tx being sent
+txMultiBroadCast = 1                           #nr of peers to multibroadcast to
+txDescription="ARK-GO Testing program running" #txDescription
+dbFileName = "db/testlog.db"
 
 [account]
-passphrase=""                           #set your dev account passphrase
-secondPassPhrase=""                     # set your dev account passphrase second
+passphrase=""                                  #passphrase of the test tx sending account
+secondPassphrase =""
+recepient=""                                   #recepient of the transactions
