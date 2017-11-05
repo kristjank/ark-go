@@ -179,11 +179,11 @@ func optimizePeerList(selectedPeer string) string {
 		}
 	}
 
-	//removing peers with difference more then 10 blocks, that is 10x8s behing mainheight
+	//removing peers with difference more then 17 blocks, that is 10x8s behing mainheight
 	for i := len(EnvironmentParams.Network.PeerList) - 1; i >= 0; i-- {
 		peer := EnvironmentParams.Network.PeerList[i]
 
-		if maxHeight-peer.Height > 10 {
+		if maxHeight-peer.Height > 17 {
 			EnvironmentParams.Network.PeerList = append(EnvironmentParams.Network.PeerList[:i], EnvironmentParams.Network.PeerList[i+1:]...)
 			//log.Println("Removing peer, based on maxheight difference condition", peer.IP, peer.Status, peer.Height)
 			continue
