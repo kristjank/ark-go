@@ -87,10 +87,10 @@ func deliverPayloadThreaded(tmpPayload core.TransactionPayload, chunkIx int, log
 			res, _, _ := arkTmpClient.PostTransaction(tmpPayload)
 			if res.Success {
 				color.Set(color.FgHiGreen)
-				log2csv(tmpPayload, res.TransactionIDs, filename, "OK")
+				go log2csv(tmpPayload, res.TransactionIDs, filename, "OK")
 			} else {
 				color.Set(color.FgHiRed)
-				log2csv(tmpPayload, nil, filename, res.Error)
+				go log2csv(tmpPayload, nil, filename, res.Error)
 			}
 		}(tmpPayload, peers[i], chunkIx, logFolder)
 	}
