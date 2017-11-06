@@ -343,7 +343,7 @@ func main() {
 		case 8:
 			clearScreen()
 			color.Set(color.FgHiGreen)
-			fmt.Println("Almoust there, but 1.0.2 was released to fast...")
+			fmt.Println("Almost there, but 1.0.2 was released to fast...")
 			fmt.Println("Will follow up soon...")
 			pause()
 			color.Unset()
