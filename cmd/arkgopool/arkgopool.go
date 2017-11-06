@@ -229,14 +229,14 @@ func printMenu() {
 	fmt.Println("\t8-Check transaction confirmations (last payment run)")
 	fmt.Println("\t0-Exit")
 	fmt.Println("")
-	fmt.Print("\tSelect option [1-9]:")
+	fmt.Print("\tSelect option [0-9]:")
 	color.Unset()
 }
 
 func main() {
 	//sending ARKGO Server that we are working with payments
 	//setting the version
-	ArkGoPoolVersion = "v0.8.0"
+	ArkGoPoolVersion = "v0.8.1"
 
 	// Load configration and defaults
 	// Order is important
@@ -340,6 +340,13 @@ func main() {
 			color.Unset()
 		case 7:
 			arkclient = arkclient.SetActiveConfiguration(core.KAPU)
+		case 8:
+			clearScreen()
+			color.Set(color.FgHiGreen)
+			fmt.Println("Almoust there, but 1.0.2 was released to fast...")
+			fmt.Println("Will follow up soon...")
+			pause()
+			color.Unset()
 		case 4:
 			clearScreen()
 			color.Set(color.FgHiGreen)
