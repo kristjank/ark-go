@@ -29,6 +29,7 @@ var arkclient = core.NewArkClient(nil)
 var reader = bufio.NewReader(os.Stdin)
 var arkpooldb *storm.DB
 var wg sync.WaitGroup
+var wgConfirmations sync.WaitGroup
 
 var ArkGoPoolVersion string
 
@@ -225,6 +226,7 @@ func printMenu() {
 	fmt.Println("\t5-Send bonus payments")
 	fmt.Println("\t6-Switch networks ARK")
 	fmt.Println("\t7-Switch networks KAPU")
+	fmt.Println("\t8-Check transaction confirmations (last payment run)")
 	fmt.Println("\t0-Exit")
 	fmt.Println("")
 	fmt.Print("\tSelect option [1-9]:")
