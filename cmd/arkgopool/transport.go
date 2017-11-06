@@ -136,9 +136,9 @@ func findConfirmations(payRec model.PaymentRecord) {
 				params := core.TransactionQueryParams{ID: txID}
 				arkTransaction, _, _ := arkTmpClient.GetTransaction(params)
 
-				confirmations := 0
+				//confirmations := 0
 				if arkTransaction.Success {
-					confirmations = arkTransaction.SingleTransaction.Confirmations
+					//confirmations = arkTransaction.SingleTransaction.Confirmations
 				}
 
 			}
