@@ -152,7 +152,7 @@ func optimizePeerList(selectedPeer string) string {
 
 	//setting the version condition
 	//TODO - bring from settings as param
-	versionString := "1.0.1"
+	versionString := "1.0.2"
 	if EnvironmentParams.Network.Type == DEVNET {
 		versionString = "1.1.1"
 	} else if EnvironmentParams.Network.Type == KAPU {
