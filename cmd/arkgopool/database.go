@@ -101,7 +101,7 @@ func getTxIDsFromPaymentLogRecord(payRec model.PaymentRecord) ([]string, error) 
 	var query storm.Query
 	var transIDList []string
 
-	query = arkpooldb.Select(q.Eq("PaymentRecordID", payRec.Pk))
+	query = arkpooldb.Select(q.Eq("PaymentRecordID", payRec.Pk), q.Gt("Transaction.Confirmations", 0))
 	err = query.Find(&results)
 
 	if err != nil {
