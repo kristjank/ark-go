@@ -51,3 +51,8 @@ cmd/arkgostats/debug
 cmd/arkgostats/arkgostats
 cmd/arkgostats/db/delegatestats.db
 
+cmd/arkgopool/settings/configKAPU.toml
+cmd/arkgotest/cfg/config.toml
+cmd/arkgotest/debug
+cmd/arkgotest/arkgotest.exe
+cmd/arkgotest/arkgotest

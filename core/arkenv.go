@@ -152,9 +152,9 @@ func optimizePeerList(selectedPeer string) string {
 
 	//setting the version condition
 	//TODO - bring from settings as param
-	versionString := "1.0.1"
+	versionString := "1.0.2"
 	if EnvironmentParams.Network.Type == DEVNET {
-		versionString = "1.1.0"
+		versionString = "1.1.1"
 	} else if EnvironmentParams.Network.Type == KAPU {
 		versionString = "0.3.0"
 	}
@@ -179,11 +179,11 @@ func optimizePeerList(selectedPeer string) string {
 		}
 	}
 
-	//removing peers with difference more then 10 blocks, that is 10x8s behing mainheight
+	//removing peers with difference more then 17 blocks, that is 10x8s behing mainheight
 	for i := len(EnvironmentParams.Network.PeerList) - 1; i >= 0; i-- {
 		peer := EnvironmentParams.Network.PeerList[i]
 
-		if maxHeight-peer.Height > 10 {
+		if maxHeight-peer.Height > 17 {
 			EnvironmentParams.Network.PeerList = append(EnvironmentParams.Network.PeerList[:i], EnvironmentParams.Network.PeerList[i+1:]...)
 			//log.Println("Removing peer, based on maxheight difference condition", peer.IP, peer.Status, peer.Height)
 			continue

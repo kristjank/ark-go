@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/asdine/storm"
+	"github.com/asdine/storm/q"
 	"github.com/kristjank/ark-go/cmd/model"
 	"github.com/kristjank/ark-go/core"
 	log "github.com/sirupsen/logrus"
@@ -92,6 +93,40 @@ func listPaymentsDB() {
 	for _, element := range results {
 		fmt.Println(element)
 	}
+}
+
+func getTxIDsFromPaymentLogRecord(payRec model.PaymentRecord) ([]string, error) {
+	var results []model.PaymentLogRecord
+	var err error
+	var query storm.Query
+	var transIDList []string
+
+	query = arkpooldb.Select(q.Eq("PaymentRecordID", payRec.Pk))
+	err = query.Find(&results)
+
+	if err != nil {
+		log.Error(err.Error())
+		return transIDList, err
+	}
+
+	for _, el := range results {
+		transIDList = append(transIDList, el.Transaction.ID)
+	}
+	return transIDList, nil
+}
+
+func getLastPaymentRecord() (model.PaymentRecord, error) {
+	var results []model.PaymentRecord
+	err := arkpooldb.All(&results, storm.Limit(1), storm.Reverse())
+
+	rec := model.PaymentRecord{}
+
+	if err != nil {
+		log.Error(err.Error())
+		return rec, err
+	}
+	rec = results[0]
+	return rec, nil
 }
 
 func createPaymentRecord() model.PaymentRecord {

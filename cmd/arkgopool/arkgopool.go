@@ -29,6 +29,7 @@ var arkclient = core.NewArkClient(nil)
 var reader = bufio.NewReader(os.Stdin)
 var arkpooldb *storm.DB
 var wg sync.WaitGroup
+var wgConfirmations sync.WaitGroup
 
 var ArkGoPoolVersion string
 
@@ -225,16 +226,17 @@ func printMenu() {
 	fmt.Println("\t5-Send bonus payments")
 	fmt.Println("\t6-Switch networks ARK")
 	fmt.Println("\t7-Switch networks KAPU")
+	fmt.Println("\t8-Check transaction confirmations (last payment run)")
 	fmt.Println("\t0-Exit")
 	fmt.Println("")
-	fmt.Print("\tSelect option [1-9]:")
+	fmt.Print("\tSelect option [0-9]:")
 	color.Unset()
 }
 
 func main() {
 	//sending ARKGO Server that we are working with payments
 	//setting the version
-	ArkGoPoolVersion = "v0.8.0"
+	ArkGoPoolVersion = "v0.8.1"
 
 	// Load configration and defaults
 	// Order is important
@@ -270,9 +272,10 @@ func main() {
 		color.Unset()
 		wg.Wait()
 		log.Info("Exiting silent mode and arkgopool")
-		os.Exit(1985)
 		//sending ARKGO Server that we are working with payments
 		broadCastServiceMode(false)
+
+		os.Exit(1985)
 	}
 
 	var choice = 1
@@ -337,6 +340,13 @@ func main() {
 			color.Unset()
 		case 7:
 			arkclient = arkclient.SetActiveConfiguration(core.KAPU)
+		case 8:
+			clearScreen()
+			color.Set(color.FgHiGreen)
+			fmt.Println("Almost there, but 1.0.2 was released to fast...")
+			fmt.Println("Will follow up soon...")
+			pause()
+			color.Unset()
 		case 4:
 			clearScreen()
 			color.Set(color.FgHiGreen)

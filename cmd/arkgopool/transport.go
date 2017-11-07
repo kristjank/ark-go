@@ -63,7 +63,7 @@ func splitAndDeliverPayload(payload core.TransactionPayload) {
 
 	}
 	if splitcout != len(payload.Transactions) {
-		log.Info("TX spliting not OK")
+		log.Error("TX spliting not OK")
 	}
 }
 
@@ -94,4 +94,56 @@ func deliverPayloadThreaded(tmpPayload core.TransactionPayload, chunkIx int, log
 			}
 		}(tmpPayload, peers[i], chunkIx, logFolder)
 	}
+}
+
+func findConfirmations(payRec model.PaymentRecord) {
+	transIDList, err := getTxIDsFromPaymentLogRecord(payRec)
+	if err != nil {
+		//TODO handle error
+		log.Error(err.Error())
+		return
+	}
+
+	var divided [][]string
+
+	numPeers := len(transIDList) / len(core.EnvironmentParams.Network.PeerList)
+	if numPeers == 0 {
+		numPeers = 1
+	}
+	chunkSize := (len(transIDList) + numPeers - 1) / numPeers
+	if chunkSize == 0 {
+		chunkSize = 1
+	}
+
+	//sliptting the payload to number of needed peers
+	for i := 0; i < len(transIDList); i += chunkSize {
+		end := i + chunkSize
+		if end > len(transIDList) {
+			end = len(transIDList)
+		}
+		divided = append(divided, transIDList[i:end])
+	}
+	//end of spliting transactions
+
+	log.Info("---------------START OF CONFIRMATION CHECK-----------------")
+	for id, transIDPart := range divided {
+		wgConfirmations.Add(1)
+
+		go func(transIDs []string, idPeer int, arkapi *core.ArkClient) {
+			defer wgConfirmations.Done()
+			arkTmpClient := core.NewArkClientFromPeer(arkapi.GetRandomXPeers(1)[0])
+			for _, txID := range transIDs {
+				params := core.TransactionQueryParams{ID: txID}
+				arkTransaction, _, _ := arkTmpClient.GetTransaction(params)
+
+				//confirmations := 0
+				if arkTransaction.Success {
+					//confirmations = arkTransaction.SingleTransaction.Confirmations
+				}
+
+			}
+		}(transIDPart, id, arkclient)
+	}
+	wgConfirmations.Wait()
+	log.Info("---------------END OF CONFIRMATION CHECK-----------------")
 }

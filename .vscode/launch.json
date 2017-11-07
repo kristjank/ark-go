@@ -1,6 +1,7 @@
 {
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "!!!RUN SILET",
             "type": "go",
@@ -52,6 +53,34 @@
             "port": 2345,
             "host": "127.0.0.1",
             "program": "${workspaceRoot}/cmd/arkgostats/arkgostats.go",
+            "env": {},
+            "args": [],
+            "showLog": true
+        },
+
+        {
+            "name": "ARKGO-TESTER SILENT",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${workspaceRoot}/cmd/arkgotest/arkgotest.go",
+            "env": {},
+            "args": ["-silent=true"],
+            "showLog": true
+        },
+
+        {
+            "name": "ARKGO-TESTER",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${workspaceRoot}/cmd/arkgotest/arkgotest.go",
             "env": {},
             "args": [],
             "showLog": true
