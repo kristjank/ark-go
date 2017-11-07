@@ -44,6 +44,9 @@ type PaymentRecord struct {
 	CapBalance       bool
 	BalanceCapAmount float64
 	BlockBalanceCap  bool
+	PriceBTC         int
+	PriceUSD         int
+	PriceEUR         int
 	SourceIP         string
 	CreatedAt        time.Time `storm:"index"`
 	ArkGoPoolVersion string

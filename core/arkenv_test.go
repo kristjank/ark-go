@@ -39,4 +39,10 @@ func TestGetConfigurationNative(t *testing.T) {
 		t.Error("Wrong network on init")
 	}
 
+	arkapi = arkapi.SetActiveConfiguration(KAPU)
+	log.Println(t.Name(), "Active network: ", EnvironmentParams.Network.Type, "BaseUrl", BaseURL)
+	if EnvironmentParams.Network.Type != KAPU {
+		t.Error("Wrong network on init")
+	}
+
 }

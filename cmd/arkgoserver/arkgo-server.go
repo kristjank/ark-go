@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/kristjank/ark-go/cmd/arkgoserver/api"
 	log "github.com/sirupsen/logrus"
@@ -27,7 +28,7 @@ func initLogger() {
 	//log.SetFormatter(&log.JSONFormatter{})
 
 	// You could set this to any `io.Writer` such as a file
-	file, err := os.OpenFile("log/arkgo-server.log", os.O_CREATE|os.O_WRONLY, 0666)
+	file, err := os.OpenFile("log/arkgo-server.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err == nil {
 		log.SetOutput(io.MultiWriter(file))
 	} else {
@@ -86,10 +87,17 @@ func loadConfig() {
 	viper.SetDefault("personal.Daddress", "")
 
 	viper.SetDefault("client.network", "DEVNET")
-
 	viper.SetDefault("server.address", "0.0.0.0")
 	viper.SetDefault("server.port", 54000)
 	viper.SetDefault("server.dbfilename", "payments.db")
+	viper.SetDefault("server.nodeip", "")
+
+	viper.SetDefault("web.frontend", false)
+	viper.SetDefault("web.email", "")
+	viper.SetDefault("web.slack", "")
+	viper.SetDefault("web.reddit", "")
+	viper.SetDefault("web.arkforum", "")
+	viper.SetDefault("web.arknewsaddress", "")
 }
 
 //CORSMiddleware function enabling CORS requests
@@ -129,12 +137,23 @@ func initializeRoutes() {
 		deleRoutes.GET("/config", api.GetDelegateSharingConfig)
 		deleRoutes.GET("/paymentruns", api.GetDelegatePaymentRecord)
 		deleRoutes.GET("/paymentruns/details", api.GetDelegatePaymentRecordDetails)
+		deleRoutes.GET("/nodestatus", api.GetDelegateNodeStatus)
 	}
 	serviceRoutes := router.Group("/service")
 	serviceRoutes.Use(api.OnlyLocalCallAllowed())
 	{
 		serviceRoutes.GET("/start", api.EnterServiceMode)
 		serviceRoutes.GET("/stop", api.LeaveServiceMode)
+	}
+	socialRoutes := router.Group("/social")
+	socialRoutes.Use(api.CheckServiceModelHandler())
+	{
+		socialRoutes.GET("", api.GetArkNewsFromAddress)
+		socialRoutes.GET("/info", api.GetDelegateSocialData)
+	}
+
+	if viper.GetBool("web.frontend") {
+		router.Use(static.Serve("/", static.LocalFile("./public", true)))
 	}
 }
 

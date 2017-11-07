@@ -47,9 +47,19 @@ Daddress = "DQPr5WHkhau3Ka2RKb7egm7isr5wbNHbF1"
 [client]
 network = "DEVNET" #which network is active when application starts
 
-
 #ARK-POOL SERVER SETTINGS
 [server]
 port = 54000
 address = "0.0.0.0"
 dbfilename = "C:\_WORK\ARK\ark-go\src\github.com\kristjank\ark-go\cmd\arkgopool\payment.db"
+nodeip = "" #your delegate nodeip address - the display status/check forging and missing blocks
+
+#FRONTEND settings related to page generation
+[web]
+frontend = false
+twitter = "ChrisDelegate"  #twitter user name for twitter feed on main page if empty not shown
+reddit = "" #reddit link to delegate description - if empty not shown
+slack = "" #slack link to delegate - if empty not shown
+email = "" #email link to delegate - if empty not shown
+arkforum = "" #http link to forum proposal - if empty not shown
+gacode = "ua-cxdssaa" #google analytics code
