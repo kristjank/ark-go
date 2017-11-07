@@ -225,8 +225,8 @@ func SendPayments(silent bool) {
 		//deducting feeAmount from reserve address
 		if feeAmount > reserveAmount {
 			rollbackTx(dbtx)
-			log.Fatal("Not enough reserve money to pay the fees from reserve fund. Payment script stopped !!!")
 			broadCastServiceMode(false)
+			log.Fatal("Not enough reserve money to pay the fees from reserve fund. Payment script stopped !!!")
 		}
 		reserveAmount -= float64(feeAmount)
 	}
