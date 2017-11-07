@@ -132,9 +132,9 @@ func SendPayments(silent bool) {
 			fmt.Println("Unable to calculate. Check share ratio configuration.")
 			pause()
 		}
-		log.Fatal("Unable to calculcate. Check share ratio configuration in your config.toml.")
 		rollbackTx(dbtx)
 		broadCastServiceMode(false)
+		log.Fatal("Unable to calculcate. Check share ratio configuration in your config.toml.")
 		return
 	}
 
