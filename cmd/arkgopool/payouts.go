@@ -132,9 +132,9 @@ func SendPayments(silent bool) {
 			fmt.Println("Unable to calculate. Check share ratio configuration.")
 			pause()
 		}
-		log.Fatal("Unable to calculcate. Check share ratio configuration in your config.toml.")
 		rollbackTx(dbtx)
 		broadCastServiceMode(false)
+		log.Fatal("Unable to calculcate. Check share ratio configuration in your config.toml.")
 		return
 	}
 
@@ -225,8 +225,8 @@ func SendPayments(silent bool) {
 		//deducting feeAmount from reserve address
 		if feeAmount > reserveAmount {
 			rollbackTx(dbtx)
-			log.Fatal("Not enough reserve money to pay the fees from reserve fund. Payment script stopped !!!")
 			broadCastServiceMode(false)
+			log.Fatal("Not enough reserve money to pay the fees from reserve fund. Payment script stopped !!!")
 		}
 		reserveAmount -= float64(feeAmount)
 	}
