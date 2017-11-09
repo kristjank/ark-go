@@ -52,8 +52,8 @@ func initializeBoltClient() {
 	arkpooldb, err = storm.Open(viper.GetString("client.dbfilename"))
 
 	if err != nil {
-		log.Panic(err.Error())
 		broadCastServiceMode(false)
+		log.Panic(err.Error())
 	}
 
 	log.Println("DB Opened at:", arkpooldb.Path)
