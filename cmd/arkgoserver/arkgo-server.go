@@ -89,7 +89,7 @@ func loadConfig() {
 	viper.SetDefault("client.network", "DEVNET")
 	viper.SetDefault("server.address", "0.0.0.0")
 	viper.SetDefault("server.port", 54000)
-	viper.SetDefault("server.dbfilename", "payments.db")
+	viper.SetDefault("server.dbfilename", "payment.db")
 	viper.SetDefault("server.nodeip", "")
 
 	viper.SetDefault("web.frontend", false)
