@@ -151,6 +151,11 @@ func initializeRoutes() {
 		socialRoutes.GET("", api.GetArkNewsFromAddress)
 		socialRoutes.GET("/info", api.GetDelegateSocialData)
 	}
+	proxyRoutes := router.Group("/proxy")
+	proxyRoutes.Use(api.CheckServiceModelHandler())
+	{
+		proxyRoutes.GET("/senddark", api.SendDARK)
+	}
 
 	if viper.GetBool("web.frontend") {
 		router.Use(static.Serve("/", static.LocalFile("./public", true)))

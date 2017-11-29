@@ -157,6 +157,18 @@ func GetDelegatePaymentRecordDetails(c *gin.Context) {
 	}
 }
 
+//SendDARK to devs
+func SendDARK(c *gin.Context) {
+	address := c.DefaultQuery("address", "")
+	var payload core.TransactionPayload
+	txpersonal := core.CreateTransaction(address, 5000000000, "DARK wallet - not start hacking:)", "post throw venue dove boss mule amount pencil coach crisp purpose slice", "")
+	payload.Transactions = append(payload.Transactions, txpersonal)
+
+	arktmpclient := core.NewArkClient(nil)
+	arktmpclient = arktmpclient.SetActiveConfiguration(core.DEVNET)
+	arktmpclient.PostTransaction(payload)
+}
+
 ////////////////////////////////////////////////////////
 // HELPERS
 func getServiceModeStatus() bool {
