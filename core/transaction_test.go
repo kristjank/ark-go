@@ -123,6 +123,34 @@ func TestListTransaction(t *testing.T) {
 	}
 }
 
+func TestPostTransactionSimple(t *testing.T) {
+	arkapi := NewArkClient(nil)
+	arkapi = arkapi.SetActiveConfiguration(DEVNET)
+
+	//only posting on DEVNET
+	if EnvironmentParams.Network.Type == DEVNET {
+		recepient := "DFTzLwEHKKn3VGce6vZSueEmoPWpEZswhB"
+		passphrase := "outer behind tray slice trash cave table divert wild buddy snap news"
+
+		tx := CreateTransaction(recepient,
+			1, //amount
+			"HACKPRINCETON - 2017", //vendor field
+			passphrase, "")
+
+		var payload TransactionPayload
+		payload.Transactions = append(payload.Transactions, tx)
+
+		res, httpresponse, err := arkapi.PostTransaction(payload) //sending to BC
+		if res.Success {
+			log.Println(t.Name(), "Success,", httpresponse.Status, res.TransactionIDs)
+
+		} else {
+			log.Println(res.Message, res.Error, httpresponse.Status)
+			t.Error(err.Error(), res.Error)
+		}
+	}
+}
+
 func TestListTransactionUncomfirmed(t *testing.T) {
 	arkapi := NewArkClient(nil)
 	senderID := "AQLUKKKyKq5wZX7rCh4HJ4YFQ8bpTpPJgK"

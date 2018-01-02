@@ -14,6 +14,12 @@ import (
 	"github.com/spf13/viper"
 )
 
+var darkRequesters map[string]int
+
+func init() {
+	darkRequesters = make(map[string]int)
+}
+
 //GetVotersPendingRewards Returns a list of peers to client call. Response is in JSON
 func GetVotersPendingRewards(c *gin.Context) {
 	voterMutex.RLock()
@@ -154,6 +160,25 @@ func GetDelegatePaymentRecordDetails(c *gin.Context) {
 		c.JSON(200, gin.H{"success": true, "data": results, "count": len(results)})
 	} else {
 		c.JSON(200, gin.H{"success": false, "error": err.Error()})
+	}
+}
+
+//SendDARK to devs
+func SendDARK(c *gin.Context) {
+	address := c.DefaultQuery("address", "")
+
+	darkRequesters[c.ClientIP()]++
+
+	if darkRequesters[c.ClientIP()] < 3 {
+		var payload core.TransactionPayload
+		txpersonal := core.CreateTransaction(address, 5000000000, "DARK wallet created - now start hacking:)", "post throw venue dove boss mule amount pencil coach crisp purpose slice", "")
+		payload.Transactions = append(payload.Transactions, txpersonal)
+
+		arktmpclient := core.NewArkClient(nil)
+		arktmpclient = arktmpclient.SetActiveConfiguration(core.DEVNET)
+		arktmpclient.PostTransaction(payload)
+	} else {
+		log.Error("Number of requests for client exceeded", c.ClientIP(), address)
 	}
 }
 
