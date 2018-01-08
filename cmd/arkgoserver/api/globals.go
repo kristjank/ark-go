@@ -24,7 +24,11 @@ var VotersEarnings []core.DelegateDataProfit
 
 func InitGlobals() {
 	isServiceMode = false
-	ArkAPIclient = core.NewArkClient(nil)
+	if viper.GetString("server.nodeip") != "" {
+		ArkAPIclient = core.NewArkClientFromIP(viper.GetString("server.nodeip"))
+	} else {
+		ArkAPIclient = core.NewArkClient()
+	}
 	openDB()
 
 	initTicker4PendingRewardCalculation()
