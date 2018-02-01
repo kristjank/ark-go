@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/dghubble/sling"
 	"github.com/fatih/color"
@@ -60,6 +61,7 @@ func splitAndDeliverPayload(payload core.TransactionPayload) {
 		splitcout += len(h)
 
 		deliverPayloadThreaded(tmpPayload, chunkIx, payoutsFolderName)
+		time.Sleep(time.Second * 30)
 
 	}
 	if splitcout != len(payload.Transactions) {
