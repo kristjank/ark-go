@@ -56,7 +56,7 @@ func initializeBoltClient() {
 		log.Panic(err.Error())
 	}
 
-	log.Println("DB Opened at:", arkpooldb.Path)
+	log.Println("DB Opened succefully")
 	//defer arkpooldb.Close()
 }
 
@@ -159,6 +159,7 @@ func loadConfig() {
 	viper.SetDefault("client.network", "DEVNET")
 	viper.SetDefault("client.dbFilename", "payment.db")
 	viper.SetDefault("client.multibroadcast", 10)
+	viper.SetDefault("client.payloadsize", 30)
 	viper.SetDefault("client.statistics", true)
 	viper.SetDefault("client.statPeer", "164.8.251.91")
 	viper.SetDefault("client.statPort", 54010)

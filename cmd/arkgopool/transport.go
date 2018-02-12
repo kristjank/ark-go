@@ -35,16 +35,13 @@ func splitAndDeliverPayload(payload core.TransactionPayload) {
 	//calculating number of chunks (based on 20tx in one chunk to send to one peer)
 	payoutsFolderName := createLogFolder()
 	var divided [][]*core.Transaction
-	numPeers := len(payload.Transactions) / 20
-	if numPeers == 0 {
-		numPeers = 1
-	}
-	chunkSize := (len(payload.Transactions) + numPeers - 1) / numPeers
-	if chunkSize == 0 {
-		chunkSize = 1
+
+	chunkSize := viper.GetInt("client.payloadsize")
+	if chunkSize > 40 {
+		chunkSize = 40
 	}
 
-	//sliptting the payload to number of needed peers
+	//sliptting the payload to size defined in chunksize
 	for i := 0; i < len(payload.Transactions); i += chunkSize {
 		end := i + chunkSize
 		if end > len(payload.Transactions) {
@@ -61,7 +58,7 @@ func splitAndDeliverPayload(payload core.TransactionPayload) {
 		splitcout += len(h)
 
 		deliverPayloadThreaded(tmpPayload, chunkIx, payoutsFolderName)
-		time.Sleep(time.Second * 30)
+		time.Sleep(time.Second * 40) //waiting before sending another batch - Quick fix (rewrite after v2 is out)
 
 	}
 	if splitcout != len(payload.Transactions) {
@@ -71,9 +68,9 @@ func splitAndDeliverPayload(payload core.TransactionPayload) {
 
 func deliverPayloadThreaded(tmpPayload core.TransactionPayload, chunkIx int, logFolder string) {
 	numberOfPeers2MultiBroadCastTo := viper.GetInt("client.multibroadcast")
-	if numberOfPeers2MultiBroadCastTo > 15 {
-		numberOfPeers2MultiBroadCastTo = 15
-		log.Warn("Max broadcast number too high - set by user, reseting to value 15")
+	if numberOfPeers2MultiBroadCastTo > 10 {
+		numberOfPeers2MultiBroadCastTo = 10
+		log.Warn("Max broadcast number too high - set by user, reseting to value 10")
 	}
 	log.Info("Starting multibroadcast/multithreaded parallel payout to ", numberOfPeers2MultiBroadCastTo, " number of peers")
 	peers := arkclient.GetRandomXPeers(numberOfPeers2MultiBroadCastTo)
