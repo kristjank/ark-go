@@ -27,7 +27,7 @@ func InitGlobals() {
 	if viper.GetString("server.nodeip") != "" {
 		ArkAPIclient = core.NewArkClientFromIP(viper.GetString("server.nodeip"))
 	} else {
-		ArkAPIclient = core.NewArkClient()
+		ArkAPIclient = core.NewArkClient(nil)
 	}
 	openDB()
 
@@ -72,7 +72,7 @@ func openDB() {
 		log.Fatal(err.Error())
 	}
 
-	log.Println("DB Opened at:", Arkpooldb.Path)
+	log.Println("DB Opened at")
 }
 
 func closeDB() {
