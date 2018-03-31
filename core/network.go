@@ -37,7 +37,7 @@ type ArkClient struct {
 }
 
 func init() {
-	switchNetwork(MAINNET)
+	// switchNetwork(MAINNET)
 }
 
 //NewArkClient creations with supported network

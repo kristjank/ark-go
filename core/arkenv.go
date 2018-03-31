@@ -22,10 +22,12 @@ const (
 	MAINNET = iota
 	//DEVNET connection
 	DEVNET
-	//KAPU
+	//KAPU network
 	KAPU
-	//KAPUDEVNET
+	//KAPUDEVNET network
 	KAPUDEVNET
+	//AUTOCONFIG network
+	AUTOCONFIG
 )
 
 //TO HELP DIVIDE
@@ -76,60 +78,64 @@ func LoadActiveConfiguration(arknetwork ArkNetworkType) string {
 	selectedPeer := ""
 	EnvironmentParams.Network.Type = arknetwork
 	//looping peers comunication until we get autoconfigure response
-	i := 0
-	for selectedPeer == "" && i < 10 {
+	switch arknetwork {
+	case MAINNET:
+		log.Println("Active network is ARK MAINNET")
+		selectedPeer = seedList[r1.Intn(len(seedList))]
+		log.Println("Random peer selected: ", selectedPeer)
 
-		i++
-		switch arknetwork {
-		case MAINNET:
-			log.Println("Active network is ARK MAINNET")
-			selectedPeer = seedList[r1.Intn(len(seedList))]
-			log.Println("Random peer selected: ", selectedPeer)
-
-		case DEVNET:
-			log.Println("Active network is ARK DEVNET")
-			selectedPeer = testSeedList[r1.Intn(len(testSeedList))]
-			log.Println("Random peer selected: ", selectedPeer)
-		case KAPU:
-			log.Println("Active network is KAPU MAINNET")
-			selectedPeer = seedListKAPU[r1.Intn(len(seedListKAPU))]
-			log.Println("Random peer selected: ", selectedPeer)
-
-		}
-		log.Println("Connecting to random peer", selectedPeer, r1.Intn(len(seedList)))
-		//reading basic network params
-		res, err := http.Get("http://" + selectedPeer + "/api/loader/autoconfigure")
-		if err != nil {
-			log.Println("Error receiving autoloader params rest from: ", selectedPeer, " Error: ", err.Error())
-			selectedPeer = ""
-		} else {
-			json.NewDecoder(res.Body).Decode(&EnvironmentParams)
-		}
+	case DEVNET:
+		log.Println("Active network is ARK DEVNET")
+		selectedPeer = testSeedList[r1.Intn(len(testSeedList))]
+		log.Println("Random peer selected: ", selectedPeer)
+	case KAPU:
+		log.Println("Active network is KAPU MAINNET")
+		selectedPeer = seedListKAPU[r1.Intn(len(seedListKAPU))]
+		log.Println("Random peer selected: ", selectedPeer)
 	}
 
-	if selectedPeer == "" {
+	return autoConfigFromPeer(selectedPeer)
+}
+
+func autoConfigFromPeer(seedPeer string) string {
+	log.Println("Connecting to selected peer", seedPeer)
+	//reading basic network params
+	res, err := http.Get("http://" + seedPeer + "/api/loader/autoconfigure")
+	if err != nil {
+		log.Println("Error receiving autoloader params rest from: ", seedPeer, " Error: ", err.Error())
+		seedPeer = ""
+	} else {
+		json.NewDecoder(res.Body).Decode(&EnvironmentParams)
+	}
+
+	if seedPeer == "" {
 		log.Fatal("Unable to connect to blockchain, exiting")
 	}
 
 	//reading fees
-	res, err := http.Get("http://" + selectedPeer + "/api/blocks/getfees")
+	res, err = http.Get("http://" + seedPeer + "/api/blocks/getfees")
 	if err != nil {
-		log.Fatal("Error receiving fees params rest from: ", selectedPeer)
+		log.Fatal("Error receiving fees params rest from: ", seedPeer)
 	}
 	json.NewDecoder(res.Body).Decode(&EnvironmentParams)
 
 	//getting connected peer params from peer
-	peerParams := strings.Split(selectedPeer, ":")
+	peerParams := strings.Split(seedPeer, ":")
 	peerRes := new(PeerResponse)
-	res, err = http.Get("http://" + selectedPeer + "/api/peers/get/?ip=" + peerParams[0] + "&port=" + peerParams[1])
+	res, err = http.Get("http://" + seedPeer + "/api/peers/get/?ip=" + peerParams[0] + "&port=" + peerParams[1])
 	if err != nil {
-		log.Fatal("Error receiving peer status from: ", selectedPeer, err.Error(), res.StatusCode)
+		log.Fatal("Error receiving peer status from: ", seedPeer, err.Error(), res.StatusCode)
 	}
 	json.NewDecoder(res.Body).Decode(peerRes)
 	//saving peer parameters to globals
 	EnvironmentParams.Network.ActivePeer = peerRes.SinglePeer
 
-	return "http://" + optimizePeerList(selectedPeer)
+	coinParams := arkcoin.Params{
+		AddressHeader: EnvironmentParams.Network.AddressVersion,
+	}
+	arkcoin.SetActiveCoinConfiguration(&coinParams)
+
+	return "http://" + optimizePeerList(seedPeer)
 }
 
 func optimizePeerList(selectedPeer string) string {
@@ -183,7 +189,7 @@ func optimizePeerList(selectedPeer string) string {
 	for i := len(EnvironmentParams.Network.PeerList) - 1; i >= 0; i-- {
 		peer := EnvironmentParams.Network.PeerList[i]
 
-		if maxHeight-peer.Height > 17 {
+		if maxHeight-peer.Height > 10 {
 			EnvironmentParams.Network.PeerList = append(EnvironmentParams.Network.PeerList[:i], EnvironmentParams.Network.PeerList[i+1:]...)
 			//log.Println("Removing peer, based on maxheight difference condition", peer.IP, peer.Status, peer.Height)
 			continue
@@ -212,6 +218,12 @@ func switchNetwork(arkNetwork ArkNetworkType) {
 //usage - must reassing new pointer value: arkapi = arkapi.SetActiveConfiguration(MAINNET)
 func (s *ArkClient) SetActiveConfiguration(arkNetwork ArkNetworkType) *ArkClient {
 	switchNetwork(arkNetwork)
+	return NewArkClient(nil)
+}
+
+//SetActiveConfigurationFromIP sets a new client connection and autoconfigures from specified seed peer
+func (s *ArkClient) SetActiveConfigurationFromIP(seedPeer string) *ArkClient {
+	BaseURL = autoConfigFromPeer(seedPeer)
 	return NewArkClient(nil)
 }
 

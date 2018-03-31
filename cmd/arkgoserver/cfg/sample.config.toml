@@ -53,6 +53,7 @@ port = 54000
 address = "0.0.0.0"
 dbfilename = "C:\_WORK\ARK\ark-go\src\github.com\kristjank\ark-go\cmd\arkgopool\payment.db"
 nodeip = "" #your delegate nodeip address - the display status/check forging and missing blocks
+autoconfigPeer = "" #node ip address to start talking with blockchain and configure from it... (autoconfigure)
 
 #FRONTEND settings related to page generation
 [web]
