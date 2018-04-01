@@ -222,7 +222,7 @@ func (s *ArkClient) SetActiveConfiguration(arkNetwork ArkNetworkType) *ArkClient
 }
 
 //SetActiveConfigurationFromIP sets a new client connection and autoconfigures from specified seed peer
-func (s *ArkClient) SetActiveConfigurationFromIP(seedPeer string) *ArkClient {
+func (s *ArkClient) SetActiveConfigurationFromPeerAddress(seedPeer string) *ArkClient {
 	BaseURL = autoConfigFromPeer(seedPeer)
 	return NewArkClient(nil)
 }

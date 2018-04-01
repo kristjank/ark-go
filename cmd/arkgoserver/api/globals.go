@@ -24,8 +24,8 @@ var VotersEarnings []core.DelegateDataProfit
 
 func InitGlobals() {
 	isServiceMode = false
-	if viper.GetString("server.nodeip") != "" {
-		ArkAPIclient = core.NewArkClientFromIP(viper.GetString("server.nodeip"))
+	if viper.GetString("server.autoconfigPeer") != "" {
+		ArkAPIclient = ArkAPIclient.SetActiveConfigurationFromPeerAddress(viper.GetString("server.autoconfigPeer"))
 	} else {
 		ArkAPIclient = core.NewArkClient(nil)
 	}

@@ -91,6 +91,7 @@ func loadConfig() {
 	viper.SetDefault("server.port", 54000)
 	viper.SetDefault("server.dbfilename", "payment.db")
 	viper.SetDefault("server.nodeip", "")
+	viper.SetDefault("server.autoconfigPeer", "")
 
 	viper.SetDefault("web.frontend", false)
 	viper.SetDefault("web.email", "")
