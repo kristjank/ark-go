@@ -156,22 +156,13 @@ func optimizePeerList(selectedPeer string) string {
 	EnvironmentParams.Network.PeerList = peerResp.Peers
 	log.Println("Start to optimize peer list, currently ", len(EnvironmentParams.Network.PeerList), " peers.")
 
-	//setting the version condition
-	//TODO - bring from settings as param
-	versionString := "1.0.2"
-	if EnvironmentParams.Network.Type == DEVNET {
-		versionString = "1.1.1"
-	} else if EnvironmentParams.Network.Type == KAPU {
-		versionString = "0.3.0"
-	}
-
 	//Clean the peer list (filters not working as they shoud) - so checking again here
 	maxHeight := EnvironmentParams.Network.ActivePeer.Height
 	for i := len(EnvironmentParams.Network.PeerList) - 1; i >= 0; i-- {
 		peer := EnvironmentParams.Network.PeerList[i]
 
 		// Condition to decide if current element has to be deleted:
-		if peer.Status != "OK" || peer.Port != EnvironmentParams.Network.ActivePeer.Port || peer.Version != versionString {
+		if peer.Status != "OK" {
 			EnvironmentParams.Network.PeerList = append(EnvironmentParams.Network.PeerList[:i], EnvironmentParams.Network.PeerList[i+1:]...)
 			//log.Println("Removing peer", peer.IP, peer.Status, peer.Height)
 			continue
@@ -185,11 +176,11 @@ func optimizePeerList(selectedPeer string) string {
 		}
 	}
 
-	//removing peers with difference more then 17 blocks, that is 10x8s behing mainheight
+	//removing peers with difference more then 10 blocks, that is 10x8s behing mainheight
 	for i := len(EnvironmentParams.Network.PeerList) - 1; i >= 0; i-- {
 		peer := EnvironmentParams.Network.PeerList[i]
 
-		if maxHeight-peer.Height > 10 {
+		if maxHeight-peer.Height > 20 {
 			EnvironmentParams.Network.PeerList = append(EnvironmentParams.Network.PeerList[:i], EnvironmentParams.Network.PeerList[i+1:]...)
 			//log.Println("Removing peer, based on maxheight difference condition", peer.IP, peer.Status, peer.Height)
 			continue
@@ -221,7 +212,7 @@ func (s *ArkClient) SetActiveConfiguration(arkNetwork ArkNetworkType) *ArkClient
 	return NewArkClient(nil)
 }
 
-//SetActiveConfigurationFromIP sets a new client connection and autoconfigures from specified seed peer
+//SetActiveConfigurationFromPeerAddress sets a new client connection and autoconfigures from specified seed peer
 func (s *ArkClient) SetActiveConfigurationFromPeerAddress(seedPeer string) *ArkClient {
 	BaseURL = autoConfigFromPeer(seedPeer)
 	return NewArkClient(nil)
