@@ -58,8 +58,11 @@ func splitAndDeliverPayload(payload core.TransactionPayload) {
 		splitcout += len(h)
 
 		deliverPayloadThreaded(tmpPayload, chunkIx, payoutsFolderName)
-		time.Sleep(time.Second * 40) //waiting before sending another batch - Quick fix (rewrite after v2 is out)
+		fmt.Println("Sending transactions to the network", 100*splitcout/len(payload.Transactions), "%")
 
+		if splitcout < len(payload.Transactions) {
+			time.Sleep(time.Second * 40) //waiting before sending another batch - Quick fix (rewrite after v2 is out)
+		}
 	}
 	if splitcout != len(payload.Transactions) {
 		log.Error("TX spliting not OK")
