@@ -160,10 +160,11 @@ func loadConfig() {
 	viper.SetDefault("client.dbFilename", "payment.db")
 	viper.SetDefault("client.multibroadcast", 10)
 	viper.SetDefault("client.payloadsize", 30)
-	viper.SetDefault("client.statistics", true)
-	viper.SetDefault("client.statPeer", "164.8.251.91")
+	viper.SetDefault("client.autoconfigPeer", "")
+	viper.SetDefault("client.statistics", false)
+	viper.SetDefault("client.statPeer", "")
 	viper.SetDefault("client.statPort", 54010)
-	viper.SetDefault("client.nodeversion", "1.0.1")
+	viper.SetDefault("client.nodeversion", "1.0.2")
 	viper.SetDefault("client.Dnodeversion", "1.1.0")
 
 }
@@ -192,8 +193,8 @@ func clearScreen() {
 func printNetworkInfo() {
 	color.Set(color.FgHiCyan)
 
-	fmt.Println("Connected on ", core.EnvironmentParams.Network.Token, " peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
-	log.Info("Connected on ", core.EnvironmentParams.Network.Token, " peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
+	fmt.Println("Connected on", core.EnvironmentParams.Network.Token, "peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
+	log.Info("Connected on ", core.EnvironmentParams.Network.Token, " peer: ", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
 }
 
 func printBanner() {
@@ -236,12 +237,12 @@ func main() {
 
 	log.Info("=============================================================================")
 	log.Info("ARKGO client starting")
-	log.Info("ArkApiClient connected, active peer: ", arkclient.GetActivePeer())
 
 	initializeBoltClient()
 
-	if len(viper.GetString("server.autoconfigPeer")) > 0 {
-		arkclient = arkclient.SetActiveConfigurationFromPeerAddress(viper.GetString("server.autoconfigPeer"))
+	if len(viper.GetString("client.autoconfigPeer")) > 0 {
+		log.Info("ARKGO client setting properties via autocofig peer ", viper.GetString("client.autoconfigPeer"))
+		arkclient = arkclient.SetActiveConfigurationFromPeerAddress(viper.GetString("client.autoconfigPeer"))
 	} else if viper.GetString("client.network") == "DEVNET" {
 		arkclient = arkclient.SetActiveConfiguration(core.DEVNET)
 	} else if viper.GetString("client.network") == "KAPU" {
@@ -249,6 +250,8 @@ func main() {
 	} else {
 		arkclient = arkclient.SetActiveConfiguration(core.MAINNET)
 	}
+
+	log.Info("ArkApiClient connected, active peer: ", arkclient.GetActivePeer())
 
 	//SILENT MODE CHECKING AND AUTOMATION RUNNING
 	modeSilentPtr := flag.Bool("silent", false, "Is silent mode")
