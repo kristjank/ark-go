@@ -237,7 +237,7 @@ func printMenu() {
 func main() {
 	//sending ARKGO Server that we are working with payments
 	//setting the version
-	ArkGoPoolVersion = "v0.8.5"
+	ArkGoPoolVersion = "v0.9.0"
 
 	// Load configration and defaults
 	// Order is important
