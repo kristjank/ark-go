@@ -164,8 +164,6 @@ func loadConfig() {
 	viper.SetDefault("client.statistics", false)
 	viper.SetDefault("client.statPeer", "")
 	viper.SetDefault("client.statPort", 54010)
-	viper.SetDefault("client.nodeversion", "1.0.2")
-	viper.SetDefault("client.Dnodeversion", "1.1.0")
 
 }
 
