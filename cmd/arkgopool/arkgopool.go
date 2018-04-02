@@ -251,7 +251,7 @@ func main() {
 
 	initializeBoltClient()
 
-	if viper.GetString("server.autoconfigPeer") != "" {
+	if len(viper.GetString("server.autoconfigPeer")) > 0 {
 		arkclient = arkclient.SetActiveConfigurationFromPeerAddress(viper.GetString("server.autoconfigPeer"))
 	} else if viper.GetString("client.network") == "DEVNET" {
 		arkclient = arkclient.SetActiveConfiguration(core.DEVNET)
