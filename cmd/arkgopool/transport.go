@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/dghubble/sling"
@@ -58,7 +59,7 @@ func splitAndDeliverPayload(payload core.TransactionPayload) {
 		splitcout += len(h)
 
 		deliverPayloadThreaded(tmpPayload, chunkIx, payoutsFolderName)
-		fmt.Println("Sending transactions to the network", 100*splitcout/len(payload.Transactions), "%")
+		fmt.Println("Sending transactions to the network", strconv.FormatFloat(float64(100*splitcout/len(payload.Transactions)), 'f', 2, 64), "%")
 
 		if splitcout < len(payload.Transactions) {
 			time.Sleep(time.Second * 40) //waiting before sending another batch - Quick fix (rewrite after v2 is out)
