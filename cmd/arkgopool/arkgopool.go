@@ -251,13 +251,14 @@ func main() {
 
 	initializeBoltClient()
 
-	//switch to preset network
-	if viper.GetString("client.network") == "DEVNET" {
+	if viper.GetString("server.autoconfigPeer") != "" {
+		arkclient = arkclient.SetActiveConfigurationFromPeerAddress(viper.GetString("server.autoconfigPeer"))
+	} else if viper.GetString("client.network") == "DEVNET" {
 		arkclient = arkclient.SetActiveConfiguration(core.DEVNET)
-	}
-	//switch to preset network
-	if viper.GetString("client.network") == "KAPU" {
+	} else if viper.GetString("client.network") == "KAPU" {
 		arkclient = arkclient.SetActiveConfiguration(core.KAPU)
+	} else {
+		arkclient = arkclient.SetActiveConfiguration(core.MAINNET)
 	}
 
 	//SILENT MODE CHECKING AND AUTOMATION RUNNING
