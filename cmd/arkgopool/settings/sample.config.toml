@@ -57,7 +57,8 @@ nodeversion = "1.0.2" #filter setting for node version list talk... only nodes w
 Dnodeversion = "1.1.0" #filter setting for node version list talk... only nodes with this version are used
 payloadsize = 30 #number of transaction sent to block in one payload
 multibroadcast = 10 #to how many peers at once - we can multibroadcast
-autoconfigPeer = "" #node ip address and port to start talking with blockchain and configure from it there (autoconfigure)
+autoconfigPeer = "" #node ip address and port to start talking with blockchain and configure from it there (autoconfigure). 
+#If you are running on the same server you can set it to 127.0.0.1:4001
 
 #ARK-POOL SERVER SETTINGS
 [server]
