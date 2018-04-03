@@ -13,3 +13,4 @@ archive:
    files:
     - settings/sample.config.toml
     - settings/sample.config.devnet.toml
+    - log/.gitignore
