@@ -1,5 +1,6 @@
 # .goreleaser.yml
 # Build customization
+project_name: ArkGoPool
 builds:
   - binary: arkgopool
     goos:
@@ -8,3 +9,7 @@ builds:
       - linux
     goarch:
       - amd64
+archive:
+   files:
+    - settings/sample.config.toml
+    - settings/sample.config.devnet.toml
