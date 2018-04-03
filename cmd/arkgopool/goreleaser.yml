@@ -10,7 +10,11 @@ builds:
     goarch:
       - amd64
 archive:
-   files:
+  files:
     - settings/sample.config.toml
     - settings/sample.config.devnet.toml
     - log/.gitignore
+    
+  format_overrides:
+    - goos: windows
+      format: zip
