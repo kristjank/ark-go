@@ -24,10 +24,6 @@ const (
 	DEVNET
 	//KAPU network
 	KAPU
-	//KAPUDEVNET network
-	KAPUDEVNET
-	//AUTOCONFIG network
-	AUTOCONFIG
 )
 
 //TO HELP DIVIDE
