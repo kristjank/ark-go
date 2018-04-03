@@ -132,10 +132,6 @@ func getLastPaymentRecord() (model.PaymentRecord, error) {
 func createPaymentRecord() model.PaymentRecord {
 	delegateAddress := viper.GetString("delegate.address")
 	delegatePubKey := viper.GetString("delegate.pubkey")
-	if viper.GetString("client.network") == "DEVNET" {
-		delegateAddress = viper.GetString("delegate.Daddress")
-		delegatePubKey = viper.GetString("delegate.Dpubkey")
-	}
 
 	payRec := model.PaymentRecord{
 		ShareRatio:       viper.GetFloat64("voters.shareratio"),
@@ -147,7 +143,7 @@ func createPaymentRecord() model.PaymentRecord {
 		Fidelity:         viper.GetBool("voters.fidelity"),
 		FidelityLimit:    viper.GetInt("voters.fidelityLimit"),
 		MinAmount:        viper.GetFloat64("voters.minamount"),
-		Network:          viper.GetString("client.network"),
+		Network:          core.EnvironmentParams.Network.Token,
 		Blocklist:        viper.GetString("voters.blocklist"),
 		Whitelist:        viper.GetString("voters.whitelist"),
 		CapBalance:       viper.GetBool("voters.capBalance"),

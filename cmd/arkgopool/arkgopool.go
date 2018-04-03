@@ -87,8 +87,6 @@ func readAccountData() (string, string) {
 }
 
 func loadConfig(configFile string) {
-	fmt.Println(configFile)
-	reader.ReadString('\n')
 	viper.SetConfigName(configFile) // name of config file (without extension)
 	viper.AddConfigPath("settings") // path to look for the config file in
 	viper.AddConfigPath(".")        // optionally look for config in the working directory
@@ -191,12 +189,9 @@ func printMenu() {
 	fmt.Println("\t3-Link account")
 	fmt.Println("\t4-List payment history")
 	fmt.Println("\t5-Send bonus payments")
-	fmt.Println("\t6-Switch networks ARK")
-	fmt.Println("\t7-Switch networks KAPU")
-	fmt.Println("\t8-Check transaction confirmations (last payment run)")
 	fmt.Println("\t0-Exit")
 	fmt.Println("")
-	fmt.Print("\tSelect option [0-9]:")
+	fmt.Print("\tSelect option [0-5]:")
 	color.Unset()
 }
 
@@ -297,15 +292,6 @@ func main() {
 			}
 
 			SendBonusPayment(iAmount2Send, txBonusDesc)
-			pause()
-			color.Unset()
-		case 7:
-			arkclient = arkclient.SetActiveConfiguration(core.KAPU)
-		case 8:
-			clearScreen()
-			color.Set(color.FgHiGreen)
-			fmt.Println("Almost there, but 1.0.2 was released to fast...")
-			fmt.Println("Will follow up soon...")
 			pause()
 			color.Unset()
 		case 4:
