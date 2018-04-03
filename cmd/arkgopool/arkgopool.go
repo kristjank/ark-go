@@ -30,7 +30,7 @@ var arkpooldb *storm.DB
 var wg sync.WaitGroup
 var wgConfirmations sync.WaitGroup
 
-var ArkGoPoolVersion string
+var version = "master"
 
 func initLogger() {
 	// Log as JSON instead of the default ASCII formatter.
@@ -167,8 +167,8 @@ func clearScreen() {
 func printNetworkInfo() {
 	color.Set(color.FgHiCyan)
 
-	fmt.Println("Connected on", core.EnvironmentParams.Network.Token, "peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
-	log.Info("Connected on ", core.EnvironmentParams.Network.Token, " peer: ", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
+	fmt.Println("Connected on", core.EnvironmentParams.Network.Token, "peer:", core.BaseURL, "| ARKGoPool version", version)
+	log.Info("Connected on ", core.EnvironmentParams.Network.Token, " peer: ", core.BaseURL, "| ARKGoPool version", version)
 }
 
 func printBanner() {
@@ -196,10 +196,6 @@ func printMenu() {
 }
 
 func main() {
-	//sending ARKGO Server that we are working with payments
-	//setting the version
-	ArkGoPoolVersion = "v0.9.1"
-
 	// Reading input parameters
 	configPtr := flag.String("config", "config", "Name of config file to use (without extension)")
 	modeSilentPtr := flag.Bool("silent", false, "Is silent mode")
