@@ -36,9 +36,6 @@ txdescription = "delegate personal. |tx by ark-go" #not longer than 64 chars
 [client]
 network = "MAINNET" #which network is active when application starts
 dbfilename = "payment.db"
-statistics = true
-statPeer = "164.8.251.91"
-statPort = 54010
 payloadsize = 30 #number of transaction sent to block in one payload
 multibroadcast = 10 #to how many peers at once - we can multibroadcast
 autoconfigPeer = "" #node ip address and port to start talking with blockchain and configure from it there (autoconfigure). 

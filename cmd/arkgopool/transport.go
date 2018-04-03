@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/dghubble/sling"
 	"github.com/fatih/color"
 	"github.com/kristjank/ark-go/cmd/model"
 	"github.com/kristjank/ark-go/core"
@@ -17,19 +16,6 @@ type postStatsResponse struct {
 	Success bool   `json:"success,omitempty"`
 	LogID   int    `json:"logID,omitempty"`
 	Error   string `json:"error,omitempty"`
-}
-
-func sendStatisticsData(payRec *model.PaymentRecord) {
-	response := new(postStatsResponse)
-	error := new(postStatsResponse)
-
-	statURL := fmt.Sprintf("http://%s:%d", viper.GetString("client.statPeer"), viper.GetInt("client.statPort"))
-	statsBase := sling.New().Base(statURL).Client(nil).Add("Content-Type", "application/json")
-	resp, err := statsBase.New().Post("log/payment").BodyJSON(payRec).Receive(response, error)
-
-	if err != nil {
-		log.Error("Error sending statistics data", resp, err)
-	}
 }
 
 func splitAndDeliverPayload(payload core.TransactionPayload) {
