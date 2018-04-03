@@ -55,7 +55,11 @@ func log2csv(payload core.TransactionPayload, txids []string, fileName string, s
 
 		var line []string
 		if txids != nil {
-			line = []string{el.RecipientID, strconv.FormatFloat(float64(el.Amount)/float64(core.SATOSHI), 'f', -1, 64), localTime.Format("2006-01-02 15:04:05"), txids[ix], status}
+			if ix < len(txids) {
+				line = []string{el.RecipientID, strconv.FormatFloat(float64(el.Amount)/float64(core.SATOSHI), 'f', -1, 64), localTime.Format("2006-01-02 15:04:05"), txids[ix], status}
+			} else {
+				line = []string{el.RecipientID, strconv.FormatFloat(float64(el.Amount)/float64(core.SATOSHI), 'f', -1, 64), localTime.Format("2006-01-02 15:04:05"), ":-(", status}
+			}
 		} else {
 			line = []string{el.RecipientID, strconv.FormatFloat(float64(el.Amount)/float64(core.SATOSHI), 'f', -1, 64), localTime.Format("2006-01-02 15:04:05"), "N/A", status}
 		}

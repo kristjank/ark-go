@@ -24,7 +24,11 @@ var VotersEarnings []core.DelegateDataProfit
 
 func InitGlobals() {
 	isServiceMode = false
-	ArkAPIclient = core.NewArkClient(nil)
+	if viper.GetString("server.autoconfigPeer") != "" {
+		ArkAPIclient = ArkAPIclient.SetActiveConfigurationFromPeerAddress(viper.GetString("server.autoconfigPeer"))
+	} else {
+		ArkAPIclient = core.NewArkClient(nil)
+	}
 	openDB()
 
 	initTicker4PendingRewardCalculation()
@@ -68,7 +72,7 @@ func openDB() {
 		log.Fatal(err.Error())
 	}
 
-	log.Println("DB Opened at:", Arkpooldb.Path)
+	log.Println("DB Opened at")
 }
 
 func closeDB() {

@@ -39,10 +39,23 @@ copy ..\..\settings\sample.config.toml settings
 mkdir log
 cd ..
 
+set GOOS=darwin
+go build 
+REM DarwinKeyRelease
+if not exist "darwin" mkdir darwin
+cd darwin
+move ..\..\arkgopool .
+mkdir settings
+copy ..\..\settings\banner.txt settings
+copy ..\..\settings\sample.config.toml settings
+mkdir log
+cd ..
+
 REM create archive
 for /d %%X in (*) do "c:\Program Files\7-Zip\7z.exe" a -mx "%%X.zip" "%%X\*"
 
 move linux.zip ARKGO-LinuxRelease.zip
 move windows.zip ARKGO-WindowsRelease.zip
 move usb.zip ARKGO-UsbKeyRelease.zip
+move darwin.zip ARKGO-MacOsRelease.zip
 

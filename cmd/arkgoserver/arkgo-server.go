@@ -89,8 +89,9 @@ func loadConfig() {
 	viper.SetDefault("client.network", "DEVNET")
 	viper.SetDefault("server.address", "0.0.0.0")
 	viper.SetDefault("server.port", 54000)
-	viper.SetDefault("server.dbfilename", "payments.db")
+	viper.SetDefault("server.dbfilename", "payment.db")
 	viper.SetDefault("server.nodeip", "")
+	viper.SetDefault("server.autoconfigPeer", "")
 
 	viper.SetDefault("web.frontend", false)
 	viper.SetDefault("web.email", "")
@@ -151,6 +152,11 @@ func initializeRoutes() {
 		socialRoutes.GET("", api.GetArkNewsFromAddress)
 		socialRoutes.GET("/info", api.GetDelegateSocialData)
 	}
+	proxyRoutes := router.Group("/proxy")
+	proxyRoutes.Use(api.CheckServiceModelHandler())
+	{
+		proxyRoutes.GET("/senddark", api.SendDARK)
+	}
 
 	if viper.GetBool("web.frontend") {
 		router.Use(static.Serve("/", static.LocalFile("./public", true)))
@@ -170,7 +176,7 @@ func main() {
 
 	//sending ARKGO Server that we are working with payments
 	//setting the version
-	api.ArkGoServerVersion = "v0.3.0"
+	api.ArkGoServerVersion = "v0.4.1"
 
 	// Set the router as the default one provided by Gin
 	router = gin.Default()

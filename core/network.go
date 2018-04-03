@@ -24,7 +24,11 @@ type ArkApiResponseError struct {
 
 //Error interface function
 func (e ArkApiResponseError) Error() string {
-	return fmt.Sprintf("ArkServiceApi: %v %v %v %v %v", e.ErrorObj.Error(), e.Success, e.ErrorMessage, e.Data, e.Message)
+	emsg := ""
+	if e.ErrorObj != nil {
+		emsg = e.ErrorObj.Error()
+	}
+	return fmt.Sprintf("ArkServiceApi: %v %v %v %v %v", emsg, e.Success, e.ErrorMessage, e.Data, e.Message)
 }
 
 //ArkClient sling rest pointer
@@ -33,7 +37,7 @@ type ArkClient struct {
 }
 
 func init() {
-	switchNetwork(MAINNET)
+	// switchNetwork(MAINNET)
 }
 
 //NewArkClient creations with supported network

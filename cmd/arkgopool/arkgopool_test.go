@@ -106,7 +106,7 @@ func TestCheckMinimumVoteTimeCandidates(t *testing.T) {
 }
 
 func TestSendStatisticsData(t *testing.T) {
-	loadConfig()
+	loadConfig("config")
 	payrec := createPaymentRecord()
 	//payrec.Delegate = "frenk"
 	//payrec.DelegatePubKey = ""

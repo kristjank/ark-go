@@ -1,8 +1,8 @@
 # Adapt and copy this file to settings/config.toml for productive configuration
 # Do NOT change the headers in brackets, example: [delegate]
 [delegate]
-address = "ASJBHz4JfWVUGDyN61hMMnW1Y4ZCTBHL1K"
-pubkey = "027acdf24b004a7b1e6be2adf746e3233ce034dbb7e83d4a900f367efc4abd0f21"
+address = "DQUjMT6fhJWbwhaYL5pPdX9v5qPiRcAzRb"
+pubkey = "02bcfa0951a92e7876db1fb71996a853b57f996972ed059a950d910f7d541706c9"
 
 [voters]
 shareRatio = 0.70 #percent goes to voters
@@ -19,27 +19,27 @@ balanceCapAmount = 0.0 #treshold to cap the balance
 blockBalanceCap = true #Should the payout be completely blocked, false = pay profit for cap
 
 [costs]
-address = "ANqeL7CP2som7q9NFbRuaUc5WUnwYkSbFY" #costs
+address = "DMEvkeU7pNnH5eVDz63GVK6A4CThCmdcpk" #costs
 shareRatio = 0.15
 txdescription = "delegate costs. |tx by ark-go" #not longer than 64 chars
 
 [reserve]
-address = "AKB7z6QLpCctVsj62nA7pBHk9zF6ocxZdJ" #reserve
+address = "DMEvkeU7pNnH5eVDz63GVK6A4CThCmdcpk" #reserve
 shareRatio = 0.15
 txdescription = "delegate reserve. |tx by ark-go" #not longer than 64 chars
 
 [personal]
-address = "AKB7z6QLpCctVsj62nA7pBHk9zF6ocxZdJ" #reserve
+address = "DQPr5WHkhau3Ka2RKb7egm7isr5wbNHbF1" #reserve
 shareRatio = 0.0
 txdescription = "delegate personal. |tx by ark-go" #not longer than 64 chars
 
 [client]
-network = "MAINNET" #which network is active when application starts
+network = "DEVNET" #which network is active when application starts
 dbfilename = "payment.db"
 statistics = true
 statPeer = "164.8.251.91"
 statPort = 54010
 payloadsize = 30 #number of transaction sent to block in one payload
 multibroadcast = 10 #to how many peers at once - we can multibroadcast
-autoconfigPeer = "" #node ip address and port to start talking with blockchain and configure from it there (autoconfigure). 
+autoconfigPeer = "185.170.115.40:4002" #node ip address and port to start talking with blockchain and configure from it there (autoconfigure). 
 #If you are running on the same server you can set it to 127.0.0.1:4001

@@ -28,7 +28,7 @@ func openDB() {
 		log.Fatal(err.Error())
 	}
 
-	log.Println("DB Opened at:", ArkStatsDB.Path)
+	log.Println("DB Opened")
 }
 
 func closeDB() {

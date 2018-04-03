@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/dghubble/sling"
 	"github.com/fatih/color"
@@ -34,16 +36,13 @@ func splitAndDeliverPayload(payload core.TransactionPayload) {
 	//calculating number of chunks (based on 20tx in one chunk to send to one peer)
 	payoutsFolderName := createLogFolder()
 	var divided [][]*core.Transaction
-	numPeers := len(payload.Transactions) / 20
-	if numPeers == 0 {
-		numPeers = 1
-	}
-	chunkSize := (len(payload.Transactions) + numPeers - 1) / numPeers
-	if chunkSize == 0 {
-		chunkSize = 1
+
+	chunkSize := viper.GetInt("client.payloadsize")
+	if chunkSize > 40 {
+		chunkSize = 40
 	}
 
-	//sliptting the payload to number of needed peers
+	//sliptting the payload to size defined in chunksize
 	for i := 0; i < len(payload.Transactions); i += chunkSize {
 		end := i + chunkSize
 		if end > len(payload.Transactions) {
@@ -60,18 +59,22 @@ func splitAndDeliverPayload(payload core.TransactionPayload) {
 		splitcout += len(h)
 
 		deliverPayloadThreaded(tmpPayload, chunkIx, payoutsFolderName)
+		fmt.Println("Sending transactions to the network", strconv.FormatFloat(float64(100*splitcout/len(payload.Transactions)), 'f', 2, 64), "%")
 
+		if splitcout < len(payload.Transactions) {
+			time.Sleep(time.Second * 40) //waiting before sending another batch - Quick fix (rewrite after v2 is out)
+		}
 	}
 	if splitcout != len(payload.Transactions) {
-		log.Info("TX spliting not OK")
+		log.Error("TX spliting not OK")
 	}
 }
 
 func deliverPayloadThreaded(tmpPayload core.TransactionPayload, chunkIx int, logFolder string) {
 	numberOfPeers2MultiBroadCastTo := viper.GetInt("client.multibroadcast")
-	if numberOfPeers2MultiBroadCastTo > 15 {
-		numberOfPeers2MultiBroadCastTo = 15
-		log.Warn("Max broadcast number too high - set by user, reseting to value 15")
+	if numberOfPeers2MultiBroadCastTo > 10 {
+		numberOfPeers2MultiBroadCastTo = 10
+		log.Warn("Max broadcast number too high - set by user, reseting to value 10")
 	}
 	log.Info("Starting multibroadcast/multithreaded parallel payout to ", numberOfPeers2MultiBroadCastTo, " number of peers")
 	peers := arkclient.GetRandomXPeers(numberOfPeers2MultiBroadCastTo)
@@ -94,4 +97,60 @@ func deliverPayloadThreaded(tmpPayload core.TransactionPayload, chunkIx int, log
 			}
 		}(tmpPayload, peers[i], chunkIx, logFolder)
 	}
+}
+
+func findConfirmations(payRec model.PaymentRecord) {
+	transIDList, err := getTxIDsFromPaymentLogRecord(payRec)
+	if err != nil {
+		//TODO handle error
+		log.Error(err.Error())
+		return
+	}
+
+	var divided [][]string
+
+	numPeers := len(transIDList) / len(core.EnvironmentParams.Network.PeerList)
+	if numPeers == 0 {
+		numPeers = 1
+	}
+	chunkSize := (len(transIDList) + numPeers - 1) / numPeers
+	if chunkSize == 0 {
+		chunkSize = 1
+	}
+
+	//sliptting the payload to number of needed peers
+	for i := 0; i < len(transIDList); i += chunkSize {
+		end := i + chunkSize
+		if end > len(transIDList) {
+			end = len(transIDList)
+		}
+		divided = append(divided, transIDList[i:end])
+	}
+	//end of spliting transactions
+
+	log.Info("---------------START OF CONFIRMATION CHECK-----------------")
+	for id, transIDPart := range divided {
+		wgConfirmations.Add(1)
+
+		go func(transIDs []string, idPeer int, arkapi *core.ArkClient) {
+			defer wgConfirmations.Done()
+			arkTmpClient := core.NewArkClientFromPeer(arkapi.GetRandomXPeers(1)[0])
+			for _, txID := range transIDs {
+				params := core.TransactionQueryParams{ID: txID}
+				arkTransaction, _, _ := arkTmpClient.GetTransaction(params)
+
+				confirmations := 0
+				if arkTransaction.Success {
+					confirmations = arkTransaction.SingleTransaction.Confirmations
+					if confirmations < 1 {
+						fmt.Println("Missing transaction ", txID)
+					}
+
+				}
+
+			}
+		}(transIDPart, id, arkclient)
+	}
+	wgConfirmations.Wait()
+	log.Info("---------------END OF CONFIRMATION CHECK-----------------")
 }

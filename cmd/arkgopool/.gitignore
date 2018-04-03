@@ -2,4 +2,6 @@
 *.db
 *.exe
 *.lock
+dist/*
+dist/**
 

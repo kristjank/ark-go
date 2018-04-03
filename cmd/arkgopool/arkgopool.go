@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"os/exec"
 	"regexp"
@@ -29,8 +28,9 @@ var arkclient = core.NewArkClient(nil)
 var reader = bufio.NewReader(os.Stdin)
 var arkpooldb *storm.DB
 var wg sync.WaitGroup
+var wgConfirmations sync.WaitGroup
 
-var ArkGoPoolVersion string
+var version = "master"
 
 func initLogger() {
 	// Log as JSON instead of the default ASCII formatter.
@@ -52,28 +52,10 @@ func initializeBoltClient() {
 
 	if err != nil {
 		log.Panic(err.Error())
-		broadCastServiceMode(false)
 	}
 
-	log.Println("DB Opened at:", arkpooldb.Path)
+	log.Println("DB Opened succefully")
 	//defer arkpooldb.Close()
-}
-
-func broadCastServiceMode(status bool) {
-	var url string
-	if status {
-		url = "http://127.0.0.1:" + strconv.Itoa(viper.GetInt("server.port")) + "/service/start"
-	} else {
-		arkpooldb.Close()
-		url = "http://127.0.0.1:" + strconv.Itoa(viper.GetInt("server.port")) + "/service/stop"
-	}
-
-	res, err := http.Get(url)
-	if err != nil {
-		log.Error("Error setting service mode on arkgopool server", err.Error(), url)
-	} else {
-		log.Info("Status mode set to", status, res.StatusCode)
-	}
 }
 
 func readAccountData() (string, string) {
@@ -104,8 +86,8 @@ func readAccountData() (string, string) {
 	return pass1, pass2
 }
 
-func loadConfig() {
-	viper.SetConfigName("config")   // name of config file (without extension)
+func loadConfig(configFile string) {
+	viper.SetConfigName(configFile) // name of config file (without extension)
 	viper.AddConfigPath("settings") // path to look for the config file in
 	viper.AddConfigPath(".")        // optionally look for config in the working directory
 	err := viper.ReadInConfig()     // Find and read the config file
@@ -124,8 +106,6 @@ func loadConfig() {
 
 	viper.SetDefault("delegate.address", "")
 	viper.SetDefault("delegate.pubkey", "")
-	viper.SetDefault("delegate.Daddress", "")
-	viper.SetDefault("delegate.Dpubkey", "")
 
 	viper.SetDefault("voters.shareRatio", 0.0)
 	viper.SetDefault("voters.txdescription", "share tx by ark-go")
@@ -143,26 +123,23 @@ func loadConfig() {
 	viper.SetDefault("costs.address", "")
 	viper.SetDefault("costs.shareRatio", 0.0)
 	viper.SetDefault("costs.txdescription", "cost tx by ark-go")
-	viper.SetDefault("costs.Daddress", "")
 
 	viper.SetDefault("reserve.address", "")
 	viper.SetDefault("reserve.shareRatio", 0.0)
 	viper.SetDefault("reserve.txdescription", "reserve tx by ark-go")
-	viper.SetDefault("reserve.Daddress", "")
 
 	viper.SetDefault("personal.address", "")
 	viper.SetDefault("personal.shareRatio", 0.0)
 	viper.SetDefault("personal.txdescription", "personal tx by ark-go")
-	viper.SetDefault("personal.Daddress", "")
 
 	viper.SetDefault("client.network", "DEVNET")
 	viper.SetDefault("client.dbFilename", "payment.db")
 	viper.SetDefault("client.multibroadcast", 10)
-	viper.SetDefault("client.statistics", true)
-	viper.SetDefault("client.statPeer", "164.8.251.91")
+	viper.SetDefault("client.payloadsize", 30)
+	viper.SetDefault("client.autoconfigPeer", "")
+	viper.SetDefault("client.statistics", false)
+	viper.SetDefault("client.statPeer", "")
 	viper.SetDefault("client.statPort", 54010)
-	viper.SetDefault("client.nodeversion", "1.0.1")
-	viper.SetDefault("client.Dnodeversion", "1.1.0")
 
 }
 
@@ -189,20 +166,9 @@ func clearScreen() {
 
 func printNetworkInfo() {
 	color.Set(color.FgHiCyan)
-	if core.EnvironmentParams.Network.Type == core.MAINNET {
-		fmt.Println("Connected to ARK MAINNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
-		log.Info("Connected to ARK MAINNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
-	}
 
-	if core.EnvironmentParams.Network.Type == core.DEVNET {
-		fmt.Println("Connected to ARK DEVNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
-		log.Info("Connected to ARK DEVNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
-	}
-
-	if core.EnvironmentParams.Network.Type == core.KAPU {
-		fmt.Println("Connected to KAPU MAINNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
-		log.Info("Connected to KAPU MAINNET on peer:", core.BaseURL, "| ARKGoPool version", ArkGoPoolVersion)
-	}
+	fmt.Println("Connected on", core.EnvironmentParams.Network.Token, "peer:", core.BaseURL, "| ARKGoPool version", version)
+	log.Info("Connected on ", core.EnvironmentParams.Network.Token, " peer: ", core.BaseURL, "| ARKGoPool version", version)
 }
 
 func printBanner() {
@@ -223,45 +189,41 @@ func printMenu() {
 	fmt.Println("\t3-Link account")
 	fmt.Println("\t4-List payment history")
 	fmt.Println("\t5-Send bonus payments")
-	fmt.Println("\t6-Switch networks ARK")
-	fmt.Println("\t7-Switch networks KAPU")
 	fmt.Println("\t0-Exit")
 	fmt.Println("")
-	fmt.Print("\tSelect option [1-9]:")
+	fmt.Print("\tSelect option [0-5]:")
 	color.Unset()
 }
 
 func main() {
-	//sending ARKGO Server that we are working with payments
-	//setting the version
-	ArkGoPoolVersion = "v0.8.0"
+	// Reading input parameters
+	configPtr := flag.String("config", "config", "Name of config file to use (without extension)")
+	modeSilentPtr := flag.Bool("silent", false, "Is silent mode")
+	flag.Parse()
 
 	// Load configration and defaults
 	// Order is important
-	loadConfig()
-	broadCastServiceMode(true)
+	loadConfig(*configPtr)
 	initLogger()
 
 	log.Info("=============================================================================")
 	log.Info("ARKGO client starting")
-	log.Info("ArkApiClient connected, active peer: ", arkclient.GetActivePeer())
 
 	initializeBoltClient()
 
-	//switch to preset network
-	if viper.GetString("client.network") == "DEVNET" {
+	if len(viper.GetString("client.autoconfigPeer")) > 0 {
+		log.Info("ARKGO client setting properties via autocofig peer ", viper.GetString("client.autoconfigPeer"))
+		arkclient = arkclient.SetActiveConfigurationFromPeerAddress(viper.GetString("client.autoconfigPeer"))
+	} else if viper.GetString("client.network") == "DEVNET" {
 		arkclient = arkclient.SetActiveConfiguration(core.DEVNET)
-	}
-	//switch to preset network
-	if viper.GetString("client.network") == "KAPU" {
+	} else if viper.GetString("client.network") == "KAPU" {
 		arkclient = arkclient.SetActiveConfiguration(core.KAPU)
+	} else {
+		arkclient = arkclient.SetActiveConfiguration(core.MAINNET)
 	}
 
-	//SILENT MODE CHECKING AND AUTOMATION RUNNING
-	modeSilentPtr := flag.Bool("silent", false, "Is silent mode")
-	//autoPayment := flag.Bool("autopay", true, "Process auto payment")
-	flag.Parse()
-	log.Info(flag.Args())
+	log.Info("ArkApiClient connected, active peer: ", arkclient.GetActivePeer())
+
 	if *modeSilentPtr {
 		log.Info("Silent Mode active")
 		log.Info("Starting to send payments")
@@ -270,9 +232,8 @@ func main() {
 		color.Unset()
 		wg.Wait()
 		log.Info("Exiting silent mode and arkgopool")
+
 		os.Exit(1985)
-		//sending ARKGO Server that we are working with payments
-		broadCastServiceMode(false)
 	}
 
 	var choice = 1
@@ -296,12 +257,6 @@ func main() {
 			SendPayments(false)
 			wg.Wait()
 			color.Unset()
-		case 6:
-			if core.EnvironmentParams.Network.Type == core.MAINNET {
-				arkclient = arkclient.SetActiveConfiguration(core.DEVNET)
-			} else {
-				arkclient = arkclient.SetActiveConfiguration(core.MAINNET)
-			}
 		case 3:
 			clearScreen()
 			save(readAccountData())
@@ -335,8 +290,6 @@ func main() {
 			SendBonusPayment(iAmount2Send, txBonusDesc)
 			pause()
 			color.Unset()
-		case 7:
-			arkclient = arkclient.SetActiveConfiguration(core.KAPU)
 		case 4:
 			clearScreen()
 			color.Set(color.FgHiGreen)
@@ -348,6 +301,5 @@ func main() {
 		}
 	}
 	color.Unset()
-	broadCastServiceMode(false)
 	log.Info("Exiting arkgopool....")
 }
