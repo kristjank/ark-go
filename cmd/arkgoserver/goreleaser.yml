@@ -1,0 +1,20 @@
+# .goreleaser.yml
+# Build customization
+project_name: ArkGoServer
+builds:
+  - binary: arkgoserver
+    goos:
+      - windows
+      - darwin
+      - linux
+    goarch:
+      - amd64
+archive:
+  files:
+    - cfg/sample.config.toml
+    - cfg/banner.txt
+    - log/.gitignore
+    
+  format_overrides:
+    - goos: windows
+      format: zip

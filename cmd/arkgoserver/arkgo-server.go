@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -16,10 +17,11 @@ import (
 )
 
 var router *gin.Engine
+var version = "master"
 
-func init() {
+func initServer(configFile string) {
 	initLogger()
-	loadConfig()
+	loadConfig(configFile)
 	api.InitGlobals()
 }
 
@@ -37,7 +39,9 @@ func initLogger() {
 
 }
 
-func loadConfig() {
+func loadConfig(configFile string) {
+	log.Info("Using config properties from", configFile)
+	viper.SetConfigName(configFile) // name of config file (without extension)
 	viper.SetConfigName("config")   // name of config file (without extension)
 	viper.AddConfigPath("cfg")      // path to look for the config file in
 	viper.AddConfigPath("settings") // path to look for the config file in
@@ -58,8 +62,6 @@ func loadConfig() {
 
 	viper.SetDefault("delegate.address", "")
 	viper.SetDefault("delegate.pubkey", "")
-	viper.SetDefault("delegate.Daddress", "")
-	viper.SetDefault("delegate.Dpubkey", "")
 
 	viper.SetDefault("voters.shareRatio", 0.0)
 	viper.SetDefault("voters.txdescription", "share tx by ark-go")
@@ -75,18 +77,15 @@ func loadConfig() {
 	viper.SetDefault("costs.address", "")
 	viper.SetDefault("costs.shareRatio", 0.0)
 	viper.SetDefault("costs.txdescription", "cost tx by ark-go")
-	viper.SetDefault("costs.Daddress", "")
 
 	viper.SetDefault("reserve.address", "")
 	viper.SetDefault("reserve.shareRatio", 0.0)
 	viper.SetDefault("reserve.txdescription", "reserve tx by ark-go")
-	viper.SetDefault("reserve.Daddress", "")
 	viper.SetDefault("personal.address", "")
 	viper.SetDefault("personal.shareRatio", 0.0)
 	viper.SetDefault("personal.txdescription", "personal tx by ark-go")
-	viper.SetDefault("personal.Daddress", "")
 
-	viper.SetDefault("client.network", "DEVNET")
+	viper.SetDefault("server.network", "DEVNET")
 	viper.SetDefault("server.address", "0.0.0.0")
 	viper.SetDefault("server.port", 54000)
 	viper.SetDefault("server.dbfilename", "payment.db")
@@ -171,12 +170,13 @@ func printBanner() {
 
 ///////////////////////////
 func main() {
-	printBanner()
-	log.Info("..........GOARK-DELEGATE-POOL-SERVER-STARTING............")
+	// Reading input parameters
+	configPtr := flag.String("config", "config", "Name of config file to use (without extension)")
+	flag.Parse()
+	initServer(*configPtr)
 
-	//sending ARKGO Server that we are working with payments
-	//setting the version
-	api.ArkGoServerVersion = "v0.4.1"
+	printBanner()
+	log.Info("..........ARKGO-DELEGATE-POOL-SERVER-STARTING............")
 
 	// Set the router as the default one provided by Gin
 	router = gin.Default()
