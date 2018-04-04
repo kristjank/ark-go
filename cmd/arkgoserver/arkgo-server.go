@@ -127,6 +127,7 @@ func initializeRoutes() {
 	peerRoutes.Use(api.CheckServiceModelHandler())
 	{
 		peerRoutes.GET("/rewards", api.GetVotersPendingRewards)
+		peerRoutes.GET("/rewards/total", api.GetVoterEarningsTotal)
 		peerRoutes.GET("/blocked", api.GetBlocked)
 		peerRoutes.GET("", api.GetVotersList)
 	}

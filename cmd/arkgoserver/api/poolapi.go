@@ -30,10 +30,6 @@ func GetVotersPendingRewards(c *gin.Context) {
 //GetDelegate Returns a list of peers to client call. Response is in JSON
 func GetDelegate(c *gin.Context) {
 	pubKey := viper.GetString("delegate.pubkey")
-	if core.EnvironmentParams.Network.Type == core.DEVNET {
-		pubKey = viper.GetString("delegate.Dpubkey")
-	}
-
 	params := core.DelegateQueryParams{PublicKey: pubKey}
 	deleResp, _, _ := ArkAPIclient.GetDelegate(params)
 
@@ -43,9 +39,6 @@ func GetDelegate(c *gin.Context) {
 //GetVotersList Returns a list voters that voted for a delegate
 func GetVotersList(c *gin.Context) {
 	pubKey := viper.GetString("delegate.pubkey")
-	if core.EnvironmentParams.Network.Type == core.DEVNET {
-		pubKey = viper.GetString("delegate.Dpubkey")
-	}
 
 	params := core.DelegateQueryParams{PublicKey: pubKey}
 	resp, _, _ := ArkAPIclient.GetDelegateVoters(params)
@@ -134,7 +127,7 @@ func GetDelegatePaymentRecord(c *gin.Context) {
 //URL samples:
 //1.TO GET ALL PAYMENT DETAILS: http://localhost:54000/delegate/paymentruns/details
 //2.TO GET ALL PAYMENT DETAILS FOR SPECIFIED PAYMENT RUN: http://localhost:54000/delegate/paymentruns/details?parentid=12
-//3.TO GET ALL PAYMENT DETAILS FOR SPECIFIED VOTER(address): http://localhost:54000/delegate/payments/details?address=D5St8ot3asrxYW3o63EV3bM1VC6UBKMUfE
+//3.TO GET ALL PAYMENT DETAILS FOR SPECIFIED VOTER(address): http://localhost:54000/delegate/paymentruns/details?address=D5St8ot3asrxYW3o63EV3bM1VC6UBKMUfE
 //4.TO GET ALL PAYMENT DETAILS FOR SPECIFIED VOTER(address) in Specified RUN:http://localhost:54000/delegate/paymentruns/details?parentid=12&address=D5St8ot3asrxYW3o63EV3bM1VC6UBKMUfE
 func GetDelegatePaymentRecordDetails(c *gin.Context) {
 	var results []model.PaymentLogRecord
@@ -157,7 +150,39 @@ func GetDelegatePaymentRecordDetails(c *gin.Context) {
 	err = query.Find(&results)
 
 	if err == nil {
-		c.JSON(200, gin.H{"success": true, "data": results, "count": len(results)})
+		totalEarnedXX := 0.0
+		for _, el := range results {
+			totalEarnedXX += el.EarnedAmountXX
+		}
+
+		c.JSON(200, gin.H{"success": true, "data": results, "count": len(results), "totalPayed": totalEarnedXX})
+	} else {
+		c.JSON(200, gin.H{"success": false, "error": err.Error()})
+	}
+}
+
+//GetVoterEarningsTotal Returns a list of peers to client call. Response is in JSON
+func GetVoterEarningsTotal(c *gin.Context) {
+	var results []model.PaymentLogRecord
+	var err error
+	var query storm.Query
+
+	address := c.DefaultQuery("address", "")
+	if address != "" {
+		query = Arkpooldb.Select(q.Eq("Address", address)).Reverse()
+	} else {
+		query = Arkpooldb.Select().Reverse()
+	}
+
+	err = query.Find(&results)
+
+	if err == nil {
+		totalEarnedXX := 0.0
+		for _, el := range results {
+			totalEarnedXX += el.EarnedAmountXX
+		}
+
+		c.JSON(200, gin.H{"success": true, "count": len(results), "totalPayed": totalEarnedXX})
 	} else {
 		c.JSON(200, gin.H{"success": false, "error": err.Error()})
 	}
