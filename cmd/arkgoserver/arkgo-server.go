@@ -22,7 +22,7 @@ var version = "master"
 func initServer(configFile string) {
 	initLogger()
 	loadConfig(configFile)
-	api.InitGlobals()
+	api.InitGlobals(version)
 }
 
 func initLogger() {

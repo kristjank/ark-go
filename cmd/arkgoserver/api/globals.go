@@ -22,7 +22,8 @@ var isServiceMode bool
 var rewardTicker *time.Ticker
 var VotersEarnings []core.DelegateDataProfit
 
-func InitGlobals() {
+func InitGlobals(version string) {
+	ArkGoServerVersion = version
 	isServiceMode = false
 	if len(viper.GetString("server.autoconfigPeer")) > 0 {
 		log.Info("ARKGOServer client setting properties via autocofig peer ", viper.GetString("server.autoconfigPeer"))

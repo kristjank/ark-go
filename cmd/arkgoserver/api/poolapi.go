@@ -134,7 +134,7 @@ func GetDelegatePaymentRecord(c *gin.Context) {
 //URL samples:
 //1.TO GET ALL PAYMENT DETAILS: http://localhost:54000/delegate/paymentruns/details
 //2.TO GET ALL PAYMENT DETAILS FOR SPECIFIED PAYMENT RUN: http://localhost:54000/delegate/paymentruns/details?parentid=12
-//3.TO GET ALL PAYMENT DETAILS FOR SPECIFIED VOTER(address): http://ocalhost:54000/delegate/payments/details?address=D5St8ot3asrxYW3o63EV3bM1VC6UBKMUfE
+//3.TO GET ALL PAYMENT DETAILS FOR SPECIFIED VOTER(address): http://localhost:54000/delegate/payments/details?address=D5St8ot3asrxYW3o63EV3bM1VC6UBKMUfE
 //4.TO GET ALL PAYMENT DETAILS FOR SPECIFIED VOTER(address) in Specified RUN:http://localhost:54000/delegate/paymentruns/details?parentid=12&address=D5St8ot3asrxYW3o63EV3bM1VC6UBKMUfE
 func GetDelegatePaymentRecordDetails(c *gin.Context) {
 	var results []model.PaymentLogRecord
