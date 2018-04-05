@@ -109,7 +109,7 @@ func autoConfigFromPeer(seedPeer string) string {
 	}
 
 	//reading fees
-	res, err = http.Get("http://" + seedPeer + "/api/blocks/getfees")
+	res, err = http.Get("http://" + seedPeer + "/api/blocks/getFees")
 	if err != nil {
 		log.Fatal("Error receiving fees params rest from: ", seedPeer)
 	}
