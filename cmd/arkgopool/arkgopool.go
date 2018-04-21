@@ -51,6 +51,7 @@ func initializeBoltClient() {
 	arkpooldb, err = storm.Open(viper.GetString("client.dbfilename"))
 
 	if err != nil {
+		log.Info("Error in initializeBoldClient", err.Error())
 		log.Panic(err.Error())
 	}
 
@@ -201,7 +202,7 @@ func main() {
 	modeSilentPtr := flag.Bool("silent", false, "Is silent mode")
 	flag.Parse()
 
-	// Load configration and defaults
+	// Load configuration and defaults
 	// Order is important
 	loadConfig(*configPtr)
 	initLogger()
@@ -209,10 +210,12 @@ func main() {
 	log.Info("=============================================================================")
 	log.Info("ARKGO client starting")
 
+	log.Info("Starting initialize Bolt client.")
 	initializeBoltClient()
+	log.Info("Bolt client initialized.")
 
 	if len(viper.GetString("client.autoconfigPeer")) > 0 {
-		log.Info("ARKGO client setting properties via autocofig peer ", viper.GetString("client.autoconfigPeer"))
+		log.Info("ARKGO client setting properties via autoconfig peer ", viper.GetString("client.autoconfigPeer"))
 		arkclient = arkclient.SetActiveConfigurationFromPeerAddress(viper.GetString("client.autoconfigPeer"))
 	} else if viper.GetString("client.network") == "DEVNET" {
 		arkclient = arkclient.SetActiveConfiguration(core.DEVNET)
@@ -261,8 +264,8 @@ func main() {
 			clearScreen()
 			save(readAccountData())
 			color.Set(color.FgHiGreen)
-			log.Info("Account succesfully linked")
-			fmt.Println("Account succesfully linked")
+			log.Info("Account successfully linked")
+			fmt.Println("Account successfully linked")
 			pause()
 			color.Unset()
 		case 5:
