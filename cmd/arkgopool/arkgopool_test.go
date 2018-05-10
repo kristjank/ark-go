@@ -104,16 +104,3 @@ func TestCheckMinimumVoteTimeCandidates(t *testing.T) {
 	addresses2Block := checkMinimumVoteTime(deleResp, "")
 	log.Println(addresses2Block)
 }
-
-func TestSendStatisticsData(t *testing.T) {
-	loadConfig("config")
-	payrec := createPaymentRecord()
-	//payrec.Delegate = "frenk"
-	//payrec.DelegatePubKey = ""
-	payrec.Pk = 100
-	i := 0
-	for i < 100 {
-		i++
-		sendStatisticsData(&payrec)
-	}
-}

@@ -22,12 +22,18 @@ var isServiceMode bool
 var rewardTicker *time.Ticker
 var VotersEarnings []core.DelegateDataProfit
 
-func InitGlobals() {
+func InitGlobals(version string) {
+	ArkGoServerVersion = version
 	isServiceMode = false
-	if viper.GetString("server.autoconfigPeer") != "" {
+	if len(viper.GetString("server.autoconfigPeer")) > 0 {
+		log.Info("ARKGOServer client setting properties via autocofig peer ", viper.GetString("server.autoconfigPeer"))
 		ArkAPIclient = ArkAPIclient.SetActiveConfigurationFromPeerAddress(viper.GetString("server.autoconfigPeer"))
+	} else if viper.GetString("server.network") == "DEVNET" {
+		ArkAPIclient = ArkAPIclient.SetActiveConfiguration(core.DEVNET)
+	} else if viper.GetString("server.network") == "KAPU" {
+		ArkAPIclient = ArkAPIclient.SetActiveConfiguration(core.KAPU)
 	} else {
-		ArkAPIclient = core.NewArkClient(nil)
+		ArkAPIclient = ArkAPIclient.SetActiveConfiguration(core.MAINNET)
 	}
 	openDB()
 
@@ -37,9 +43,6 @@ func InitGlobals() {
 func initTicker4PendingRewardCalculation() {
 	rewardTicker = time.NewTicker(time.Minute * 10)
 	pubKey := viper.GetString("delegate.pubkey")
-	if core.EnvironmentParams.Network.Type == core.DEVNET {
-		pubKey = viper.GetString("delegate.Dpubkey")
-	}
 	params := core.DelegateQueryParams{PublicKey: pubKey}
 
 	//do first reading of calculations (first tick is in 10 minutes from now)
