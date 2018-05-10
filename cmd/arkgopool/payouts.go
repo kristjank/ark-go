@@ -132,7 +132,7 @@ func SendPayments(silent bool) {
 			pause()
 		}
 		rollbackTx(dbtx)
-		log.Fatal("Unable to calculcate. Check share ratio configuration in your config.toml.")
+		log.Fatal("Unable to calculate. Check share ratio configuration in your config.toml.")
 		return
 	}
 
@@ -145,7 +145,7 @@ func SendPayments(silent bool) {
 	var p1, p2 string
 	var key1 *arkcoin.PrivateKey
 	if _, err := os.Stat("assembly.ark"); err == nil {
-		log.Info("Linked accound data found. Using saved account information.")
+		log.Info("Linked account data found. Using saved account information.")
 
 		p1, p2 = read()
 
@@ -203,7 +203,7 @@ func SendPayments(silent bool) {
 			//Logging history to DB
 			save2db(dbtx, element, tx, payrec.Pk)
 		} else {
-			log.Info("Skipping voter address ", element.Address, " Earned amount: ", txAmount2Send, " below minimium: ", minAmountSetting)
+			log.Info("Skipping voter address ", element.Address, " Earned amount: ", txAmount2Send, " below minimum: ", minAmountSetting)
 		}
 	}
 
@@ -386,7 +386,7 @@ func SendBonusPayment(iAmount int, txDesc string) {
 	var p1, p2 string
 	var key1 *arkcoin.PrivateKey
 	if _, err := os.Stat("assembly.ark"); err == nil {
-		log.Info("Linked accound data found. Using saved account information.")
+		log.Info("Linked account data found. Using saved account information.")
 
 		p1, p2 = read()
 
