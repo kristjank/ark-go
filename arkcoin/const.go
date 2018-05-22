@@ -13,7 +13,7 @@ var (
 		//HDPublicKeyID:          []byte{0x04, 0x88, 0xb2, 0x1e},
 	}
 	ArkCoinDevTest = &Params{
-		DumpedPrivateKeyHeader: []byte{239}, //wif
+		DumpedPrivateKeyHeader: []byte{170}, //wif
 		AddressHeader:          30,          //0x17
 		//P2SHHeader:             5,
 		//HDPrivateKeyID:         []byte{0x04, 0x88, 0xad, 0xe4},
