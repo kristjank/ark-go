@@ -131,7 +131,7 @@ func (tx *Transaction) toBytes(skipSignature, skipSecondSignature bool) []byte {
 }
 
 //CreateTransaction creates and returns new Transaction struct...
-func CreateTransaction(recipientID string, satoshiAmount int64, vendorField, passphrase, secondPassphrase string) *Transaction {
+func CreateTransaction(recipientID string, satoshiAmount int64, vendorField, passphrase, secondPassphrase string, fee int64) *Transaction {
 	tx := Transaction{
 		Type:        SENDARK,
 		RecipientID: recipientID,
@@ -140,6 +140,9 @@ func CreateTransaction(recipientID string, satoshiAmount int64, vendorField, pas
 		VendorField: vendorField,
 	}
 
+	if fee != 0 {
+		tx.Fee = fee
+	}
 	tx.Timestamp = GetTime() //1
 	tx.sign(passphrase)
 
