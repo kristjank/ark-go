@@ -196,7 +196,7 @@ func SendDARK(c *gin.Context) {
 
 	if darkRequesters[c.ClientIP()] < 3 {
 		var payload core.TransactionPayload
-		txpersonal := core.CreateTransaction(address, 5000000000, "DARK wallet created - now start hacking:)", "post throw venue dove boss mule amount pencil coach crisp purpose slice", "")
+		txpersonal := core.CreateTransaction(address, 5000000000, "DARK wallet created - now start hacking:)", "post throw venue dove boss mule amount pencil coach crisp purpose slice", "", 0)
 		payload.Transactions = append(payload.Transactions, txpersonal)
 
 		arktmpclient := core.NewArkClient(nil)

@@ -198,7 +198,7 @@ func SendPayments(silent bool) {
 
 		//checking MinAmount && MaxAmount properties
 		if txAmount2Send > minAmountSetting && txAmount2Send > 0 {
-			tx := core.CreateTransaction(element.Address, txAmount2Send, viper.GetString("voters.txdescription"), p1, p2)
+			tx := core.CreateTransaction(element.Address, txAmount2Send, viper.GetString("voters.txdescription"), p1, p2, 0)
 			payload.Transactions = append(payload.Transactions, tx)
 			//Logging history to DB
 			save2db(dbtx, element, tx, payrec.Pk)
@@ -261,7 +261,7 @@ func SendPayments(silent bool) {
 			costAddress = viper.GetString("costs.Daddress")
 		}
 
-		txCosts := core.CreateTransaction(costAddress, costAmount2Send, viper.GetString("costs.txdescription"), p1, p2)
+		txCosts := core.CreateTransaction(costAddress, costAmount2Send, viper.GetString("costs.txdescription"), p1, p2, 0)
 		payload.Transactions = append(payload.Transactions, txCosts)
 	}
 
@@ -272,7 +272,7 @@ func SendPayments(silent bool) {
 		if core.EnvironmentParams.Network.Type == core.DEVNET {
 			reserveAddress = viper.GetString("reserve.Daddress")
 		}
-		txReserve := core.CreateTransaction(reserveAddress, reserveAmount2Send, viper.GetString("reserve.txdescription"), p1, p2)
+		txReserve := core.CreateTransaction(reserveAddress, reserveAmount2Send, viper.GetString("reserve.txdescription"), p1, p2, 0)
 		payload.Transactions = append(payload.Transactions, txReserve)
 	}
 
@@ -283,7 +283,7 @@ func SendPayments(silent bool) {
 		if core.EnvironmentParams.Network.Type == core.DEVNET {
 			personalAddress = viper.GetString("personal.Daddress")
 		}
-		txpersonal := core.CreateTransaction(personalAddress, personalAmount2Send, viper.GetString("personal.txdescription"), p1, p2)
+		txpersonal := core.CreateTransaction(personalAddress, personalAmount2Send, viper.GetString("personal.txdescription"), p1, p2, 0)
 		payload.Transactions = append(payload.Transactions, txpersonal)
 	}
 
@@ -425,7 +425,7 @@ func SendBonusPayment(iAmount int, txDesc string) {
 			continue
 		}
 		//transaction parameters
-		tx := core.CreateTransaction(element.Address, txAmount2Send, txDesc, p1, p2)
+		tx := core.CreateTransaction(element.Address, txAmount2Send, txDesc, p1, p2, 0)
 		payload.Transactions = append(payload.Transactions, tx)
 		//Logging history to DB
 		savebonus2db(dbtx, element.Address, tx, payrec.Pk)
