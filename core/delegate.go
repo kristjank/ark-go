@@ -38,7 +38,7 @@ type DelegateData struct {
 	Productivity   float64 `json:"productivity"`
 }
 
-//ForgedDetails structureto hold delegate details
+//ForgedDetails structure to hold delegate details
 type ForgedDetails struct {
 	Success bool   `json:"success"`
 	Fees    string `json:"fees"`
@@ -65,7 +65,7 @@ type DelegateDataProfit struct {
 	VoteDuration    int     //Duration of vote in Hours
 }
 
-//ListDelegates function returns list of delegtes. The top 51 delegates are returned
+//ListDelegates function returns list of delegates. The top 51 delegates are returned
 func (s *ArkClient) ListDelegates(params DelegateQueryParams) (DelegateResponse, *http.Response, error) {
 	respData := new(DelegateResponse)
 	respError := new(ArkApiResponseError)
