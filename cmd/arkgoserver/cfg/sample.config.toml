@@ -34,6 +34,7 @@ port = 54000
 address = "0.0.0.0"
 dbfilename = "payment.db"
 autoconfigPeer = "" #node ip address and port to start talking with blockchain and configure from it there (autoconfigure)
+#If you are running on the same server do NOT set 127.0.0.1:4001 but your real ip. The node blocks 127 ip's.
 network = "MAINNET" #if autoconfigpeer is not set, network is used
 
 #FRONTEND settings related to page generation
