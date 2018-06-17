@@ -41,7 +41,7 @@ type PeerQueryParams struct {
 func (s *ArkClient) ListPeers(params PeerQueryParams) (PeerResponse, *http.Response, error) {
 	peerResponse := new(PeerResponse)
 	peerResponseError := new(ArkApiResponseError)
-	resp, err := s.sling.New().Get("peer/list").QueryStruct(&params).Receive(peerResponse, peerResponseError)
+	resp, err := s.sling.New().Get("api/peers").QueryStruct(&params).Receive(peerResponse, peerResponseError)
 	if err == nil {
 		err = peerResponseError
 	}
@@ -53,7 +53,7 @@ func (s *ArkClient) ListPeers(params PeerQueryParams) (PeerResponse, *http.Respo
 func (s *ArkClient) GetAllPeers() (PeerResponse, ArkApiResponseError, *http.Response) {
 	peerResponse := new(PeerResponse)
 	peerResponseError := new(ArkApiResponseError)
-	resp, err := s.sling.New().Get("peer/list").Receive(peerResponse, peerResponseError)
+	resp, err := s.sling.New().Get("api/peers").Receive(peerResponse, peerResponseError)
 
 	if err != nil {
 		peerResponseError.ErrorMessage = err.Error()
