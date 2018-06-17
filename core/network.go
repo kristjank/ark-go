@@ -82,7 +82,7 @@ func NewArkClientFromIP(ipAddress string) *ArkClient {
 }
 
 //TestMethodNewArkClient creations with supported network
-//A test method for local node testing when implementid
+//A test method for local node testing when implemented
 //Not for production use
 func TestMethodNewArkClient(httpClient *http.Client) *ArkClient {
 	return &ArkClient{
@@ -95,7 +95,7 @@ func TestMethodNewArkClient(httpClient *http.Client) *ArkClient {
 }
 
 //SwitchPeer switches client connection to another node
-//usage: must reassing pointer: arkapi = arkapi.SwitchPeer()
+//usage: must reassign pointer: arkapi = arkapi.SwitchPeer()
 func (s *ArkClient) SwitchPeer() *ArkClient {
 	s1 := rand.NewSource(time.Now().UnixNano())
 	r1 := rand.New(s1)
@@ -106,7 +106,7 @@ func (s *ArkClient) SwitchPeer() *ArkClient {
 		return NewArkClient(nil)
 	}
 
-	//if we have active memory peer list - we select a new random peer from already inited memlist
+	//if we have active memory peer list - we select a new random peer from already initiated memlist
 	//list is filled in LoadActiveConfiguration-where client init is made
 	EnvironmentParams.Network.ActivePeer = EnvironmentParams.Network.PeerList[r1.Intn(len(EnvironmentParams.Network.PeerList))]
 	BaseURL = "http://" + EnvironmentParams.Network.ActivePeer.IP + ":" + strconv.Itoa(EnvironmentParams.Network.ActivePeer.Port)
@@ -133,6 +133,7 @@ func (s *ArkClient) GetRandomXPeers(numberOfPeers int) []Peer {
 	r1 := rand.New(s1)
 
 	nrAllPeers := len(EnvironmentParams.Network.PeerList)
+
 	var retPeers []Peer
 	for i := 0; i < numberOfPeers; i++ {
 		retPeers = append(retPeers, EnvironmentParams.Network.PeerList[r1.Intn(nrAllPeers)])

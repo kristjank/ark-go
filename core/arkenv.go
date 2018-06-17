@@ -152,7 +152,7 @@ func optimizePeerList(selectedPeer string) string {
 	EnvironmentParams.Network.PeerList = peerResp.Peers
 	log.Println("Start to optimize peer list, currently ", len(EnvironmentParams.Network.PeerList), " peers.")
 
-	//Clean the peer list (filters not working as they shoud) - so checking again here
+	//Clean the peer list (filters not working as they should) - so checking again here
 	maxHeight := EnvironmentParams.Network.ActivePeer.Height
 	for i := len(EnvironmentParams.Network.PeerList) - 1; i >= 0; i-- {
 		peer := EnvironmentParams.Network.PeerList[i]
@@ -163,7 +163,7 @@ func optimizePeerList(selectedPeer string) string {
 			//log.Println("Removing peer", peer.IP, peer.Status, peer.Height)
 			continue
 		}
-		//if all is ok and height is higher - we preffer peers with higher hight
+		//if all is ok and height is higher - we preffer peers with higher height
 		if peer.Height > maxHeight {
 			log.Println("Setting new active peer, found OK peer with bigger block height", peer.Height, maxHeight)
 			EnvironmentParams.Network.ActivePeer = peer
@@ -172,7 +172,7 @@ func optimizePeerList(selectedPeer string) string {
 		}
 	}
 
-	//removing peers with difference more then 10 blocks, that is 10x8s behing mainheight
+	//removing peers with difference more then 10 blocks, that is 10x8s behind main height
 	for i := len(EnvironmentParams.Network.PeerList) - 1; i >= 0; i-- {
 		peer := EnvironmentParams.Network.PeerList[i]
 
@@ -202,7 +202,7 @@ func switchNetwork(arkNetwork ArkNetworkType) {
 }
 
 //SetActiveConfiguration sets a new client connection, switches network and reads network settings from peer
-//usage - must reassing new pointer value: arkapi = arkapi.SetActiveConfiguration(MAINNET)
+//usage - must reassign new pointer value: arkapi = arkapi.SetActiveConfiguration(MAINNET)
 func (s *ArkClient) SetActiveConfiguration(arkNetwork ArkNetworkType) *ArkClient {
 	switchNetwork(arkNetwork)
 	return NewArkClient(nil)
