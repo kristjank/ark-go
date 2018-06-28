@@ -27,7 +27,7 @@ const (
 
 //Transaction struct - represents structure of ARK.io blockchain transaction
 //It is used to post transaction to mainnet and to receive results from arkapi
-//Empty fields are emmited by default
+//Empty fields are omitted by default
 type Transaction struct {
 	ID                    string            `json:"id,omitempty"`
 	Timestamp             int32             `json:"timestamp,omitempty"`
@@ -48,7 +48,7 @@ type Transaction struct {
 	Confirmations         int               `json:"confirmations,omitempty"`
 }
 
-//FromBytes implementation - deserialization of recveived tx
+//FromBytes implementation - de-serialization of received tx
 func fromBytes(txbytes []byte) Transaction {
 	txReader := bytes.NewReader(txbytes)
 
@@ -131,7 +131,7 @@ func (tx *Transaction) toBytes(skipSignature, skipSecondSignature bool) []byte {
 }
 
 //CreateTransaction creates and returns new Transaction struct...
-func CreateTransaction(recipientID string, satoshiAmount int64, vendorField, passphrase, secondPassphrase string) *Transaction {
+func CreateTransaction(recipientID string, satoshiAmount int64, vendorField, passphrase, secondPassphrase string, fee int64) *Transaction {
 	tx := Transaction{
 		Type:        SENDARK,
 		RecipientID: recipientID,
@@ -140,6 +140,9 @@ func CreateTransaction(recipientID string, satoshiAmount int64, vendorField, pas
 		VendorField: vendorField,
 	}
 
+	if fee != 0 {
+		tx.Fee = fee
+	}
 	tx.Timestamp = GetTime() //1
 	tx.sign(passphrase)
 
@@ -269,7 +272,7 @@ func quickHexDecode(data string) []byte {
 }
 
 //Verify function verifies if tx is validly signed
-//if return == nill verification was succesfull
+//if return == nill verification was successfull
 func (tx *Transaction) Verify() error {
 	key, err := arkcoin.NewPublicKey(quickHexDecode(tx.SenderPublicKey), arkcoin.ActiveCoinConfig)
 	if err != nil {
@@ -282,7 +285,7 @@ func (tx *Transaction) Verify() error {
 }
 
 //SecondVerify function verifies if tx is validly signed
-//if return == nill verification was succesfull
+//if return == nill verification was successfull
 func (tx *Transaction) SecondVerify() error {
 	key, err := arkcoin.NewPublicKey(quickHexDecode(tx.SecondSenderPublicKey), arkcoin.ActiveCoinConfig)
 	if err != nil {
@@ -306,7 +309,7 @@ type TransactionPayload struct {
 	Transactions []*Transaction `json:"transactions"`
 }
 
-//TransactionQueryParams for returing filtered list of transactions
+//TransactionQueryParams for returning filtered list of transactions
 type TransactionQueryParams struct {
 	ID          string          `url:"id,omitempty"`
 	BlockID     string          `url:"blockId,omitempty"`
@@ -318,7 +321,7 @@ type TransactionQueryParams struct {
 	Type        TransactionType `url:"type,omitempty"`
 }
 
-//TransactionResponse structure holds parsed jsong reply from ark-node
+//TransactionResponse structure holds parsed json reply from ark-node
 //when calling list methods the Transactions [] has results
 //when calling get methods the transaction object (Single) has results
 type TransactionResponse struct {
@@ -347,7 +350,7 @@ func (s *ArkClient) PostTransaction(payload TransactionPayload) (PostTransaction
 }
 
 //RelayNodeTransaction2Nodes to selected ARKNetwork
-//different structure types - packagea
+//different structure types - package
 //Call only from GOARK-NODE
 func (s *ArkClient) RelayNodeTransaction2Nodes(payload model.TransactionPayload) (model.PostTransactionResponse, *http.Response, error) {
 	respTr := new(model.PostTransactionResponse)

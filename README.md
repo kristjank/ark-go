@@ -76,7 +76,7 @@ arkapi := NewArkClient(nil)
 recepient := "address"
 passphrase := "pass"
 
-tx := CreateTransaction(recepient,1,"ARK-GOLang is saying whoop whooop",passphrase, "")
+tx := CreateTransaction(recepient,1,"ARK-GOLang is saying whoop whooop",passphrase, "",0)
 payload.Transactions = append(payload.Transactions, tx)
 res, httpresponse, err := arkapi.PostTransaction(payload)
 ```

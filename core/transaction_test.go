@@ -12,7 +12,7 @@ func TestCreateSignTransaction(t *testing.T) {
 	tx := CreateTransaction("AXoXnFi4z1Z6aFvjEYkDVCtBGW2PaRiM25",
 		133380000000,
 		"This is first transaction from ARK-NET",
-		"this is a top secret passphrase", "")
+		"this is a top secret passphrase", "", 0)
 
 	if tx.Amount == 0 {
 		t.Error("Amount is zero")
@@ -42,7 +42,7 @@ func TestVerifyTransaction(t *testing.T) {
 	tx := CreateTransaction("AXoXnFi4z1Z6aFvjEYkDVCtBGW2PaRiM25",
 		133380000000,
 		"This is first transaction from ARK-NET",
-		"this is a top secret passphrase", "")
+		"this is a top secret passphrase", "", 0)
 
 	err := tx.Verify()
 	if err != nil {
@@ -55,7 +55,7 @@ func TestSecondVerifyTransaction(t *testing.T) {
 	tx := CreateTransaction("AXoXnFi4z1Z6aFvjEYkDVCtBGW2PaRiM25",
 		133380000000,
 		"This is first transaction from ARK-NET",
-		"this is a top secret passphrase", "second top secret")
+		"this is a top secret passphrase", "second top secret", 0)
 
 	err := tx.SecondVerify()
 	if err != nil {
@@ -79,17 +79,17 @@ func TestPostTransaction(t *testing.T) {
 		tx := CreateTransaction(recepient,
 			1,
 			"1ARK-GOLang is saying whoop whooop",
-			passphrase, "")
+			passphrase, "", 0)
 
 		tx1 := CreateTransaction(recepient,
 			1,
 			"2ARK-GOLang is saying whoop whooop",
-			passphrase, "")
+			passphrase, "", 0)
 
 		tx2 := CreateTransaction(recepient,
 			1,
 			"3ARK-GOLang is saying whoop whooop",
-			passphrase, "")
+			passphrase, "", 0)
 
 		var payload TransactionPayload
 		payload.Transactions = append(payload.Transactions, tx)
@@ -135,7 +135,7 @@ func TestPostTransactionSimple(t *testing.T) {
 		tx := CreateTransaction(recepient,
 			1, //amount
 			"HACKPRINCETON - 2017", //vendor field
-			passphrase, "")
+			passphrase, "", 0)
 
 		var payload TransactionPayload
 		payload.Transactions = append(payload.Transactions, tx)
@@ -255,7 +255,7 @@ func TestAddress(t *testing.T) {
 }
 
 func TestFromBytes(t *testing.T) {
-	tx := CreateTransaction("D61mfSggzbvQgTUe6JhYKH2doHaqJ3Dyib", 1, "ARK-GOLang is saying whoop whooop", "passphrase", "")
+	tx := CreateTransaction("D61mfSggzbvQgTUe6JhYKH2doHaqJ3Dyib", 1, "ARK-GOLang is saying whoop whooop", "passphrase", "", 0)
 
 	//tx := CreateVote("+", "034151a3ec46b5670a682b0a63394f863587d1bc97483b1b6c70eb58e7f0aed192", "this is a top secret passphrase", "")
 
@@ -293,17 +293,17 @@ func TestPostToLocalNodeTransaction(t *testing.T) {
 	tx := CreateTransaction(recepient,
 		1,
 		"1ARK-GOLang is saying whoop whooop",
-		passphrase, "")
+		passphrase, "", 0)
 
 	tx1 := CreateTransaction(recepient,
 		2,
 		"2ARK-GOLang is saying whoop whooop",
-		passphrase, "")
+		passphrase, "", 0)
 
 	tx2 := CreateTransaction(recepient,
 		3,
 		"3ARK-GOLang is saying whoop whooop",
-		passphrase, "")
+		passphrase, "", 0)
 
 	var payload TransactionPayload
 	payload.Transactions = append(payload.Transactions, tx)
