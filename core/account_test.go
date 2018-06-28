@@ -20,6 +20,10 @@ func TestGetAccount(t *testing.T) {
 		log.Println(t.Name(), "Account found", accRest.Account.PublicKey, accRest.Account.Balance, accRest.Account.SecondSignature)
 
 	} else {
-		t.Error("Account not found", resp.Status, err.Error())
+		if resp != nil {
+			t.Error("Account not found", resp.Status, err.Error())
+		} else {
+			t.Error("Account not found", err.Error())
+		}
 	}
 }
