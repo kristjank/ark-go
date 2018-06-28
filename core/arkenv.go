@@ -190,10 +190,6 @@ func switchNetwork(arkNetwork ArkNetworkType) {
 	BaseURL = LoadActiveConfiguration(arkNetwork)
 	var wifHeader = []byte{170}
 
-	if arkNetwork == DEVNET {
-		wifHeader = []byte{239}
-	}
-
 	coinParams := arkcoin.Params{
 		AddressHeader:          EnvironmentParams.Network.AddressVersion,
 		DumpedPrivateKeyHeader: wifHeader,
